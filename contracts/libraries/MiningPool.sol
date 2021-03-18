@@ -12,12 +12,13 @@ import "./ERC20Recoverer.sol";
 import "../tokens/CommitmentToken.sol";
 import "../interfaces/ITokenEmitter.sol";
 
-contract MiningPool is ReentrancyGuard, Pausable {
+contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public immutable token;
-    ITokenEmitter public immutable tokenEmitter;
+    IERC20 public baseToken;
+    IERC20 public token;
+    ITokenEmitter public tokenEmitter;
 
     uint256 public miningEnds = 0;
     uint256 public miningRate = 0;
@@ -35,11 +36,6 @@ contract MiningPool is ReentrancyGuard, Pausable {
     event Withdrawn(address indexed user, uint256 numOfMiners);
     event Mined(address indexed user, uint256 amount);
 
-    constructor(address _token, address _tokenEmitter) {
-        token = IERC20(_token);
-        tokenEmitter = ITokenEmitter(_tokenEmitter);
-    }
-
     modifier onlyTokenEmitter() {
         require(
             msg.sender == address(tokenEmitter),
@@ -56,6 +52,27 @@ contract MiningPool is ReentrancyGuard, Pausable {
             paidTokenPerMiner[account] = _tokenPerMiner;
         }
         _;
+    }
+
+    constructor() ERC20Recoverer() {}
+
+    function initialize(
+        address _token,
+        address _tokenEmitter,
+        address _baseToken,
+        address _recoverTo
+    ) public {
+        require(address(token) == address(0), "Already initialized");
+        require(_token != address(0));
+        require(_tokenEmitter != address(0));
+        require(_baseToken != address(0));
+        require(_recoverTo != address(0));
+        token = IERC20(_token);
+        tokenEmitter = ITokenEmitter(_tokenEmitter);
+        baseToken = IERC20(_baseToken);
+        ERC20Recoverer.disablePermanently(_token);
+        ERC20Recoverer.disablePermanently(_baseToken);
+        ERC20Recoverer.setRecoverer(_recoverTo);
     }
 
     function allocate(uint256 amount)

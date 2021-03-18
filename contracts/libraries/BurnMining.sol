@@ -1,28 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.7.0;
 
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "./MiningPool.sol";
 import "./ERC20Recoverer.sol";
 
-contract BurnMining is MiningPool, ERC20Recoverer {
+contract BurnMining is MiningPool {
     using SafeMath for uint256;
-    CommitmentToken public immutable commitmentToken;
 
-    constructor(
-        address _gov,
-        address _visionToken,
-        address _visionTokenEmitter,
-        address _commitmentToken
-    ) MiningPool(_visionToken, _visionTokenEmitter) ERC20Recoverer() {
-        commitmentToken = CommitmentToken(_commitmentToken);
-        ERC20Recoverer.disablePermanently(_commitmentToken);
-        ERC20Recoverer.disablePermanently(_visionToken);
-        ERC20Recoverer.setRecoverer(_gov);
-    }
+    constructor() MiningPool() {}
 
     function burn(uint256 amount) public {
         _dispatchMiners(amount);
-        commitmentToken.burnFrom(msg.sender, amount);
+        ERC20Burnable(address(baseToken)).burnFrom(msg.sender, amount);
     }
 
     function mine() public nonReentrant recordMining(msg.sender) {

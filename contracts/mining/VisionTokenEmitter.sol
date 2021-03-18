@@ -6,12 +6,20 @@ import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../tokens/VisionToken.sol";
 import "../interfaces/IMiningPool.sol";
+import "../interfaces/IMiningPoolFactory.sol";
 import "../governance/Governed.sol";
 
 contract VisionTokenEmitter is Governed {
     using SafeMath for uint256;
 
+    uint256 public constant INITIAL_EMISSION = 24000000 ether; // 1e24
+    uint256 public minEmissionRatePerWeek = 60; // 0.006 per week ~= 36% yearly inflation
+    uint256 public DENOMINATOR = 10000;
+
     VisionToken public immutable visionToken;
+
+    IMiningPoolFactory public immutable burnMiningPoolFactory;
+    IMiningPoolFactory public immutable stakeMiningPoolFactory;
 
     address public immutable dev;
 
@@ -21,9 +29,8 @@ contract VisionTokenEmitter is Governed {
 
     IMiningPool[] public pools;
 
-    uint256 public constant INITIAL_EMISSION = 1000000 ether; // 1e24
-    uint256 public constant MIN_RATE_NUMERATOR = 5; // 0.0005
-    uint256 public constant MIN_RATE_DENOMINATOR = 10000; // 0.0005
+    mapping(address => address) public burnMiningPools;
+    mapping(address => address) public stakeMiningPools;
 
     struct Rate {
         uint256 numerator;
@@ -38,32 +45,97 @@ contract VisionTokenEmitter is Governed {
         uint256 sum;
     }
 
-    // Commitment mining: 42.45%, Liquidity mining: 42.45%, DevFund: 5%, Airdrops: 5%, Frontiers: 5%, Caller: 0.1%
-    EmissionWeight public weight;
+    EmissionWeight public emissionWeight;
 
     uint256 public emissionStarted;
 
     uint256 public emissionWeekNum;
 
+    event Start();
     event TokenEmission(uint256 amount);
+    event EmissionRateUpdated(uint256 rate);
     event EmissionPeriodUpdated(uint256 newPeriod);
+    event EmissionWeightUpdated(uint256 numberOfPools);
+    event NewStakeMiningPool(address baseToken, address pool);
+    event NewBurnMiningPool(address baseToken, address pool);
 
     constructor(
-        address _protocolFund,
         address _dev,
+        address _protocolFund,
         address _gov,
-        address _visionToken
+        address _visionToken,
+        address _burnMiningPoolFactory,
+        address _stakeMiningPoolFactory
     ) Governed() {
         dev = _dev;
         setProtocolFund(_protocolFund);
         visionToken = VisionToken(_visionToken);
+        burnMiningPoolFactory = IMiningPoolFactory(_burnMiningPoolFactory);
+        stakeMiningPoolFactory = IMiningPoolFactory(_stakeMiningPoolFactory);
         Governed.setGovernance(_gov);
     }
 
-    function addMiningPools(address[] memory _miningPools) public governed {
+    function newBurnMiningPool(address _burningToken) public {
+        address _pool =
+            burnMiningPoolFactory.newPool(
+                address(visionToken),
+                address(this),
+                _burningToken,
+                gov
+            );
+        burnMiningPools[_burningToken] = _pool;
+        emit NewBurnMiningPool(_burningToken, _pool);
+    }
+
+    function newStakeMiningPool(address _stakingToken) public {
+        address _pool =
+            stakeMiningPoolFactory.newPool(
+                address(visionToken),
+                address(this),
+                _stakingToken,
+                gov
+            );
+        stakeMiningPools[_stakingToken] = _pool;
+        emit NewStakeMiningPool(_stakingToken, _pool);
+    }
+
+    function setEmission(
+        address[] memory _miningPools,
+        uint256[] memory _weights,
+        uint256 _protocolFund,
+        uint256 _caller
+    ) public governed {
+        require(
+            _miningPools.length == _weights.length,
+            "Both should have the same length."
+        );
+        IMiningPool[] memory _pools = new IMiningPool[](_miningPools.length);
+        uint256 _sum = _protocolFund + _caller; // doesn't overflow
         for (uint256 i = 0; i < _miningPools.length; i++) {
-            pools.push(IMiningPool(_miningPools[i]));
+            IMiningPool pool = IMiningPool(_miningPools[i]);
+            address _baseToken = pool.baseToken();
+            require(
+                stakeMiningPools[_baseToken] != address(pool) ||
+                    burnMiningPools[_baseToken] != address(pool),
+                "The mining pool should be created via newBurnMiningPool or newStakeMiningPool"
+            );
+            require(_weights[i] < 1e4, "prevent overflow");
+            _pools[i] = pool;
+            _sum += _weights[i]; // doesn't overflow
         }
+        require(_protocolFund < 1e4, "prevent overflow");
+        require(_caller < 1e4, "prevent overflow");
+        uint256 _dev = _sum / 20; // doesn't overflow;
+        _sum += _dev;
+        pools = _pools;
+        emissionWeight = EmissionWeight(
+            _weights,
+            _protocolFund,
+            _caller,
+            _dev,
+            _sum
+        );
+        emit EmissionWeightUpdated(_pools.length);
     }
 
     function setProtocolFund(address _fund) public governed {
@@ -72,24 +144,13 @@ contract VisionTokenEmitter is Governed {
 
     function start() public governed {
         emissionStarted = block.timestamp;
+        emit Start();
     }
 
-    function setEmissionWeight(
-        uint256[] memory _pools,
-        uint256 _protocolFund,
-        uint256 _caller
-    ) public governed {
-        require(_protocolFund < 1e4, "prevent overflow");
-        require(_caller < 1e4, "prevent overflow");
-        uint256 _sum = _protocolFund + _caller; // doesn't overflow
-        require(_pools.length <= pools.length, "out of index");
-        for (uint256 i = 0; i < _pools.length; i++) {
-            require(_pools[i] < 1e4, "prevent overflow");
-            _sum += _pools[i]; // doesn't overflow
-        }
-        uint256 _dev = _sum / 19; // doesn't overflow;
-        _sum += _dev;
-        weight = EmissionWeight(_pools, _protocolFund, _caller, _dev, _sum);
+    function setMinimumRate(uint256 rate) public governed {
+        require(rate <= DENOMINATOR, "Too big");
+        minEmissionRatePerWeek = rate;
+        emit EmissionRateUpdated(rate);
     }
 
     function setEmissionPeriod(uint256 period) public governed {
@@ -101,7 +162,7 @@ contract VisionTokenEmitter is Governed {
     function distribute() public {
         // current week from the mining start;
         uint256 weekNum =
-            emissionStarted.sub(block.timestamp).div(emissionPeriod);
+            block.timestamp.sub(emissionStarted).div(emissionPeriod);
         // The first vision token drop will be started a week after the "start" func called.
         require(
             weekNum > emissionWeekNum,
@@ -111,37 +172,46 @@ contract VisionTokenEmitter is Governed {
         emissionWeekNum = weekNum;
         // Minimum emission 0.05% per week will make 2.63% of inflation per year
         uint256 minEmission =
-            visionToken.totalSupply().mul(MIN_RATE_NUMERATOR).div(
-                MIN_RATE_DENOMINATOR
+            visionToken.totalSupply().mul(minEmissionRatePerWeek).div(
+                DENOMINATOR
             );
         // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
         uint256 halvedEmission = INITIAL_EMISSION.div(1 << (weekNum - 1));
         uint256 emissionAmount = Math.max(halvedEmission, minEmission);
 
         // allocate to mining pools
-        for (uint256 i = 0; i < weight.pools.length; i++) {
+        uint256 weightSum = emissionWeight.sum;
+        uint256 prevSupply = visionToken.totalSupply();
+        for (uint256 i = 0; i < emissionWeight.pools.length; i++) {
             require(i < pools.length, "out of index");
             _mintAndNotifyAllocation(
                 pools[i],
                 emissionAmount,
-                weight.pools[i],
-                weight.sum
+                emissionWeight.pools[i],
+                weightSum
             );
         }
 
         // Dev fund(protocol treasury)
         visionToken.mint(
             protocolFund,
-            weight.protocolFund.mul(emissionAmount).div(weight.sum)
+            emissionWeight.protocolFund.mul(emissionAmount).div(weightSum)
         );
-        // Frontier
-        visionToken.mint(dev, weight.dev.mul(emissionAmount).div(weight.sum));
         // Caller
         visionToken.mint(
             msg.sender,
-            weight.caller.mul(emissionAmount).div(weight.sum)
+            emissionWeight.caller.mul(emissionAmount).div(weightSum)
+        );
+        // Frontier
+        visionToken.mint(
+            dev,
+            emissionAmount - (visionToken.totalSupply() - prevSupply)
         );
         emit TokenEmission(emissionAmount);
+    }
+
+    function getPoolWeight(uint256 poolIndex) public view returns (uint256) {
+        return emissionWeight.pools[poolIndex];
     }
 
     function _mintAndNotifyAllocation(
