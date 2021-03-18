@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: GPL-3.0
 // Refactored synthetix StakingRewards.sol for general purpose mining pool logic.
 pragma solidity ^0.7.0;
 
