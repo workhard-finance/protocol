@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 contract CommitmentToken is ERC20Burnable {
     address public minter;
 
-    constructor() ERC20("DAO Commitment Token", "DCT") {
+    constructor() ERC20("Workhard Commitment Token", "WCT") {
         minter = msg.sender;
     }
 

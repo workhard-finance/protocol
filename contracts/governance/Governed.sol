@@ -60,6 +60,7 @@ contract Governed {
     function _anarchize() internal {
         _setGovernance(address(0));
         anarchizedAt = block.timestamp;
+        emit Anarchized();
     }
 
     function _setGovernance(address _gov) internal {

@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "./ERC20Recoverer.sol";
 import "../tokens/CommitmentToken.sol";
-import "../libraries/ERC20Recoverer.sol";
 import "../interfaces/ITokenEmitter.sol";
 
 contract MiningPool is ReentrancyGuard, Pausable {
@@ -17,9 +17,8 @@ contract MiningPool is ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable token;
-    address public immutable tokenEmitter;
+    ITokenEmitter public immutable tokenEmitter;
 
-    uint256 public miningPeriod;
     uint256 public miningEnds = 0;
     uint256 public miningRate = 0;
     uint256 public lastUpdateTime;
@@ -35,17 +34,15 @@ contract MiningPool is ReentrancyGuard, Pausable {
     event Dispatched(address indexed user, uint256 numOfMiners);
     event Withdrawn(address indexed user, uint256 numOfMiners);
     event Mined(address indexed user, uint256 amount);
-    event MiningPeriodUpdated(uint256 newPeriod);
 
     constructor(address _token, address _tokenEmitter) {
         token = IERC20(_token);
-        tokenEmitter = _tokenEmitter;
-        miningPeriod = ITokenEmitter(_tokenEmitter).emissionPeriod();
+        tokenEmitter = ITokenEmitter(_tokenEmitter);
     }
 
     modifier onlyTokenEmitter() {
         require(
-            msg.sender == tokenEmitter,
+            msg.sender == address(tokenEmitter),
             "Only the token emitter can call this function"
         );
         _;
@@ -66,6 +63,7 @@ contract MiningPool is ReentrancyGuard, Pausable {
         onlyTokenEmitter
         recordMining(address(0))
     {
+        uint256 miningPeriod = tokenEmitter.emissionPeriod();
         if (block.timestamp >= miningEnds) {
             miningRate = amount.div(miningPeriod);
         } else {
@@ -87,15 +85,6 @@ contract MiningPool is ReentrancyGuard, Pausable {
         lastUpdateTime = block.timestamp;
         miningEnds = block.timestamp.add(miningPeriod);
         emit Allocated(amount);
-    }
-
-    function setMiningPeriod(uint256 _miningPeriod) public onlyTokenEmitter {
-        require(
-            block.timestamp > miningEnds,
-            "Previous mining period must be complete before changing the duration for the new period"
-        );
-        miningPeriod = _miningPeriod;
-        emit MiningPeriodUpdated(miningPeriod);
     }
 
     function _dispatchMiners(uint256 miners)
@@ -158,6 +147,7 @@ contract MiningPool is ReentrancyGuard, Pausable {
     }
 
     function getMineableForPeriod() public view returns (uint256) {
+        uint256 miningPeriod = tokenEmitter.emissionPeriod();
         return miningRate.mul(miningPeriod);
     }
 }

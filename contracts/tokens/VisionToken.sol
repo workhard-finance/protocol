@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract VisionToken is ERC20 {
     address public minter;
 
-    constructor() ERC20("DAO Vision Token", "DVT") {
+    constructor() ERC20("Workhard Vision Token", "WVT") {
         minter = msg.sender;
     }
 

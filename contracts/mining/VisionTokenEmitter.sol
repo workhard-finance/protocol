@@ -5,8 +5,6 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "../tokens/VisionToken.sol";
-import "./LiquidityMining.sol";
-import "./CommitmentMining.sol";
 import "../interfaces/IMiningPool.sol";
 import "../governance/Governed.sol";
 
@@ -15,12 +13,13 @@ contract VisionTokenEmitter is Governed {
 
     VisionToken public immutable visionToken;
 
-    address public immutable devAddr;
+    address public immutable dev;
+
+    address public protocolFund;
 
     uint256 public emissionPeriod = 1 weeks; // default is 1 week
 
-    IMiningPool public liquidityMining;
-    IMiningPool public commitmentMining;
+    IMiningPool[] public pools;
 
     uint256 public constant INITIAL_EMISSION = 1000000 ether; // 1e24
     uint256 public constant MIN_RATE_NUMERATOR = 5; // 0.0005
@@ -31,15 +30,16 @@ contract VisionTokenEmitter is Governed {
         uint256 denominator;
     }
 
-    struct Weight {
-        uint256 commitmentMining;
-        uint256 liquidityMining;
-        uint256 dev;
+    struct EmissionWeight {
+        uint256[] pools;
+        uint256 protocolFund;
         uint256 caller;
+        uint256 dev;
+        uint256 sum;
     }
 
-    // Commitment mining: 47.45%, Liquidity mining: 47.45%, Dev: 5%, Caller: 0.1%
-    Weight public weight = Weight(4745, 4745, 500, 10);
+    // Commitment mining: 42.45%, Liquidity mining: 42.45%, DevFund: 5%, Airdrops: 5%, Frontiers: 5%, Caller: 0.1%
+    EmissionWeight public weight;
 
     uint256 public emissionStarted;
 
@@ -49,49 +49,53 @@ contract VisionTokenEmitter is Governed {
     event EmissionPeriodUpdated(uint256 newPeriod);
 
     constructor(
-        address _devAddr,
+        address _protocolFund,
+        address _dev,
         address _gov,
         address _visionToken
     ) Governed() {
-        devAddr = _devAddr;
+        dev = _dev;
+        setProtocolFund(_protocolFund);
         visionToken = VisionToken(_visionToken);
         Governed.setGovernance(_gov);
     }
 
-    /**
-     * @notice It starts the 7 days countdown to the mining launch.
-     */
-    function setMiningPool(address _liquidityMining, address _commitmentMining)
-        public
-        governed
-    {
-        liquidityMining = IMiningPool(_liquidityMining);
-        commitmentMining = IMiningPool(_commitmentMining);
+    function addMiningPools(address[] memory _miningPools) public governed {
+        for (uint256 i = 0; i < _miningPools.length; i++) {
+            pools.push(IMiningPool(_miningPools[i]));
+        }
+    }
+
+    function setProtocolFund(address _fund) public governed {
+        protocolFund = _fund;
     }
 
     function start() public governed {
         emissionStarted = block.timestamp;
     }
 
-    function setWeight(
-        uint256 commitment,
-        uint256 liquidity,
-        uint256 dev,
-        uint256 caller
+    function setEmissionWeight(
+        uint256[] memory _pools,
+        uint256 _protocolFund,
+        uint256 _caller
     ) public governed {
-        require(commitment < 1e4, "prevent overflow");
-        require(liquidity < 1e4, "prevent overflow");
-        require(dev < 1e4, "prevent overflow");
-        require(caller < 1e4, "prevent overflow");
-        weight = Weight(commitment, liquidity, dev, caller);
+        require(_protocolFund < 1e4, "prevent overflow");
+        require(_caller < 1e4, "prevent overflow");
+        uint256 _sum = _protocolFund + _caller; // doesn't overflow
+        require(_pools.length <= pools.length, "out of index");
+        for (uint256 i = 0; i < _pools.length; i++) {
+            require(_pools[i] < 1e4, "prevent overflow");
+            _sum += _pools[i]; // doesn't overflow
+        }
+        uint256 _dev = _sum / 19; // doesn't overflow;
+        _sum += _dev;
+        weight = EmissionWeight(_pools, _protocolFund, _caller, _dev, _sum);
     }
 
     function setEmissionPeriod(uint256 period) public governed {
-        require(address(liquidityMining) != address(0), "Not configured");
-        require(address(commitmentMining) != address(0), "Not configured");
+        require(emissionPeriod != period, "no update");
         emissionPeriod = period;
-        liquidityMining.setMiningPeriod(period);
-        commitmentMining.setMiningPeriod(period);
+        emit EmissionPeriodUpdated(period);
     }
 
     function distribute() public {
@@ -113,29 +117,41 @@ contract VisionTokenEmitter is Governed {
         // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
         uint256 halvedEmission = INITIAL_EMISSION.div(1 << (weekNum - 1));
         uint256 emissionAmount = Math.max(halvedEmission, minEmission);
-        Weight memory emission = _weighted(emissionAmount);
-        visionToken.mint(address(commitmentMining), emission.commitmentMining);
-        visionToken.mint(address(liquidityMining), emission.liquidityMining);
-        visionToken.mint(devAddr, emission.dev);
-        visionToken.mint(msg.sender, emission.caller);
-        commitmentMining.allocate(emission.commitmentMining);
-        liquidityMining.allocate(emission.liquidityMining);
+
+        // allocate to mining pools
+        for (uint256 i = 0; i < weight.pools.length; i++) {
+            require(i < pools.length, "out of index");
+            _mintAndNotifyAllocation(
+                pools[i],
+                emissionAmount,
+                weight.pools[i],
+                weight.sum
+            );
+        }
+
+        // Dev fund(protocol treasury)
+        visionToken.mint(
+            protocolFund,
+            weight.protocolFund.mul(emissionAmount).div(weight.sum)
+        );
+        // Frontier
+        visionToken.mint(dev, weight.dev.mul(emissionAmount).div(weight.sum));
+        // Caller
+        visionToken.mint(
+            msg.sender,
+            weight.caller.mul(emissionAmount).div(weight.sum)
+        );
         emit TokenEmission(emissionAmount);
     }
 
-    function _weighted(uint256 num) internal view returns (Weight memory) {
-        uint256 sum =
-            weight
-                .commitmentMining
-                .add(weight.liquidityMining)
-                .add(weight.dev)
-                .add(weight.caller);
-        return
-            Weight(
-                num.mul(weight.commitmentMining).div(sum),
-                num.mul(weight.liquidityMining).div(sum),
-                num.mul(weight.dev).div(sum),
-                num.mul(weight.caller).div(sum)
-            );
+    function _mintAndNotifyAllocation(
+        IMiningPool _miningPool,
+        uint256 _amount,
+        uint256 _weight,
+        uint256 _weightSum
+    ) private {
+        uint256 _weightedAmount = _weight.mul(_amount).div(_weightSum);
+        visionToken.mint(address(_miningPool), _weightedAmount);
+        _miningPool.allocate(_weightedAmount);
     }
 }

@@ -250,9 +250,9 @@ contract DealManager is Governed {
         assembly {
             swappedStables := mload(add(result, 0x20))
         }
-        uint256 updatedBal = IERC20(baseCurrency).balanceOf(laborMarket);
         require(
-            swappedStables == updatedBal.sub(prevBal),
+            swappedStables ==
+                IERC20(baseCurrency).balanceOf(laborMarket).sub(prevBal),
             "Swapped amount is different with the real swapped amount"
         );
         // Mark the deal as executed
