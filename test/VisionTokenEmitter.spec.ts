@@ -4,23 +4,10 @@ import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
 import { MiningFixture, miningFixture } from "./utils/fixtures";
 import { getCreate2Address } from "../utils";
-import {
-  formatEther,
-  formatUnits,
-  parseEther,
-  parseUnits,
-} from "@ethersproject/units";
+import { formatEther, formatUnits, parseEther } from "@ethersproject/units";
+import { goToNextWeek } from "./utils/utilities";
 
 chai.use(solidity);
-
-// const setTimestamp = async (timestamp: number) =>
-//     await ethers.provider.send("evm_setNextBlockTimestamp", [timestamp]);
-
-const goToNextWeek = async () => {
-  await ethers.provider.send("evm_setNextBlockTimestamp", [
-    (await ethers.provider.getBlock("latest")).timestamp + 604800,
-  ]);
-};
 
 describe("VisionTokenEmitter.sol", function () {
   let signers: Signer[];
@@ -164,14 +151,6 @@ describe("VisionTokenEmitter.sol", function () {
       );
       testingStakeToken = await VisionToken.deploy();
       testingBurnToken = await CommitmentToken.deploy();
-      testingStakeToken.mint(await alice.getAddress(), parseEther("10000"));
-      testingStakeToken.mint(await bob.getAddress(), parseEther("10000"));
-      testingStakeToken
-        .connect(alice)
-        .approve(visionTokenEmitter.address, parseEther("10000"));
-      testingStakeToken
-        .connect(bob)
-        .approve(visionTokenEmitter.address, parseEther("10000"));
       await visionTokenEmitter.newBurnMiningPool(testingBurnToken.address);
       await visionTokenEmitter.newStakeMiningPool(testingStakeToken.address);
       testingBurnMiningPool = await ethers.getContractAt(

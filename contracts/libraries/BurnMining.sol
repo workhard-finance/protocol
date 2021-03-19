@@ -15,7 +15,7 @@ contract BurnMining is MiningPool {
         ERC20Burnable(address(baseToken)).burnFrom(msg.sender, amount);
     }
 
-    function mine() public nonReentrant recordMining(msg.sender) {
+    function exit() public {
         // transfer vision token
         _mine();
         // withdraw all miners
