@@ -13,8 +13,8 @@ contract VisionTokenEmitter is Governed {
     using SafeMath for uint256;
 
     uint256 public constant INITIAL_EMISSION = 24000000 ether; // 1e24
+    uint256 public constant DENOMINATOR = 10000;
     uint256 public minEmissionRatePerWeek = 60; // 0.006 per week ~= 36% yearly inflation
-    uint256 public DENOMINATOR = 10000;
 
     VisionToken public immutable visionToken;
 
@@ -148,7 +148,10 @@ contract VisionTokenEmitter is Governed {
     }
 
     function setMinimumRate(uint256 rate) public governed {
-        require(rate <= DENOMINATOR, "Too big");
+        require(
+            rate <= 134,
+            "Protect from the superinflationary(99.8% per year) situation"
+        );
         minEmissionRatePerWeek = rate;
         emit EmissionRateUpdated(rate);
     }
