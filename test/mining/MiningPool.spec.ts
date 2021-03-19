@@ -2,15 +2,11 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
-import { MiningFixture, miningFixture } from "./utils/fixtures";
-import { getCreate2Address } from "../utils";
-import { formatEther, formatUnits, parseEther } from "@ethersproject/units";
-import { goTo, goToNextWeek } from "./utils/utilities";
+import { parseEther } from "ethers/lib/utils";
+import { MiningFixture, miningFixture } from "../utils/fixtures";
+import { goTo, goToNextWeek } from "../utils/utilities";
 
 chai.use(solidity);
-
-// const setTimestamp = async (timestamp: number) =>
-//     await ethers.provider.send("evm_setNextBlockTimestamp", [timestamp]);
 
 describe("MiningPool.sol", function () {
   let signers: Signer[];

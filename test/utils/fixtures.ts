@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { Contract, Signer } from "ethers";
+import { runTimelockTx } from "./utilities";
 
 const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
@@ -177,6 +178,10 @@ export const appFixture = async (
     laborMarket.address,
     DAI,
     ONE_INCH
+  );
+  await runTimelockTx(
+    timelockedGovernance,
+    visionFarm.populateTransaction.addPlanter(dealManager.address)
   );
   const ProductMarket = await ethers.getContractFactory(
     "ProductMarket",

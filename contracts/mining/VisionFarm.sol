@@ -118,6 +118,10 @@ contract VisionFarm is Governed {
             epochs >= minimumLock,
             "Should be greater or equal than the minimum lock period"
         );
+        require(
+            epochs <= maximumLock,
+            "Should be less or equal than the maximum lock period"
+        );
         uint256 locked = getCurrentEpoch() + epochs; // epoch cannot overflow. No safemath to save gas.
         Staking storage staking = stakings[msg.sender];
         require(locked > staking.locked, "It only allows extending the lock.");
@@ -133,7 +137,7 @@ contract VisionFarm is Governed {
         require(staking.locked < getCurrentEpoch(), "Staking is locked");
         require(staking.amount >= amount, "Not enough balance");
         staking.amount = staking.amount.sub(amount);
-        IERC20(visionToken).transferFrom(address(this), msg.sender, amount);
+        IERC20(visionToken).transfer(msg.sender, amount);
     }
 
     /**

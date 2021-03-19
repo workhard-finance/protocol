@@ -2,10 +2,9 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
-import { MiningFixture, miningFixture } from "./utils/fixtures";
-import { getCreate2Address } from "../utils";
-import { formatEther, formatUnits, parseEther } from "@ethersproject/units";
-import { goToNextWeek } from "./utils/utilities";
+import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
+import { MiningFixture, miningFixture } from "../utils/fixtures";
+import { getCreate2Address, goToNextWeek } from "../utils/utilities";
 
 chai.use(solidity);
 
