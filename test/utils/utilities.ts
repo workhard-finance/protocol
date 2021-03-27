@@ -35,7 +35,7 @@ export const runTimelockTx = async (
   await ethers.provider.send("evm_setNextBlockTimestamp", [
     (await ethers.provider.getBlock("latest")).timestamp + _delay + 1,
   ]);
-  await timelock.execute(...txParams);
+  return timelock.execute(...txParams);
 };
 
 export const getCreate2Address = (

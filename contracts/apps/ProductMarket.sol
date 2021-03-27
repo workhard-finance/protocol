@@ -3,6 +3,7 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../libraries/Product.sol";
 import "../libraries/ERC20Recoverer.sol";
 import "../interfaces/IVisionFarm.sol";
@@ -17,7 +18,7 @@ struct ProductInfo {
     uint256 stock; // amount of remaining stocks
 }
 
-contract ProductMarket is ERC20Recoverer, Governed {
+contract ProductMarket is ERC20Recoverer, Governed, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
@@ -39,6 +40,8 @@ contract ProductMarket is ERC20Recoverer, Governed {
 
     event ProfitRateUpdated(address indexed product, uint256 profitRate);
 
+    event Supply(address indexed product, uint256 amount);
+
     uint256 public constant RATE_DENOMINATOR = 10000;
 
     constructor(
@@ -52,6 +55,7 @@ contract ProductMarket is ERC20Recoverer, Governed {
         visionFarm = IVisionFarm(_visionFarm);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
+        ICommitmentToken(_commitmentToken).approve(_visionFarm, uint256(0) - 1);
     }
 
     modifier onlyManufacturer(address product) {
@@ -64,23 +68,27 @@ contract ProductMarket is ERC20Recoverer, Governed {
 
     function buy(address product, uint256 amount)
         public
+        nonReentrant
         returns (uint256[] memory tokenIds)
     {
+        require(amount > 0, "cannot buy 0");
         // check the product is for sale
         ProductInfo storage prod = products[product];
+        require(amount <= prod.stock, "Sold out");
         require(prod.stock > 0, "Not for sale.");
         uint256 totalPayment = prod.price.mul(amount); // SafeMath prevents overflow
         // Vision Tax
         uint256 visionTax = totalPayment.mul(taxRate).div(RATE_DENOMINATOR);
-        IVisionFarm(visionFarm).plantSeeds(address(commitmentToken), visionTax);
         // Burn tokens
         uint256 postTax = totalPayment.sub(visionTax);
         uint256 forManufacturer =
             postTax.mul(prod.profitRate).div(RATE_DENOMINATOR);
         uint256 amountToBurn = postTax.sub(forManufacturer);
         address manufacturer = IProduct(product).manufacturer();
-        IERC20(commitmentToken).safeTransfer(manufacturer, forManufacturer);
+        commitmentToken.transferFrom(msg.sender, address(this), visionTax);
+        commitmentToken.transferFrom(msg.sender, manufacturer, forManufacturer);
         commitmentToken.burnFrom(msg.sender, amountToBurn);
+        IVisionFarm(visionFarm).plantSeeds(address(commitmentToken), visionTax);
         // mint & give
         tokenIds = IProduct(product).deliver(msg.sender, amount);
         // decrease stock
@@ -91,6 +99,7 @@ contract ProductMarket is ERC20Recoverer, Governed {
     function launchNewProduct(
         string memory _name,
         string memory _symbol,
+        string memory _baseURI,
         uint256 profitRate,
         uint256 price,
         uint256 initialStock
@@ -100,7 +109,8 @@ contract ProductMarket is ERC20Recoverer, Governed {
                 msg.sender,
                 address(this),
                 _name,
-                _symbol
+                _symbol,
+                _baseURI
             );
         setPrice(prodAddr, price);
         setProfitRate(prodAddr, profitRate);
@@ -111,6 +121,7 @@ contract ProductMarket is ERC20Recoverer, Governed {
         public
         onlyManufacturer(product)
     {
+        // to prevent overflow
         require(price * 1000000000 > price, "Cannot be expensive too much");
         products[product].price = price;
         emit PriceUpdated(product, price);
@@ -136,6 +147,7 @@ contract ProductMarket is ERC20Recoverer, Governed {
         onlyManufacturer(product)
     {
         products[product].stock = products[product].stock.add(amount);
+        emit Supply(product, amount);
     }
 
     function setTaxRate(uint256 rate) public governed {

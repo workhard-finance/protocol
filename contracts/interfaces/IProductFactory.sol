@@ -6,6 +6,7 @@ interface IProductFactory {
         address _manufacturer,
         address _marketplace,
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        string memory _baseURI
     ) external returns (address product);
 }

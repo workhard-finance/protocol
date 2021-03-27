@@ -1,195 +1,152 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Signer, Contract, BigNumber } from "ethers";
-import { parseEther } from "ethers/lib/utils";
-import { MiningFixture, miningFixture } from "../utils/fixtures";
-import { goTo, runTimelockTx } from "../utils/utilities";
+import { Contract, BigNumber, Signer } from "ethers";
+import { defaultAbiCoder, keccak256, parseEther } from "ethers/lib/utils";
+import { AppFixture, appFixture } from "../utils/fixtures";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { runTimelockTx } from "../utils/utilities";
 
 chai.use(solidity);
 
-describe.skip("DealManager.sol", function () {
-  let signers: Signer[];
-  let deployer: Signer;
-  let planter: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let carl: Signer;
-  let deployerAddress: string;
-  let planterAddress: string;
-  let aliceAddress: string;
-  let bobAddress: string;
-  let carlAddress: string;
-  let fixture: MiningFixture;
-  let visionToken: Contract;
+describe("LaborMarket.sol", function () {
+  let signers: SignerWithAddress[];
+  let deployer: SignerWithAddress;
+  let manager: SignerWithAddress;
+  let projContractor: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let fixture: AppFixture;
+  let dealManager: Contract;
+  let laborMarket: Contract;
+  let commitmentToken: Contract;
+  let baseStableCoin: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
-  let testingRewardToken: Contract;
+  let deal: {
+    projId: string;
+    description: string;
+    contractor: string;
+  };
+  let budget: {
+    currency: string;
+    amount: BigNumber;
+  };
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
-    planter = signers[1];
-    alice = signers[2];
-    bob = signers[3];
-    carl = signers[4];
-    deployerAddress = await deployer.getAddress();
-    planterAddress = await planter.getAddress();
-    aliceAddress = await alice.getAddress();
-    bobAddress = await bob.getAddress();
-    carlAddress = await carl.getAddress();
-    fixture = await miningFixture(deployer, planterAddress);
-    visionToken = fixture.visionToken;
+    manager = signers[1];
+    projContractor = signers[2];
+    alice = signers[3];
+    const ERC20 = await ethers.getContractFactory("TestERC20");
+    baseStableCoin = await ERC20.deploy();
+    fixture = await appFixture(
+      deployer,
+      deployer.address,
+      baseStableCoin.address
+    );
+    dealManager = fixture.dealManager;
+    commitmentToken = fixture.commitmentToken;
+    laborMarket = fixture.laborMarket;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelockedGovernance;
-    const ERC20 = await ethers.getContractFactory("TestERC20");
-    testingRewardToken = await ERC20.deploy();
-    await testingRewardToken.mint(planterAddress, parseEther("10000"));
-    await testingRewardToken
-      .connect(planter)
-      .approve(visionFarm.address, parseEther("10000"));
+    await baseStableCoin.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await visionToken.mint(addr, parseEther("10000"));
-      await visionToken
+      await baseStableCoin.mint(addr, parseEther("10000"));
+      await baseStableCoin
         .connect(account)
-        .approve(visionFarm.address, parseEther("10000"));
+        .approve(dealManager.address, parseEther("10000"));
+      await baseStableCoin
+        .connect(account)
+        .approve(laborMarket.address, parseEther("10000"));
+      commitmentToken
+        .connect(account)
+        .approve(laborMarket.address, parseEther("10000"));
     };
+    await prepare(projContractor);
     await prepare(alice);
-    await prepare(bob);
-    await prepare(carl);
+    await runTimelockTx(
+      timelock,
+      dealManager.populateTransaction.setManager(manager.address, true)
+    );
+    const description = "helloworld";
+    const projId = keccak256(
+      defaultAbiCoder.encode(
+        ["address", "string"],
+        [projContractor.address, description]
+      )
+    );
+    deal = { description, contractor: projContractor.address, projId };
+    budget = { currency: baseStableCoin.address, amount: parseEther("100") };
+    await dealManager
+      .connect(projContractor)
+      .createDealWithBudget(deal.description, budget.currency, budget.amount);
+    await runTimelockTx(
+      timelock,
+      dealManager.populateTransaction.hammerOut(deal.projId)
+    );
+    await dealManager.connect(manager).approveBudget(deal.projId, 0, []);
   });
-  describe("getCurrentEpoch()", async () => {
-    it("should start from 0", async () => {
-      expect(await visionFarm.callStatic.getCurrentEpoch()).eq(0);
-    });
-    it("should increment by monthly", async () => {
-      expect(await visionFarm.callStatic.getCurrentEpoch()).eq(0);
-      await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
-      expect(await visionFarm.callStatic.getCurrentEpoch()).eq(1);
-      await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
-      expect(await visionFarm.callStatic.getCurrentEpoch()).eq(2);
-    });
-  });
-  describe("stakeAndLock()", async () => {
-    beforeEach(async () => {
-      await visionFarm.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await visionFarm.connect(bob).stakeAndLock(parseEther("10"), 4);
-      await visionFarm.connect(carl).stakeAndLock(parseEther("100"), 2);
-    });
-    it("maximum lock period is 50", async () => {
-      await visionFarm.connect(carl).stakeAndLock(parseEther("100"), 50);
-      await expect(visionFarm.connect(carl).stakeAndLock(parseEther("100"), 51))
-        .to.be.reverted;
-    });
-    describe("dispatchableFarmers(epochNum)", async () => {
-      it("should be proportional to the amount of stake and its remaining locked period", async () => {
-        const epoch1aliceDispatchable = await visionFarm.dispatchableFarmers(
-          aliceAddress,
-          1
-        );
-        const epoch1bobDispatchable = await visionFarm.dispatchableFarmers(
-          bobAddress,
-          1
-        );
-        const epoch1carlDispatchable = await visionFarm.dispatchableFarmers(
-          carlAddress,
-          1
-        );
-        expect(epoch1aliceDispatchable.div(10)).eq(epoch1bobDispatchable);
-        expect(epoch1aliceDispatchable.div(2)).eq(epoch1carlDispatchable);
-        const epoch2aliceDispatchable = await visionFarm.dispatchableFarmers(
-          aliceAddress,
-          2
-        );
-        const epoch3aliceDispatchable = await visionFarm.dispatchableFarmers(
-          aliceAddress,
-          3
-        );
-        const epoch4aliceDispatchable = await visionFarm.dispatchableFarmers(
-          aliceAddress,
-          4
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch2aliceDispatchable.div(3)
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch3aliceDispatchable.div(2)
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch4aliceDispatchable.div(1)
-        );
-      });
-      it("should be unstakeable after its locking period", async () => {
-        await expect(visionFarm.connect(alice).unstake(parseEther("100"))).to.be
-          .reverted;
-        const epochs = 5;
-        await goTo(3600 * 24 * 7 * 4 * epochs);
-        await ethers.provider.send("evm_mine", []);
-        const prevBal = await visionToken.callStatic.balanceOf(aliceAddress);
-        await visionFarm.connect(alice).unstake(parseEther("100"));
-        const updatedBal = await visionToken.callStatic.balanceOf(aliceAddress);
-        expect(updatedBal).eq(prevBal.add(parseEther("100")));
-      });
-    });
-  });
-  describe("plantSeeds() & dispatchFarmers() & harvest()", async () => {
-    beforeEach(async () => {
-      await runTimelockTx(
-        timelock,
-        visionFarm.populateTransaction.addPlanter(planterAddress)
+  describe("compensate()", async () => {
+    it("the budget owner can execute the budget", async () => {
+      const bal0: BigNumber = await commitmentToken.callStatic.balanceOf(
+        alice.address
       );
-      await visionFarm
-        .connect(planter)
-        .plantSeeds(testingRewardToken.address, parseEther("100"));
-      await visionFarm.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await visionFarm.connect(bob).stakeAndLock(parseEther("10"), 40);
-      await visionFarm.connect(carl).stakeAndLock(parseEther("100"), 2);
+      await expect(
+        laborMarket
+          .connect(projContractor)
+          .compensate(deal.projId, alice.address, parseEther("1"))
+      )
+        .to.emit(laborMarket, "BudgetExecuted")
+        .withArgs(deal.projId, alice.address, parseEther("1"));
+      const bal1: BigNumber = await commitmentToken.callStatic.balanceOf(
+        alice.address
+      );
+      expect(bal1.sub(bal0)).eq(parseEther("1"));
     });
-    it("batchDispatch() automatically dispatch farmers for the future epochs", async () => {
-      await visionFarm.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await ethers.provider.send("evm_mine", []);
-      await expect(visionFarm.connect(alice).harvest(1))
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(visionFarm.address, aliceAddress, parseEther("100")); // harvest for epoch 1
-      await goTo(3600 * 24 * 7 * 4); // go to epoch 3
-      await ethers.provider.send("evm_mine", []);
-      // no seed were planted for epoch 2.
-      await expect(visionFarm.connect(alice).harvest(2)).not.to.emit(
-        testingRewardToken,
-        "Transfer"
-      ); // harvest for epoch 2
+  });
+  describe("redeem()", async () => {
+    beforeEach("compensate", async () => {
+      laborMarket
+        .connect(projContractor)
+        .compensate(deal.projId, alice.address, parseEther("1"));
     });
-    it("harvest()", async () => {
-      await visionFarm.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await visionFarm.connect(bob).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await visionFarm.connect(carl).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await ethers.provider.send("evm_mine", []);
-      await expect(visionFarm.connect(alice).harvest(1))
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          visionFarm.address,
-          aliceAddress,
-          parseEther("100").mul(400).div(1000)
-        ); // alice harvests for epoch 1
-      await expect(visionFarm.connect(bob).harvest(1))
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          visionFarm.address,
-          bobAddress,
-          parseEther("100").mul(400).div(1000)
-        ); // bob harvests for epoch 1
-      await expect(visionFarm.connect(carl).harvest(1))
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          visionFarm.address,
-          carlAddress,
-          parseEther("100").mul(200).div(1000)
-        ); // carl harvests for epoch 1
+    it("should return the base currency and burn the commitment token", async () => {
+      const base0 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
+      expect(laborMarket.connect(alice).redeem(parseEther("1")))
+        .to.emit(laborMarket, "Redeemed")
+        .withArgs(alice.address, parseEther("1"));
+      const base1 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
+      expect(base1.sub(base0)).eq(comm0.sub(comm1));
+    });
+    it("should not change the remaining budget", async () => {
+      const remaining0 = await laborMarket.callStatic.remainingBudget();
+      await laborMarket.connect(alice).redeem(parseEther("1"));
+      const remaining1 = await laborMarket.callStatic.remainingBudget();
+      expect(remaining1).eq(remaining0);
+    });
+  });
+  describe("payInsteadOfWorking()", async () => {
+    it("should mint commitment tokens when someone pays twice", async () => {
+      const supply0 = await commitmentToken.callStatic.totalSupply();
+      const base0 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
+      await laborMarket.connect(alice).payInsteadOfWorking(parseEther("1"));
+      const supply1 = await commitmentToken.callStatic.totalSupply();
+      const base1 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
+      expect(base0.sub(base1)).eq(parseEther("2"));
+      expect(comm1.sub(comm0)).eq(parseEther("1"));
+      expect(supply1.sub(supply0)).eq(parseEther("1"));
+    });
+    it("should increase the commitment token budget", async () => {
+      const remaining0 = await laborMarket.callStatic.remainingBudget();
+      await laborMarket.connect(alice).payInsteadOfWorking(parseEther("1"));
+      const remaining1 = await laborMarket.callStatic.remainingBudget();
+      expect(remaining1.sub(remaining0)).eq(parseEther("1"));
     });
   });
 });

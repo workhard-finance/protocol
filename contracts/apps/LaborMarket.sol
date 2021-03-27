@@ -28,11 +28,17 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
 
     uint256 public priceOfCommitmentToken = 20000; // denominator = 10000, ~= $2
 
-    mapping(address => bool) public dealManagers;
+    mapping(address => bool) public dealManagers; // allowed deal managing contracts
 
     mapping(bytes32 => Project) public projects;
 
     event DealManagerUpdated(address indexed dealManager);
+
+    event NewProject(bytes32 projId, address budgetOwner, uint256 budget);
+
+    event BudgetExecuted(bytes32 projId, address to, uint256 amount);
+
+    event Redeemed(address to, uint256 amount);
 
     constructor(
         address _gov,
@@ -45,6 +51,11 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
         ERC20Recoverer.disablePermanently(_commitmentToken);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
+    }
+
+    modifier onlyBudgetOwner(bytes32 projId) {
+        require(projects[projId].budgetOwner == msg.sender, "Not authorized");
+        _;
     }
 
     modifier onlyDealManager() {
@@ -62,6 +73,7 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
         );
         commitmentToken.burnFrom(msg.sender, amount);
         basicCurrency.transfer(msg.sender, amount);
+        emit Redeemed(msg.sender, amount);
     }
 
     function payInsteadOfWorking(uint256 amount) public {
@@ -70,32 +82,49 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
         _mintCommitmentToken(msg.sender, amount);
     }
 
-    function executeBudget(
+    function compensate(
         bytes32 projectId,
         address to,
         uint256 amount
-    ) public {
+    ) public onlyBudgetOwner(projectId) {
         Project storage project = projects[projectId];
         require(project.budgetOwner == msg.sender);
         require(project.budget >= amount);
         project.budget = project.budget - amount;
         commitmentToken.transfer(to, amount);
+        emit BudgetExecuted(projectId, to, amount);
     }
 
-    function createProject(
-        bytes32 projId,
-        address budgetOwner,
-        uint256 budget
-    ) public override onlyDealManager {
+    function transferBudgetOwner(bytes32 projectId, address newOwner)
+        public
+        onlyBudgetOwner(projectId)
+    {
+        Project storage project = projects[projectId];
+        require(
+            newOwner != address(0),
+            "Cannot set zero address as the budget owner"
+        );
+        require(
+            newOwner != address(this),
+            "This contract cannot control budgets"
+        );
+        require(newOwner != project.budgetOwner, "Not transferred");
+        project.budgetOwner = newOwner;
+    }
+
+    function createProject(bytes32 projId, address budgetOwner)
+        public
+        override
+        onlyDealManager
+    {
         Project storage proj = projects[projId];
         require(proj.budgetOwner == address(0), "Same project already exists");
         proj.budgetOwner = budgetOwner;
-        allocateBudget(projId, budget);
     }
 
     function allocateBudget(bytes32 projId, uint256 budget)
         public
-        override 
+        override
         onlyDealManager
     {
         require(budget <= remainingBudget());

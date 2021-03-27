@@ -177,7 +177,7 @@ contract VisionFarm is Governed {
         require(isHarvestable(epoch), "Unripe yet");
         Farm storage farm = farms[epoch];
         (address[] memory tokens, uint256[] memory amounts) =
-            getHarvestableCrops(epoch, msg.sender);
+            getHarvestableCropsFor(epoch, msg.sender);
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
             uint256 amount = amounts[i];
@@ -251,7 +251,22 @@ contract VisionFarm is Governed {
         return farm.dispatchedFarmers[staker];
     }
 
-    function getHarvestableCrops(uint256 epoch, address staker)
+    function getHarvestableCrops(uint256 epoch)
+        public
+        view
+        returns (address[] memory tokens, uint256[] memory amounts)
+    {
+        Farm storage farm = farms[epoch];
+        tokens = farm.tokens;
+        amounts = new uint256[](tokens.length);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            address token = tokens[i];
+            amounts[i] = farm.crops[token];
+        }
+        return (tokens, amounts);
+    }
+
+    function getHarvestableCropsFor(uint256 epoch, address staker)
         public
         view
         returns (address[] memory tokens, uint256[] memory amounts)

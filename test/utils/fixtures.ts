@@ -30,6 +30,7 @@ export interface AppFixture extends MiningFixture {
   dealManager: Contract;
   laborMarket: Contract;
   productMarket: Contract;
+  productFactory: Contract;
 }
 
 export const tokenFixture = async (signer: Signer): Promise<TokenFixture> => {
@@ -161,7 +162,8 @@ export const miningFixture = async (
 
 export const appFixture = async (
   signer: Signer,
-  devAddr: string
+  devAddr: string,
+  baseCurrency?: string
 ): Promise<AppFixture> => {
   const fixture = await miningFixture(signer, devAddr);
   const { visionFarm, timelockedGovernance, commitmentToken } = fixture;
@@ -169,15 +171,20 @@ export const appFixture = async (
   const laborMarket = await LaborMarket.deploy(
     timelockedGovernance.address,
     commitmentToken.address,
-    DAI
+    baseCurrency || DAI
   );
+  await commitmentToken.setMinter(laborMarket.address);
   const DealManager = await ethers.getContractFactory("DealManager", signer);
   const dealManager = await DealManager.deploy(
     timelockedGovernance.address,
     visionFarm.address,
     laborMarket.address,
-    DAI,
+    baseCurrency || DAI,
     ONE_INCH
+  );
+  await runTimelockTx(
+    timelockedGovernance,
+    laborMarket.populateTransaction.setDealManager(dealManager.address, true)
   );
   await runTimelockTx(
     timelockedGovernance,
@@ -198,10 +205,15 @@ export const appFixture = async (
     commitmentToken.address,
     visionFarm.address
   );
+  await runTimelockTx(
+    timelockedGovernance,
+    visionFarm.populateTransaction.addPlanter(productMarket.address)
+  );
   return {
     ...fixture,
     dealManager,
     laborMarket,
     productMarket,
+    productFactory,
   };
 };
