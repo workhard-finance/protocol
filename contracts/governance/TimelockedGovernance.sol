@@ -12,7 +12,27 @@ import "@openzeppelin/contracts/access/TimelockController.sol";
  *      VisionTokenEmitter -controls-> VisionToken
  */
 contract TimelockedGovernance is TimelockController {
+    mapping(bytes32 => bool) public nonCancelable;
+
     constructor(address[] memory _devs)
         TimelockController(1 days, _devs, _devs)
     {}
+
+    function cancel(bytes32 id) public override {
+        require(!nonCancelable[id], "non-cancelable");
+        super.cancel(id);
+    }
+
+    function forceSchedule(
+        address target,
+        uint256 value,
+        bytes calldata data,
+        bytes32 predecessor,
+        bytes32 salt,
+        uint256 delay
+    ) public {
+        bytes32 id = hashOperation(target, value, data, predecessor, salt);
+        nonCancelable[id] = true;
+        super.schedule(target, value, data, predecessor, salt, delay);
+    }
 }

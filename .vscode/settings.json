@@ -8,6 +8,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.words": [
+    "deepmerge",
     "timelock"
-  ]
+  ],
+  "mochaExplorer.files": "test/**/*.{j,t}s"
 }

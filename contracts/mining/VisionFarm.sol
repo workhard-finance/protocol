@@ -4,6 +4,7 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/Utils.sol";
+import "../libraries/HasInitializer.sol";
 import "../governance/Governed.sol";
 
 struct Farm {
@@ -19,7 +20,7 @@ struct Staking {
 }
 
 /** @title Vision Farm */
-contract VisionFarm is Governed {
+contract VisionFarm is Governed, HasInitializer {
     using SafeMath for uint256;
     using Utils for address[];
 
@@ -54,7 +55,12 @@ contract VisionFarm is Governed {
      */
     mapping(address => Staking) public stakings;
 
-    constructor(address _gov, address _visionToken) Governed() {
+    address private _initalizer;
+
+    constructor(address _gov, address _visionToken)
+        Governed()
+        HasInitializer()
+    {
         visionToken = _visionToken;
         genesis = block.timestamp;
         Governed.setGovernance(_gov);
@@ -65,9 +71,13 @@ contract VisionFarm is Governed {
         _;
     }
 
+    function init(address dealManager, address productMarket) public initializer {
+        _addPlanter(dealManager);
+        _addPlanter(productMarket);
+    }
+
     function addPlanter(address planter) public governed {
-        require(!planters[planter], "Already registered");
-        planters[planter] = true;
+        _addPlanter(planter);
     }
 
     function removePlanter(address planter) public governed {
@@ -290,5 +300,10 @@ contract VisionFarm is Governed {
 
     function getNextEpoch() public view returns (uint256) {
         return getCurrentEpoch() + 1;
+    }
+
+    function _addPlanter(address planter) internal {
+        require(!planters[planter], "Already registered");
+        planters[planter] = true;
     }
 }

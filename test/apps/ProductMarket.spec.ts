@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber, Signer, constants } from "ethers";
+import { Contract, Signer, constants } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { AppFixture, appFixture } from "../utils/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -19,10 +19,9 @@ describe("ProductMarket.sol", function () {
   let productFactory: Contract;
   let laborMarket: Contract;
   let commitmentToken: Contract;
-  let baseStableCoin: Contract;
+  let stableCoin: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
-  const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
@@ -30,23 +29,19 @@ describe("ProductMarket.sol", function () {
     alice = signers[1];
     bob = signers[2];
     const ERC20 = await ethers.getContractFactory("TestERC20");
-    baseStableCoin = await ERC20.deploy();
-    fixture = await appFixture(
-      deployer,
-      deployer.address,
-      baseStableCoin.address
-    );
+    fixture = await getAppFixture();
+    stableCoin = fixture.stableCoin;
     commitmentToken = fixture.commitmentToken;
     productMarket = fixture.productMarket;
     productFactory = fixture.productFactory;
     laborMarket = fixture.laborMarket;
     visionFarm = fixture.visionFarm;
-    timelock = fixture.timelockedGovernance;
-    await baseStableCoin.mint(deployer.address, parseEther("10000"));
+    timelock = fixture.timelock;
+    await stableCoin.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await baseStableCoin.mint(addr, parseEther("10000"));
-      await baseStableCoin
+      await stableCoin.mint(addr, parseEther("10000"));
+      await stableCoin
         .connect(account)
         .approve(laborMarket.address, parseEther("10000"));
       await laborMarket.connect(account).payInsteadOfWorking(parseEther("100"));

@@ -4,6 +4,7 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "../libraries/HasInitializer.sol";
 import "../libraries/ExchangeLib.sol";
 import "../libraries/ERC20Recoverer.sol";
 import "../interfaces/ILaborMarket.sol";
@@ -18,7 +19,7 @@ struct Project {
 /**
  * @notice LaborMarket is the $COMMITMENT token minter. It allows deal managers mint $COMMITMENT token.
  */
-contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
+contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -40,17 +41,25 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
 
     event Redeemed(address to, uint256 amount);
 
+    address private _deployer;
+
     constructor(
         address _gov,
         address _commitmentToken,
         address _basicCurrency
-    ) ERC20Recoverer() Governed() {
+    ) ERC20Recoverer() Governed() HasInitializer() {
         commitmentToken = CommitmentToken(_commitmentToken);
         basicCurrency = IERC20(_basicCurrency);
         ERC20Recoverer.disablePermanently(_basicCurrency);
         ERC20Recoverer.disablePermanently(_commitmentToken);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
+        _deployer = msg.sender;
+    }
+
+    modifier onlyDeployer() {
+        require(_deployer == msg.sender, "Only deployer");
+        _;
     }
 
     modifier onlyBudgetOwner(bytes32 projId) {
@@ -64,6 +73,10 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
             "Not authorized"
         );
         _;
+    }
+
+    function init(address dealManager) public initializer {
+        _setDealManager(dealManager, true);
     }
 
     function redeem(uint256 amount) public {
@@ -134,10 +147,7 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
     }
 
     function setDealManager(address dealManager, bool active) public governed {
-        if (dealManagers[dealManager] != active) {
-            emit DealManagerUpdated(dealManager);
-        }
-        dealManagers[dealManager] = active;
+        _setDealManager(dealManager, active);
     }
 
     function remainingBudget() public view returns (uint256) {
@@ -149,5 +159,12 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket {
     function _mintCommitmentToken(address to, uint256 amount) internal {
         require(amount <= remainingBudget(), "Out of budget");
         commitmentToken.mint(to, amount);
+    }
+
+    function _setDealManager(address dealManager, bool active) internal {
+        if (dealManagers[dealManager] != active) {
+            emit DealManagerUpdated(dealManager);
+        }
+        dealManagers[dealManager] = active;
     }
 }

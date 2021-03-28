@@ -3,9 +3,9 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, BigNumber, Signer } from "ethers";
 import { defaultAbiCoder, keccak256, parseEther } from "ethers/lib/utils";
-import { AppFixture, appFixture } from "../utils/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { runTimelockTx } from "../utils/utilities";
+import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -19,9 +19,9 @@ describe("LaborMarket.sol", function () {
   let dealManager: Contract;
   let laborMarket: Contract;
   let commitmentToken: Contract;
-  let baseStableCoin: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
+  let stableCoin: Contract;
   let deal: {
     projId: string;
     description: string;
@@ -31,7 +31,6 @@ describe("LaborMarket.sol", function () {
     currency: string;
     amount: BigNumber;
   };
-  const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
@@ -39,25 +38,21 @@ describe("LaborMarket.sol", function () {
     projContractor = signers[2];
     alice = signers[3];
     const ERC20 = await ethers.getContractFactory("TestERC20");
-    baseStableCoin = await ERC20.deploy();
-    fixture = await appFixture(
-      deployer,
-      deployer.address,
-      baseStableCoin.address
-    );
+    fixture = await getAppFixture();
+    stableCoin = fixture.stableCoin;
     dealManager = fixture.dealManager;
     commitmentToken = fixture.commitmentToken;
     laborMarket = fixture.laborMarket;
     visionFarm = fixture.visionFarm;
-    timelock = fixture.timelockedGovernance;
-    await baseStableCoin.mint(deployer.address, parseEther("10000"));
+    timelock = fixture.timelock;
+    await stableCoin.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await baseStableCoin.mint(addr, parseEther("10000"));
-      await baseStableCoin
+      await stableCoin.mint(addr, parseEther("10000"));
+      await stableCoin
         .connect(account)
         .approve(dealManager.address, parseEther("10000"));
-      await baseStableCoin
+      await stableCoin
         .connect(account)
         .approve(laborMarket.address, parseEther("10000"));
       commitmentToken
@@ -78,7 +73,7 @@ describe("LaborMarket.sol", function () {
       )
     );
     deal = { description, contractor: projContractor.address, projId };
-    budget = { currency: baseStableCoin.address, amount: parseEther("100") };
+    budget = { currency: stableCoin.address, amount: parseEther("100") };
     await dealManager
       .connect(projContractor)
       .createDealWithBudget(deal.description, budget.currency, budget.amount);
@@ -113,12 +108,12 @@ describe("LaborMarket.sol", function () {
         .compensate(deal.projId, alice.address, parseEther("1"));
     });
     it("should return the base currency and burn the commitment token", async () => {
-      const base0 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(laborMarket.connect(alice).redeem(parseEther("1")))
         .to.emit(laborMarket, "Redeemed")
         .withArgs(alice.address, parseEther("1"));
-      const base1 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base1.sub(base0)).eq(comm0.sub(comm1));
     });
@@ -132,11 +127,11 @@ describe("LaborMarket.sol", function () {
   describe("payInsteadOfWorking()", async () => {
     it("should mint commitment tokens when someone pays twice", async () => {
       const supply0 = await commitmentToken.callStatic.totalSupply();
-      const base0 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
       await laborMarket.connect(alice).payInsteadOfWorking(parseEther("1"));
       const supply1 = await commitmentToken.callStatic.totalSupply();
-      const base1 = await baseStableCoin.callStatic.balanceOf(alice.address);
+      const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base0.sub(base1)).eq(parseEther("2"));
       expect(comm1.sub(comm0)).eq(parseEther("1"));

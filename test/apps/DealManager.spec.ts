@@ -3,9 +3,9 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, BigNumber, Signer } from "ethers";
 import { defaultAbiCoder, keccak256, parseEther } from "ethers/lib/utils";
-import { AppFixture, appFixture } from "../utils/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { runTimelockTx } from "../utils/utilities";
+import { getAppFixture, AppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -19,7 +19,7 @@ describe("DealManager.sol", function () {
   let dealManager: Contract;
   let laborMarket: Contract;
   let commitmentToken: Contract;
-  let baseStableCoin: Contract;
+  let stableCoin: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
   let deal: {
@@ -31,30 +31,24 @@ describe("DealManager.sol", function () {
     currency: string;
     amount: BigNumber;
   };
-  const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     manager = signers[1];
     projContractor = signers[2];
     bob = signers[3];
-    const ERC20 = await ethers.getContractFactory("TestERC20");
-    baseStableCoin = await ERC20.deploy();
-    fixture = await appFixture(
-      deployer,
-      deployer.address,
-      baseStableCoin.address
-    );
+    fixture = await getAppFixture();
+    stableCoin = fixture.stableCoin;
     dealManager = fixture.dealManager;
     commitmentToken = fixture.commitmentToken;
     laborMarket = fixture.laborMarket;
     visionFarm = fixture.visionFarm;
-    timelock = fixture.timelockedGovernance;
-    await baseStableCoin.mint(deployer.address, parseEther("10000"));
+    timelock = fixture.timelock;
+    await stableCoin.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await baseStableCoin.mint(addr, parseEther("10000"));
-      await baseStableCoin
+      await stableCoin.mint(addr, parseEther("10000"));
+      await stableCoin
         .connect(account)
         .approve(dealManager.address, parseEther("10000"));
     };
@@ -72,7 +66,7 @@ describe("DealManager.sol", function () {
       )
     );
     deal = { description, contractor: projContractor.address, projId };
-    budget = { currency: baseStableCoin.address, amount: parseEther("100") };
+    budget = { currency: stableCoin.address, amount: parseEther("100") };
   });
   describe("createDeal()", async () => {
     it("should emit DealCreated() event", async () => {
@@ -86,20 +80,20 @@ describe("DealManager.sol", function () {
   describe("createDealWithBudget()", async () => {
     it("should transfer the fund from the proposer to the contract", async () => {
       expect(
-        await baseStableCoin.callStatic.balanceOf(projContractor.address)
+        await stableCoin.callStatic.balanceOf(projContractor.address)
       ).to.eq(parseEther("10000"));
-      expect(
-        await baseStableCoin.callStatic.balanceOf(dealManager.address)
-      ).to.eq(parseEther("0"));
+      expect(await stableCoin.callStatic.balanceOf(dealManager.address)).to.eq(
+        parseEther("0")
+      );
       await dealManager
         .connect(projContractor)
         .createDealWithBudget(deal.description, budget.currency, budget.amount);
       expect(
-        await baseStableCoin.callStatic.balanceOf(projContractor.address)
+        await stableCoin.callStatic.balanceOf(projContractor.address)
       ).to.eq(parseEther("9900"));
-      expect(
-        await baseStableCoin.callStatic.balanceOf(dealManager.address)
-      ).to.eq(parseEther("100"));
+      expect(await stableCoin.callStatic.balanceOf(dealManager.address)).to.eq(
+        parseEther("100")
+      );
     });
   });
   describe("withdrawlDeal() & breakDeal()", async () => {
@@ -129,11 +123,11 @@ describe("DealManager.sol", function () {
         .withArgs(deal.projId);
     });
     it("should refund the unapproved budgets", async () => {
-      const bal0: BigNumber = await baseStableCoin.callStatic.balanceOf(
+      const bal0: BigNumber = await stableCoin.callStatic.balanceOf(
         projContractor.address
       );
       await dealManager.connect(projContractor).withdrawDeal(deal.projId);
-      const bal1: BigNumber = await baseStableCoin.callStatic.balanceOf(
+      const bal1: BigNumber = await stableCoin.callStatic.balanceOf(
         projContractor.address
       );
       expect(bal1.sub(bal0)).eq(parseEther("100"));
@@ -176,10 +170,10 @@ describe("DealManager.sol", function () {
       const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       await dealManager.connect(manager).approveBudget(deal.projId, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
-      expect(
-        await baseStableCoin.callStatic.balanceOf(laborMarket.address)
-      ).to.eq(parseEther("80"));
-      expect(await dealManager.callStatic.taxations(baseStableCoin.address)).eq(
+      expect(await stableCoin.callStatic.balanceOf(laborMarket.address)).to.eq(
+        parseEther("80")
+      );
+      expect(await dealManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("20")
       );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("80"));
@@ -244,10 +238,10 @@ describe("DealManager.sol", function () {
         .connect(projContractor)
         .forceApproveBudget(deal.projId, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
-      expect(
-        await baseStableCoin.callStatic.balanceOf(laborMarket.address)
-      ).to.eq(parseEther("50"));
-      expect(await dealManager.callStatic.taxations(baseStableCoin.address)).eq(
+      expect(await stableCoin.callStatic.balanceOf(laborMarket.address)).to.eq(
+        parseEther("50")
+      );
+      expect(await dealManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("50")
       );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
@@ -267,15 +261,15 @@ describe("DealManager.sol", function () {
       await expect(
         dealManager
           .connect(bob)
-          .addBudget(deal.projId, baseStableCoin.address, parseEther("10"))
+          .addBudget(deal.projId, stableCoin.address, parseEther("10"))
       ).to.be.revertedWith("Not authorized");
       await expect(
         dealManager
           .connect(projContractor)
-          .addBudget(deal.projId, baseStableCoin.address, parseEther("10"))
+          .addBudget(deal.projId, stableCoin.address, parseEther("10"))
       )
         .to.emit(dealManager, "BudgetAdded")
-        .withArgs(deal.projId, 1, baseStableCoin.address, parseEther("10"));
+        .withArgs(deal.projId, 1, stableCoin.address, parseEther("10"));
     });
   });
   describe("taxToVisionFarm()", async () => {
@@ -293,7 +287,7 @@ describe("DealManager.sol", function () {
       await runTimelockTx(
         timelock,
         dealManager.populateTransaction.taxToVisionFarm(
-          baseStableCoin.address,
+          stableCoin.address,
           parseEther("20")
         )
       );
@@ -301,7 +295,7 @@ describe("DealManager.sol", function () {
       const result = await visionFarm.callStatic.getHarvestableCrops(
         currentEpoch + 1
       );
-      expect(result.tokens).to.deep.eq([baseStableCoin.address]);
+      expect(result.tokens).to.deep.eq([stableCoin.address]);
       expect(result.amounts).to.deep.eq([parseEther("20")]);
     });
   });

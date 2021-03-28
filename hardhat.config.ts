@@ -1,5 +1,6 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
+import "hardhat-gas-reporter";
 
 require("dotenv").config();
 
@@ -26,6 +27,14 @@ export default {
       forking: {
         url: process.env.JSON_RPC_URL,
       },
+    },
+    mainnet: {
+      url: process.env.JSON_RPC_URL,
+      accounts: [process.env.DEPLOYER_KEY],
+    },
+    rinkeby: {
+      url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
+      accounts: [process.env.DEPLOYER_KEY],
     },
   },
 };

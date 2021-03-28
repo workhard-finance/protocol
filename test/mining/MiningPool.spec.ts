@@ -3,8 +3,8 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { MiningFixture, miningFixture } from "../utils/fixtures";
 import { goTo, goToNextWeek } from "../utils/utilities";
+import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -41,10 +41,10 @@ describe("MiningPool.sol", function () {
     aliceAddress = await alice.getAddress();
     bobAddress = await bob.getAddress();
     carlAddress = await carl.getAddress();
-    fixture = await miningFixture(deployer, devAddress);
+    fixture = await getMiningFixture();
     visionToken = fixture.visionToken;
     visionTokenEmitter = fixture.visionTokenEmitter;
-    timelock = fixture.timelockedGovernance;
+    timelock = fixture.timelock;
     const VisionToken = await ethers.getContractFactory("VisionToken");
     const CommitmentToken = await ethers.getContractFactory("CommitmentToken");
     testingStakeToken = await VisionToken.deploy();
