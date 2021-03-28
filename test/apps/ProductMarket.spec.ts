@@ -22,15 +22,6 @@ describe("ProductMarket.sol", function () {
   let baseStableCoin: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
-  let deal: {
-    projId: string;
-    description: string;
-    contractor: string;
-  };
-  let budget: {
-    currency: string;
-    amount: BigNumber;
-  };
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
