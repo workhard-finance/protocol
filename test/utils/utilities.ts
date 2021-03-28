@@ -1,4 +1,4 @@
-import { Contract, PopulatedTransaction } from "ethers";
+import { BigNumber, Contract, PopulatedTransaction } from "ethers";
 import { ethers } from "hardhat";
 
 const { keccak256, solidityPack, getAddress } = ethers.utils;
@@ -57,3 +57,16 @@ export const getCreate2Address = (
   const sanitizedInputs = `0x${create2Inputs.map((i) => i.slice(2)).join("")}`;
   return getAddress(`0x${keccak256(sanitizedInputs).slice(-40)}`);
 };
+
+const ONE = ethers.BigNumber.from(1);
+const TWO = ethers.BigNumber.from(2);
+
+export const sqrt = (x: BigNumber) => {
+    let z = x.add(ONE).div(TWO);
+    let y = x;
+    while (z.sub(y).isNegative()) {
+        y = z;
+        z = x.div(z).add(z).div(TWO);
+    }
+    return y;
+}

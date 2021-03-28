@@ -4,7 +4,10 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/TimelockController.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IVoteCounter.sol";
+import "../libraries/Sqrt.sol";
 import "../mining/VisionFarm.sol";
 
 struct Proposal {
@@ -32,9 +35,10 @@ struct Memorandom {
 /**
  * @notice referenced openzeppelin's TimelockController.sol
  */
-contract FarmersUnion {
+contract FarmersUnion is Pausable {
     VisionFarm public visionFarm;
     using SafeMath for uint256;
+    using Sqrt for uint256;
 
     enum VotingState {Pending, Voting, Passed, Rejected, Executed} // Enum
 
@@ -43,6 +47,8 @@ contract FarmersUnion {
     Memorandom public memorandom;
 
     Proposal[] public proposals;
+
+    uint256 private _launch;
 
     /**
      * @dev Emitted when a call is scheduled as part of operation `id`.
@@ -67,6 +73,9 @@ contract FarmersUnion {
         uint256 salt
     );
 
+    event Vote(uint256 id, address voter, bool forVote);
+    event VoteUpdated(uint256 id, uint256 forVotes, uint256 againsVotes);
+
     /**
      * @dev Emitted when a call is performed as part of operation `id`.
      */
@@ -75,14 +84,16 @@ contract FarmersUnion {
     constructor(address _visionFarm, address _voteCounter) {
         visionFarm = VisionFarm(_visionFarm);
         memorandom = Memorandom(
-            0 weeks,
-            1 weeks,
-            1 weeks,
-            4 weeks,
-            0,
-            0,
+            1 days, // minimum pending for vote
+            1 weeks, // maximum pending for vote
+            1 weeks, // minimum voting period
+            4 weeks, // maximum voting period
+            100 gwei, // minimum votes for proposing
+            1000 gwei, // minimum votes
             IVoteCounter(_voteCounter)
         );
+        _pause();
+        _launch = block.timestamp + 4 weeks;
     }
 
     modifier selfGoverned() {
@@ -95,21 +106,38 @@ contract FarmersUnion {
      */
     receive() external payable {}
 
+    function launch() public {
+        require(block.timestamp >= _launch, "Wait a bit please.");
+        _unpause();
+    }
+
     function changeMemorandom(
         uint256 minimumPendingPeriod,
         uint256 maximumPendingPeriod,
         uint256 minimumVotingPeriod,
         uint256 maximumVotingPeriod,
-        uint256 minimumVotessForProposing,
+        uint256 minimumVotesForProposing,
         uint256 minimumVotes,
         IVoteCounter voteCounter
     ) public selfGoverned {
+        uint256 maxLock = visionFarm.maximumLock();
+        uint256 totalSupply = IERC20(visionFarm.visionToken()).totalSupply();
+        uint256 c = totalSupply.mul(maxLock).sqrt();
+        require(minimumPendingPeriod <= maximumPendingPeriod, "invalid arg");
+        require(minimumVotingPeriod <= maximumVotingPeriod, "invalid arg");
+        require(minimumVotingPeriod >= 1 days, "too short");
+        require(minimumPendingPeriod >= 1 days, "too short");
+        require(minimumVotingPeriod <= 30 days, "too long");
+        require(minimumPendingPeriod <= 30 days, "too long");
+        require(minimumVotesForProposing <= c.div(100), "too large number");
+        require(minimumVotes <= c.div(10), "too large number");
+        require(address(voteCounter) != address(0), "null address");
         memorandom = Memorandom(
             minimumPendingPeriod,
             maximumPendingPeriod,
             minimumVotingPeriod,
             maximumVotingPeriod,
-            minimumVotessForProposing,
+            minimumVotesForProposing,
             minimumVotes,
             voteCounter
         );
@@ -139,7 +167,7 @@ contract FarmersUnion {
         uint256 salt,
         uint256 startsIn,
         uint256 votingPeriod
-    ) public {
+    ) public whenNotPaused {
         _beforePropose(startsIn, votingPeriod);
         bytes32 txHash =
             hashBatchTransaction(target, value, data, predecessor, salt);
@@ -168,10 +196,16 @@ contract FarmersUnion {
             .totalForVotes
             .add(agree ? votes : 0)
             .sub(prevForVotes);
-        proposal.totalForVotes = proposal
+        proposal.totalAgainstVotes = proposal
             .totalAgainstVotes
             .add(agree ? 0 : votes)
             .sub(prevAgainstVotes);
+        emit Vote(proposalId, msg.sender, agree);
+        emit VoteUpdated(
+            proposalId,
+            proposal.totalForVotes,
+            proposal.totalAgainstVotes
+        );
     }
 
     function getVotingStatus(uint256 proposalId)
@@ -184,6 +218,8 @@ contract FarmersUnion {
         if (block.timestamp < proposal.start) return VotingState.Pending;
         else if (block.timestamp <= proposal.end) return VotingState.Voting;
         else if (proposal.executed) return VotingState.Executed;
+        else if (proposal.totalForVotes < memorandom.minimumVotes)
+            return VotingState.Rejected;
         else if (proposal.totalForVotes > proposal.totalAgainstVotes)
             return VotingState.Passed;
         else return VotingState.Rejected;
@@ -274,7 +310,7 @@ contract FarmersUnion {
         bytes32 txHash,
         uint256 startsIn,
         uint256 votingPeriod
-    ) private {
+    ) private whenNotPaused {
         proposals.push();
         Proposal storage proposal = proposals[proposals.length - 1];
         proposal.proposer = msg.sender;
@@ -291,7 +327,7 @@ contract FarmersUnion {
         uint256 votes = memorandom.voteCounter.getVotes(msg.sender);
         require(
             memorandom.minimumVotesForProposing <= votes,
-            "Not enought votes for proposing."
+            "Not enough votes for proposing."
         );
         require(
             memorandom.minimumPending <= startsIn,

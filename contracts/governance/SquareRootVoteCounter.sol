@@ -3,9 +3,12 @@ pragma solidity ^0.7.0;
 
 import "../interfaces/IVoteCounter.sol";
 import "../interfaces/IVisionFarm.sol";
+import "../libraries/Sqrt.sol";
 
 contract SquareRootVoteCounter is IVoteCounter {
     IVisionFarm public immutable visionFarm;
+
+    using Sqrt for uint256;
 
     constructor(address _visionFarm) {
         visionFarm = IVisionFarm(_visionFarm);
@@ -18,25 +21,8 @@ contract SquareRootVoteCounter is IVoteCounter {
      */
     function getVotes(address voter) external view override returns (uint256) {
         uint256 currentEpoch = visionFarm.getCurrentEpoch();
-        uint256 currentDispatchableFarmers =
-            visionFarm.dispatchableFarmers(voter, currentEpoch);
-        return sqrt(currentDispatchableFarmers);
-    }
-
-    /**
-     * @dev This code is written by Noah Zinsmeister @ Uniswap
-     * https://github.com/Uniswap/uniswap-v2-core/blob/v1.0.1/contracts/libraries/Math.sol
-     */
-    function sqrt(uint256 y) internal pure returns (uint256 z) {
-        if (y > 3) {
-            z = y;
-            uint256 x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
+        uint256 dispatchableFarmersForNextFarm =
+            visionFarm.dispatchableFarmers(voter, currentEpoch + 1);
+        return dispatchableFarmersForNextFarm.sqrt();
     }
 }
