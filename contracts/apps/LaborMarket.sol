@@ -103,7 +103,7 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
         Project storage project = projects[projectId];
         require(project.budgetOwner == msg.sender);
         require(project.budget >= amount);
-        project.budget = project.budget - amount;
+        project.budget = project.budget - amount; // "require" protects underflow
         commitmentToken.transfer(to, amount);
         emit BudgetExecuted(projectId, to, amount);
     }

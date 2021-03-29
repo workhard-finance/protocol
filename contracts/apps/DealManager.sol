@@ -54,7 +54,12 @@ contract DealManager is Governed, ReentrancyGuard {
 
     event DealWithdrawn(bytes32 projId);
 
-    event BudgetAdded(bytes32 indexed projId, uint256 index, address token, uint256 amount);
+    event BudgetAdded(
+        bytes32 indexed projId,
+        uint256 index,
+        address token,
+        uint256 amount
+    );
 
     event BudgetApproved(bytes32 projId, uint256 index);
 
@@ -115,10 +120,7 @@ contract DealManager is Governed, ReentrancyGuard {
         _addBudget(projId, token, amount);
     }
 
-    function withdrawDeal(bytes32 projId)
-        public
-        onlyContractor(projId)
-    {
+    function withdrawDeal(bytes32 projId) public onlyContractor(projId) {
         _withdrawDeal(projId);
     }
 

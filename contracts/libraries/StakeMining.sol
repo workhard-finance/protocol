@@ -13,8 +13,8 @@ contract StakeMining is MiningPool {
     constructor() MiningPool() {}
 
     function stake(uint256 amount) public {
-        _dispatchMiners(amount);
         baseToken.safeTransferFrom(msg.sender, address(this), amount);
+        _dispatchMiners(amount);
     }
 
     function withdraw(uint256 amount) public {

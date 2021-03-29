@@ -71,7 +71,10 @@ contract VisionFarm is Governed, HasInitializer {
         _;
     }
 
-    function init(address dealManager, address productMarket) public initializer {
+    function init(address dealManager, address productMarket)
+        public
+        initializer
+    {
         _addPlanter(dealManager);
         _addPlanter(productMarket);
     }
@@ -191,8 +194,8 @@ contract VisionFarm is Governed, HasInitializer {
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
             uint256 amount = amounts[i];
-            IERC20(token).transfer(msg.sender, amount);
             farm.crops[token] = farm.crops[token].sub(amount);
+            IERC20(token).transfer(msg.sender, amount);
         }
         farm.totalFarmers = farm.totalFarmers.sub(
             farm.dispatchedFarmers[msg.sender]
