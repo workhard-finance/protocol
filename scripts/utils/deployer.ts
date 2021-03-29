@@ -30,7 +30,7 @@ export function record(
   contract: ContractNames,
   address: string
 ) {
-  if (network === "hardhat") return;
+  if (network === "hardhat" || network === "localhost") return;
   const deployed = getDeployed();
   const updated = merge(deployed, {
     [network]: { [contract]: address },
@@ -46,7 +46,7 @@ export async function autoDeploy(
   const deployed = getDeployed();
   const deployedAddress = deployed[network]?.[name];
 
-  if (network === "hardhat") {
+  if (network === "hardhat" || network === "localhost") {
     const contract = await (await ethers.getContractFactory(name)).deploy(
       ...args
     );

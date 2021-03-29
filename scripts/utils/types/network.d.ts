@@ -1,1 +1,1 @@
-export type MyNetwork = "mainnet" | "rinkeby" | "hardhat";
+export type MyNetwork = "mainnet" | "rinkeby" | "hardhat" | "localhost";

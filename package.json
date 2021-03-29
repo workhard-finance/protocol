@@ -1,14 +1,40 @@
 {
-  "name": "hardhat-project",
+  "name": "@workhard/protocol",
+  "description": "Smart contracts for the Workhard protocol",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/workhard-finance/protocol"
+  },
+  "keywords": [
+    "workhard",
+    "defi",
+    "metaverse",
+    "cryptojob"
+  ],
+  "files": [
+    "contracts",
+    "src",
+    "dist"
+  ],
+  "version": "1.0.0",
+  "main": "dist/src/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "hardhat test",
     "hardhat": "hardhat",
     "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
-    "deploy:hardhat": "hardhat run scripts/deploy.ts --network hardhat"
+    "deploy:hardhat": "hardhat run scripts/deploy.ts --network hardhat",
+    "clean": "rimraf src; rimraf dist",
+    "precompile": "yarn clean",
+    "compile": "hardhat compile",
+    "postcompile": "yarn gen-ts",
+    "gen-ts": "typechain --target ethers-v5 --outDir src artifacts/contracts/**/*[!dbg].json && tsc --build tsconfig.json"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@typechain/ethers-v5": "^6.0.5",
     "@types/chai": "^4.2.14",
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.22",
@@ -20,7 +46,9 @@
     "hardhat-gas-reporter": "^1.0.4",
     "prettier": "^2.2.1",
     "prettier-plugin-solidity": "^1.0.0-beta.3",
+    "rimraf": "^3.0.2",
     "ts-node": "^9.1.1",
+    "typechain": "^4.0.3",
     "typescript": "^4.1.3"
   },
   "dependencies": {
