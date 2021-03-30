@@ -4,40 +4,43 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../libraries/HasInitializer.sol";
 import "../libraries/ExchangeLib.sol";
 import "../libraries/ERC20Recoverer.sol";
-import "../interfaces/ILaborMarket.sol";
+import "../interfaces/ICryptoJobBoard.sol";
+import "../interfaces/IProject.sol";
 import "../tokens/CommitmentToken.sol";
 import "../governance/Governed.sol";
 
-struct Project {
-    address budgetOwner;
-    uint256 budget;
-}
-
 /**
- * @notice LaborMarket is the $COMMITMENT token minter. It allows deal managers mint $COMMITMENT token.
+ * @notice CryptoJobBoard is the $COMMITMENT token minter. It allows project managers mint $COMMITMENT token.
  */
-contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
+contract CryptoJobBoard is ERC20Recoverer, Governed, ICryptoJobBoard, HasInitializer {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
+    using ECDSA for bytes32;
 
     CommitmentToken immutable commitmentToken;
 
     IERC20 immutable basicCurrency;
 
+    IERC721 immutable project;
+
     uint256 public priceOfCommitmentToken = 20000; // denominator = 10000, ~= $2
 
-    mapping(address => bool) public dealManagers; // allowed deal managing contracts
+    mapping(address => bool) public projectManagers; // allowed project managing contracts
 
-    mapping(bytes32 => Project) public projects;
+    mapping(uint256 => uint256) public projectFund;
 
-    event DealManagerUpdated(address indexed dealManager);
+    mapping(bytes32 => bool) public claimed;
+
+    event ProjectManagerUpdated(address indexed projectManager);
 
     event NewProject(bytes32 projId, address budgetOwner, uint256 budget);
 
-    event BudgetExecuted(bytes32 projId, address to, uint256 amount);
+    event Payed(uint256 projId, address to, uint256 amount);
 
     event Redeemed(address to, uint256 amount);
 
@@ -46,6 +49,7 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
     constructor(
         address _gov,
         address _commitmentToken,
+        address _projectToken,
         address _basicCurrency
     ) ERC20Recoverer() Governed() HasInitializer() {
         commitmentToken = CommitmentToken(_commitmentToken);
@@ -53,6 +57,7 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
         ERC20Recoverer.disablePermanently(_basicCurrency);
         ERC20Recoverer.disablePermanently(_commitmentToken);
         ERC20Recoverer.setRecoverer(_gov);
+        project = IERC721(_projectToken);
         Governed.setGovernance(_gov);
         _deployer = msg.sender;
     }
@@ -62,21 +67,24 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
         _;
     }
 
-    modifier onlyBudgetOwner(bytes32 projId) {
-        require(projects[projId].budgetOwner == msg.sender, "Not authorized");
+    modifier onlyProjectOwner(uint256 projId) {
+        require(
+            project.ownerOf(projId) == msg.sender,
+            "Not the project owner."
+        );
         _;
     }
 
-    modifier onlyDealManager() {
+    modifier onlyProjectManager() {
         require(
-            dealManagers[msg.sender] || msg.sender == gov,
+            projectManagers[msg.sender] || msg.sender == gov,
             "Not authorized"
         );
         _;
     }
 
-    function init(address dealManager) public initializer {
-        _setDealManager(dealManager, true);
+    function init(address projectManager) public initializer {
+        _setProjectManager(projectManager, true);
     }
 
     function redeem(uint256 amount) public {
@@ -96,58 +104,50 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
     }
 
     function compensate(
-        bytes32 projectId,
+        uint256 projectId,
         address to,
         uint256 amount
-    ) public onlyBudgetOwner(projectId) {
-        Project storage project = projects[projectId];
-        require(project.budgetOwner == msg.sender);
-        require(project.budget >= amount);
-        project.budget = project.budget - amount; // "require" protects underflow
+    ) public onlyProjectOwner(projectId) {
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
         commitmentToken.transfer(to, amount);
-        emit BudgetExecuted(projectId, to, amount);
+        emit Payed(projectId, to, amount);
     }
 
-    function transferBudgetOwner(bytes32 projectId, address newOwner)
-        public
-        onlyBudgetOwner(projectId)
-    {
-        Project storage project = projects[projectId];
-        require(
-            newOwner != address(0),
-            "Cannot set zero address as the budget owner"
-        );
-        require(
-            newOwner != address(this),
-            "This contract cannot control budgets"
-        );
-        require(newOwner != project.budgetOwner, "Not transferred");
-        project.budgetOwner = newOwner;
+    function claim(
+        uint256 projectId,
+        address to,
+        uint256 amount,
+        bytes32 salt,
+        bytes memory sig
+    ) public {
+        bytes32 claimHash =
+            keccak256(abi.encodePacked(projectId, to, amount, salt));
+        require(!claimed[claimHash], "Already claimed");
+        claimed[claimHash] = true;
+        address signer = claimHash.recover(sig);
+        require(project.ownerOf(projectId) == signer, "Invalid signer");
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        commitmentToken.transfer(to, amount);
+        emit Payed(projectId, to, amount);
     }
 
-    function createProject(bytes32 projId, address budgetOwner)
-        public
-        override
-        onlyDealManager
-    {
-        Project storage proj = projects[projId];
-        require(proj.budgetOwner == address(0), "Same project already exists");
-        proj.budgetOwner = budgetOwner;
-    }
-
-    function allocateBudget(bytes32 projId, uint256 budget)
+    function allocateFund(uint256 projId, uint256 budget)
         public
         override
-        onlyDealManager
+        onlyProjectManager
     {
         require(budget <= remainingBudget());
         _mintCommitmentToken(address(this), budget);
-        Project storage proj = projects[projId];
-        proj.budget = proj.budget.add(budget);
+        projectFund[projId] = projectFund[projId].add(budget);
     }
 
-    function setDealManager(address dealManager, bool active) public governed {
-        _setDealManager(dealManager, active);
+    function setProjectManager(address projectManager, bool active)
+        public
+        governed
+    {
+        _setProjectManager(projectManager, active);
     }
 
     function remainingBudget() public view returns (uint256) {
@@ -161,10 +161,10 @@ contract LaborMarket is ERC20Recoverer, Governed, ILaborMarket, HasInitializer {
         commitmentToken.mint(to, amount);
     }
 
-    function _setDealManager(address dealManager, bool active) internal {
-        if (dealManagers[dealManager] != active) {
-            emit DealManagerUpdated(dealManager);
+    function _setProjectManager(address projectManager, bool active) internal {
+        if (projectManagers[projectManager] != active) {
+            emit ProjectManagerUpdated(projectManager);
         }
-        dealManagers[dealManager] = active;
+        projectManagers[projectManager] = active;
     }
 }

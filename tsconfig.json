@@ -9,9 +9,9 @@
     "typeRoots": ["node_modules/@types"],
     "outDir": "./dist",
     "rootDir": "./",
-    "declaration": true,
-    "declarationDir": "./dist/types"
+    "declaration": true
   },
   "include": ["./src"],
+  "files": ["deployed.json"],
   "compileOnSave": true
 }

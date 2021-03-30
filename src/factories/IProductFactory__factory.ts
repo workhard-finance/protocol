@@ -30,6 +30,11 @@ const _abi = [
         type: "address",
       },
       {
+        internalType: "uint256",
+        name: "_maxSupply",
+        type: "uint256",
+      },
+      {
         internalType: "string",
         name: "_name",
         type: "string",

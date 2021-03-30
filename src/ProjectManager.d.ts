@@ -19,27 +19,31 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface DealManagerInterface extends ethers.utils.Interface {
+interface ProjectManagerInterface extends ethers.utils.Interface {
   functions: {
-    "accepted(address)": FunctionFragment;
-    "addBudget(bytes32,address,uint256)": FunctionFragment;
+    "accpetableTokens(address)": FunctionFragment;
+    "addBudget(uint256,address,uint256)": FunctionFragment;
     "addCurrency(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "approveBudget(bytes32,uint256,bytes)": FunctionFragment;
-    "breakDeal(bytes32)": FunctionFragment;
-    "createDeal(string)": FunctionFragment;
-    "createDealWithBudget(string,address,uint256)": FunctionFragment;
-    "deals(bytes32)": FunctionFragment;
+    "approveBudget(uint256,uint256,bytes)": FunctionFragment;
+    "approveProject(uint256)": FunctionFragment;
+    "approvedProjects(uint256)": FunctionFragment;
+    "baseCurrency()": FunctionFragment;
+    "closeProject(uint256)": FunctionFragment;
+    "createProject(string,string)": FunctionFragment;
+    "cryptoJobBoard()": FunctionFragment;
+    "disapproveProject(uint256)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
-    "forceApproveBudget(bytes32,uint256)": FunctionFragment;
+    "forceApproveBudget(uint256,uint256)": FunctionFragment;
     "funds(address)": FunctionFragment;
     "gov()": FunctionFragment;
-    "hammerOut(bytes32)": FunctionFragment;
     "managers(address)": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
     "oneInch()": FunctionFragment;
+    "project()": FunctionFragment;
+    "projectBudgets(uint256,uint256)": FunctionFragment;
     "removeCurrency(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setExchange(address)": FunctionFragment;
@@ -50,13 +54,16 @@ interface DealManagerInterface extends ethers.utils.Interface {
     "taxRateForUndeclared()": FunctionFragment;
     "taxToVisionFarm(address,uint256)": FunctionFragment;
     "taxations(address)": FunctionFragment;
-    "withdrawDeal(bytes32)": FunctionFragment;
+    "visionFarm()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "accepted", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "accpetableTokens",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "addBudget",
-    values: [BytesLike, string, BigNumberish]
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "addCurrency", values: [string]): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
@@ -66,18 +73,36 @@ interface DealManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "approveBudget",
-    values: [BytesLike, BigNumberish, BytesLike]
+    values: [BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "breakDeal",
-    values: [BytesLike]
+    functionFragment: "approveProject",
+    values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "createDeal", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "createDealWithBudget",
-    values: [string, string, BigNumberish]
+    functionFragment: "approvedProjects",
+    values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "deals", values: [BytesLike]): string;
+  encodeFunctionData(
+    functionFragment: "baseCurrency",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "closeProject",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "createProject",
+    values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "cryptoJobBoard",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "disapproveProject",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "forceAnarchize",
     values?: undefined
@@ -88,20 +113,21 @@ interface DealManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "forceApproveBudget",
-    values: [BytesLike, BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "funds", values: [string]): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "hammerOut",
-    values: [BytesLike]
-  ): string;
   encodeFunctionData(functionFragment: "managers", values: [string]): string;
   encodeFunctionData(
     functionFragment: "normalTaxRate",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "oneInch", values?: undefined): string;
+  encodeFunctionData(functionFragment: "project", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "projectBudgets",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "removeCurrency",
     values: [string]
@@ -137,11 +163,14 @@ interface DealManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "taxations", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "withdrawDeal",
-    values: [BytesLike]
+    functionFragment: "visionFarm",
+    values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "accepted", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "accpetableTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "addBudget", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addCurrency",
@@ -156,13 +185,34 @@ interface DealManagerInterface extends ethers.utils.Interface {
     functionFragment: "approveBudget",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "breakDeal", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "createDeal", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "createDealWithBudget",
+    functionFragment: "approveProject",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deals", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "approvedProjects",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "baseCurrency",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "closeProject",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "createProject",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "cryptoJobBoard",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "disapproveProject",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchize",
     data: BytesLike
@@ -177,13 +227,17 @@ interface DealManagerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "funds", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "hammerOut", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "managers", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "normalTaxRate",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "oneInch", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "project", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "projectBudgets",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "removeCurrency",
     data: BytesLike
@@ -215,33 +269,30 @@ interface DealManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "taxations", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawDeal",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
-    "BudgetAdded(bytes32,uint256,address,uint256)": EventFragment;
-    "BudgetApproved(bytes32,uint256)": EventFragment;
-    "BudgetWithdrawn(bytes32,uint256)": EventFragment;
-    "DealCreated(bytes32,address,string)": EventFragment;
-    "DealWithdrawn(bytes32)": EventFragment;
+    "BudgetAdded(uint256,uint256,address,uint256)": EventFragment;
+    "BudgetApproved(uint256,uint256)": EventFragment;
+    "BudgetWithdrawn(uint256,uint256)": EventFragment;
     "ManagerUpdated(address,bool)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
+    "ProjectClosed(uint256)": EventFragment;
+    "ProjectPosted(uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetApproved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetWithdrawn"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DealCreated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DealWithdrawn"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ManagerUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProjectClosed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProjectPosted"): EventFragment;
 }
 
-export class DealManager extends Contract {
+export class ProjectManager extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -282,25 +333,28 @@ export class DealManager extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: DealManagerInterface;
+  interface: ProjectManagerInterface;
 
   functions: {
-    accepted(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+    accpetableTokens(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
-    "accepted(address)"(
+    "accpetableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     addBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "addBudget(bytes32,address,uint256)"(
-      projId: BytesLike,
+    "addBudget(uint256,address,uint256)"(
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -329,66 +383,78 @@ export class DealManager extends Contract {
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     approveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "approveBudget(bytes32,uint256,bytes)"(
-      projId: BytesLike,
+    "approveBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    breakDeal(
-      projId: BytesLike,
+    approveProject(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "breakDeal(bytes32)"(
-      projId: BytesLike,
+    "approveProject(uint256)"(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    createDeal(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "createDeal(string)"(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    createDealWithBudget(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "createDealWithBudget(string,address,uint256)"(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    deals(
-      arg0: BytesLike,
+    approvedProjects(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, boolean] & { contractor: string; hammeredOut: boolean }
-    >;
+    ): Promise<[boolean]>;
 
-    "deals(bytes32)"(
-      arg0: BytesLike,
+    "approvedProjects(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, boolean] & { contractor: string; hammeredOut: boolean }
-    >;
+    ): Promise<[boolean]>;
+
+    baseCurrency(overrides?: CallOverrides): Promise<[string]>;
+
+    "baseCurrency()"(overrides?: CallOverrides): Promise<[string]>;
+
+    closeProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "closeProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    createProject(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "createProject(string,string)"(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    cryptoJobBoard(overrides?: CallOverrides): Promise<[string]>;
+
+    "cryptoJobBoard()"(overrides?: CallOverrides): Promise<[string]>;
+
+    disapproveProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "disapproveProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -403,13 +469,13 @@ export class DealManager extends Contract {
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     forceApproveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "forceApproveBudget(bytes32,uint256)"(
-      projId: BytesLike,
+    "forceApproveBudget(uint256,uint256)"(
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -425,16 +491,6 @@ export class DealManager extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
-    hammerOut(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "hammerOut(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     managers(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     "managers(address)"(
@@ -449,6 +505,34 @@ export class DealManager extends Contract {
     oneInch(overrides?: CallOverrides): Promise<[string]>;
 
     "oneInch()"(overrides?: CallOverrides): Promise<[string]>;
+
+    project(overrides?: CallOverrides): Promise<[string]>;
+
+    "project()"(overrides?: CallOverrides): Promise<[string]>;
+
+    projectBudgets(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, boolean] & {
+        currency: string;
+        amount: BigNumber;
+        transferred: boolean;
+      }
+    >;
+
+    "projectBudgets(uint256,uint256)"(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, boolean] & {
+        currency: string;
+        amount: BigNumber;
+        transferred: boolean;
+      }
+    >;
 
     removeCurrency(
       currency: string,
@@ -545,33 +629,27 @@ export class DealManager extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    withdrawDeal(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    visionFarm(overrides?: CallOverrides): Promise<[string]>;
 
-    "withdrawDeal(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  accepted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+  accpetableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "accepted(address)"(
+  "accpetableTokens(address)"(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   addBudget(
-    projId: BytesLike,
+    projId: BigNumberish,
     token: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "addBudget(bytes32,address,uint256)"(
-    projId: BytesLike,
+  "addBudget(uint256,address,uint256)"(
+    projId: BigNumberish,
     token: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -600,62 +678,78 @@ export class DealManager extends Contract {
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   approveBudget(
-    projId: BytesLike,
+    projId: BigNumberish,
     index: BigNumberish,
     swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "approveBudget(bytes32,uint256,bytes)"(
-    projId: BytesLike,
+  "approveBudget(uint256,uint256,bytes)"(
+    projId: BigNumberish,
     index: BigNumberish,
     swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  breakDeal(
-    projId: BytesLike,
+  approveProject(
+    projId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "breakDeal(bytes32)"(
-    projId: BytesLike,
+  "approveProject(uint256)"(
+    projId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  createDeal(
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "createDeal(string)"(
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  createDealWithBudget(
-    description: string,
-    token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "createDealWithBudget(string,address,uint256)"(
-    description: string,
-    token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  deals(
-    arg0: BytesLike,
+  approvedProjects(
+    arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<[string, boolean] & { contractor: string; hammeredOut: boolean }>;
+  ): Promise<boolean>;
 
-  "deals(bytes32)"(
-    arg0: BytesLike,
+  "approvedProjects(uint256)"(
+    arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<[string, boolean] & { contractor: string; hammeredOut: boolean }>;
+  ): Promise<boolean>;
+
+  baseCurrency(overrides?: CallOverrides): Promise<string>;
+
+  "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
+
+  closeProject(
+    projId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "closeProject(uint256)"(
+    projId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  createProject(
+    description: string,
+    URI: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "createProject(string,string)"(
+    description: string,
+    URI: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  cryptoJobBoard(overrides?: CallOverrides): Promise<string>;
+
+  "cryptoJobBoard()"(overrides?: CallOverrides): Promise<string>;
+
+  disapproveProject(
+    projId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "disapproveProject(uint256)"(
+    projId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   forceAnarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -670,13 +764,13 @@ export class DealManager extends Contract {
   "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   forceApproveBudget(
-    projId: BytesLike,
+    projId: BigNumberish,
     index: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "forceApproveBudget(bytes32,uint256)"(
-    projId: BytesLike,
+  "forceApproveBudget(uint256,uint256)"(
+    projId: BigNumberish,
     index: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -688,16 +782,6 @@ export class DealManager extends Contract {
   gov(overrides?: CallOverrides): Promise<string>;
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
-
-  hammerOut(
-    projId: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "hammerOut(bytes32)"(
-    projId: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -713,6 +797,34 @@ export class DealManager extends Contract {
   oneInch(overrides?: CallOverrides): Promise<string>;
 
   "oneInch()"(overrides?: CallOverrides): Promise<string>;
+
+  project(overrides?: CallOverrides): Promise<string>;
+
+  "project()"(overrides?: CallOverrides): Promise<string>;
+
+  projectBudgets(
+    arg0: BigNumberish,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber, boolean] & {
+      currency: string;
+      amount: BigNumber;
+      transferred: boolean;
+    }
+  >;
+
+  "projectBudgets(uint256,uint256)"(
+    arg0: BigNumberish,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber, boolean] & {
+      currency: string;
+      amount: BigNumber;
+      transferred: boolean;
+    }
+  >;
 
   removeCurrency(
     currency: string,
@@ -809,33 +921,27 @@ export class DealManager extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  withdrawDeal(
-    projId: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  visionFarm(overrides?: CallOverrides): Promise<string>;
 
-  "withdrawDeal(bytes32)"(
-    projId: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "visionFarm()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    accepted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    accpetableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "accepted(address)"(
+    "accpetableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     addBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addBudget(bytes32,address,uint256)"(
-      projId: BytesLike,
+    "addBudget(uint256,address,uint256)"(
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: CallOverrides
@@ -857,60 +963,78 @@ export class DealManager extends Contract {
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     approveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "approveBudget(bytes32,uint256,bytes)"(
-      projId: BytesLike,
+    "approveBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    breakDeal(projId: BytesLike, overrides?: CallOverrides): Promise<void>;
-
-    "breakDeal(bytes32)"(
-      projId: BytesLike,
+    approveProject(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    createDeal(description: string, overrides?: CallOverrides): Promise<string>;
-
-    "createDeal(string)"(
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    createDealWithBudget(
-      description: string,
-      token: string,
-      amount: BigNumberish,
+    "approveProject(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createDealWithBudget(string,address,uint256)"(
-      description: string,
-      token: string,
-      amount: BigNumberish,
+    approvedProjects(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "approvedProjects(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    baseCurrency(overrides?: CallOverrides): Promise<string>;
+
+    "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
+
+    closeProject(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    deals(
-      arg0: BytesLike,
+    "closeProject(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, boolean] & { contractor: string; hammeredOut: boolean }
-    >;
+    ): Promise<void>;
 
-    "deals(bytes32)"(
-      arg0: BytesLike,
+    createProject(
+      description: string,
+      URI: string,
       overrides?: CallOverrides
-    ): Promise<
-      [string, boolean] & { contractor: string; hammeredOut: boolean }
-    >;
+    ): Promise<void>;
+
+    "createProject(string,string)"(
+      description: string,
+      URI: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    cryptoJobBoard(overrides?: CallOverrides): Promise<string>;
+
+    "cryptoJobBoard()"(overrides?: CallOverrides): Promise<string>;
+
+    disapproveProject(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "disapproveProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     forceAnarchize(overrides?: CallOverrides): Promise<void>;
 
@@ -921,13 +1045,13 @@ export class DealManager extends Contract {
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     forceApproveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "forceApproveBudget(bytes32,uint256)"(
-      projId: BytesLike,
+    "forceApproveBudget(uint256,uint256)"(
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -943,13 +1067,6 @@ export class DealManager extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
-    hammerOut(projId: BytesLike, overrides?: CallOverrides): Promise<void>;
-
-    "hammerOut(bytes32)"(
-      projId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     "managers(address)"(
@@ -964,6 +1081,34 @@ export class DealManager extends Contract {
     oneInch(overrides?: CallOverrides): Promise<string>;
 
     "oneInch()"(overrides?: CallOverrides): Promise<string>;
+
+    project(overrides?: CallOverrides): Promise<string>;
+
+    "project()"(overrides?: CallOverrides): Promise<string>;
+
+    projectBudgets(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, boolean] & {
+        currency: string;
+        amount: BigNumber;
+        transferred: boolean;
+      }
+    >;
+
+    "projectBudgets(uint256,uint256)"(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, boolean] & {
+        currency: string;
+        amount: BigNumber;
+        transferred: boolean;
+      }
+    >;
 
     removeCurrency(currency: string, overrides?: CallOverrides): Promise<void>;
 
@@ -1048,53 +1193,39 @@ export class DealManager extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    withdrawDeal(projId: BytesLike, overrides?: CallOverrides): Promise<void>;
+    visionFarm(overrides?: CallOverrides): Promise<string>;
 
-    "withdrawDeal(bytes32)"(
-      projId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "visionFarm()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
     Anarchized(): TypedEventFilter<[], {}>;
 
     BudgetAdded(
-      projId: BytesLike | null,
+      projId: BigNumberish | null,
       index: null,
       token: null,
       amount: null
     ): TypedEventFilter<
-      [string, BigNumber, string, BigNumber],
-      { projId: string; index: BigNumber; token: string; amount: BigNumber }
+      [BigNumber, BigNumber, string, BigNumber],
+      { projId: BigNumber; index: BigNumber; token: string; amount: BigNumber }
     >;
 
     BudgetApproved(
       projId: null,
       index: null
     ): TypedEventFilter<
-      [string, BigNumber],
-      { projId: string; index: BigNumber }
+      [BigNumber, BigNumber],
+      { projId: BigNumber; index: BigNumber }
     >;
 
     BudgetWithdrawn(
       projId: null,
       index: null
     ): TypedEventFilter<
-      [string, BigNumber],
-      { projId: string; index: BigNumber }
+      [BigNumber, BigNumber],
+      { projId: BigNumber; index: BigNumber }
     >;
-
-    DealCreated(
-      projId: null,
-      contractor: null,
-      description: null
-    ): TypedEventFilter<
-      [string, string, string],
-      { projId: string; contractor: string; description: string }
-    >;
-
-    DealWithdrawn(projId: null): TypedEventFilter<[string], { projId: string }>;
 
     ManagerUpdated(
       manager: string | null,
@@ -1111,25 +1242,36 @@ export class DealManager extends Contract {
       [string, string],
       { _prevGovernance: string; _newGovernance: string }
     >;
+
+    ProjectClosed(
+      projId: null
+    ): TypedEventFilter<[BigNumber], { projId: BigNumber }>;
+
+    ProjectPosted(
+      projId: null
+    ): TypedEventFilter<[BigNumber], { projId: BigNumber }>;
   };
 
   estimateGas: {
-    accepted(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    accpetableTokens(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "accepted(address)"(
+    "accpetableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     addBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "addBudget(bytes32,address,uint256)"(
-      projId: BytesLike,
+    "addBudget(uint256,address,uint256)"(
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1158,58 +1300,77 @@ export class DealManager extends Contract {
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     approveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "approveBudget(bytes32,uint256,bytes)"(
-      projId: BytesLike,
+    "approveBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    breakDeal(
-      projId: BytesLike,
+    approveProject(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "breakDeal(bytes32)"(
-      projId: BytesLike,
+    "approveProject(uint256)"(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    createDeal(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "createDeal(string)"(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    createDealWithBudget(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "createDealWithBudget(string,address,uint256)"(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    deals(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "deals(bytes32)"(
-      arg0: BytesLike,
+    approvedProjects(
+      arg0: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "approvedProjects(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    baseCurrency(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "baseCurrency()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    closeProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "closeProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    createProject(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "createProject(string,string)"(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    cryptoJobBoard(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "cryptoJobBoard()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    disapproveProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "disapproveProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     forceAnarchize(
@@ -1225,13 +1386,13 @@ export class DealManager extends Contract {
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     forceApproveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "forceApproveBudget(bytes32,uint256)"(
-      projId: BytesLike,
+    "forceApproveBudget(uint256,uint256)"(
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1247,16 +1408,6 @@ export class DealManager extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    hammerOut(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "hammerOut(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     managers(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "managers(address)"(
@@ -1271,6 +1422,22 @@ export class DealManager extends Contract {
     oneInch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "oneInch()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    project(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "project()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    projectBudgets(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "projectBudgets(uint256,uint256)"(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     removeCurrency(
       currency: string,
@@ -1367,37 +1534,31 @@ export class DealManager extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    withdrawDeal(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "withdrawDeal(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    accepted(
+    accpetableTokens(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "accepted(address)"(
+    "accpetableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     addBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "addBudget(bytes32,address,uint256)"(
-      projId: BytesLike,
+    "addBudget(uint256,address,uint256)"(
+      projId: BigNumberish,
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1426,61 +1587,79 @@ export class DealManager extends Contract {
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     approveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "approveBudget(bytes32,uint256,bytes)"(
-      projId: BytesLike,
+    "approveBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
       index: BigNumberish,
       swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    breakDeal(
-      projId: BytesLike,
+    approveProject(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "breakDeal(bytes32)"(
-      projId: BytesLike,
+    "approveProject(uint256)"(
+      projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    createDeal(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "createDeal(string)"(
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    createDealWithBudget(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "createDealWithBudget(string,address,uint256)"(
-      description: string,
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    deals(
-      arg0: BytesLike,
+    approvedProjects(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "deals(bytes32)"(
-      arg0: BytesLike,
+    "approvedProjects(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    baseCurrency(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "baseCurrency()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    closeProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "closeProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    createProject(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "createProject(string,string)"(
+      description: string,
+      URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    cryptoJobBoard(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "cryptoJobBoard()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    disapproveProject(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "disapproveProject(uint256)"(
+      projId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     forceAnarchize(
@@ -1498,13 +1677,13 @@ export class DealManager extends Contract {
     ): Promise<PopulatedTransaction>;
 
     forceApproveBudget(
-      projId: BytesLike,
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "forceApproveBudget(bytes32,uint256)"(
-      projId: BytesLike,
+    "forceApproveBudget(uint256,uint256)"(
+      projId: BigNumberish,
       index: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1523,16 +1702,6 @@ export class DealManager extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    hammerOut(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "hammerOut(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     managers(
       arg0: string,
       overrides?: CallOverrides
@@ -1550,6 +1719,22 @@ export class DealManager extends Contract {
     oneInch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "oneInch()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    project(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "project()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    projectBudgets(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "projectBudgets(uint256,uint256)"(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     removeCurrency(
       currency: string,
@@ -1653,14 +1838,8 @@ export class DealManager extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    withdrawDeal(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "withdrawDeal(bytes32)"(
-      projId: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

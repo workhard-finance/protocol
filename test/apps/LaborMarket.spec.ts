@@ -9,23 +9,23 @@ import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("LaborMarket.sol", function () {
+describe("CryptoJobBoard.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let manager: SignerWithAddress;
-  let projContractor: SignerWithAddress;
+  let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let fixture: AppFixture;
-  let dealManager: Contract;
-  let laborMarket: Contract;
+  let projManager: Contract;
+  let cryptoJobBoard: Contract;
   let commitmentToken: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
   let stableCoin: Contract;
-  let deal: {
-    projId: string;
+  let project: {
+    id: number;
     description: string;
-    contractor: string;
+    uri: string;
   };
   let budget: {
     currency: string;
@@ -35,14 +35,14 @@ describe("LaborMarket.sol", function () {
     signers = await ethers.getSigners();
     deployer = signers[0];
     manager = signers[1];
-    projContractor = signers[2];
+    projOwner = signers[2];
     alice = signers[3];
     const ERC20 = await ethers.getContractFactory("TestERC20");
     fixture = await getAppFixture();
     stableCoin = fixture.stableCoin;
-    dealManager = fixture.dealManager;
+    projManager = fixture.projManager;
     commitmentToken = fixture.commitmentToken;
-    laborMarket = fixture.laborMarket;
+    cryptoJobBoard = fixture.cryptoJobBoard;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
     await stableCoin.mint(deployer.address, parseEther("10000"));
@@ -51,37 +51,44 @@ describe("LaborMarket.sol", function () {
       await stableCoin.mint(addr, parseEther("10000"));
       await stableCoin
         .connect(account)
-        .approve(dealManager.address, parseEther("10000"));
+        .approve(projManager.address, parseEther("10000"));
       await stableCoin
         .connect(account)
-        .approve(laborMarket.address, parseEther("10000"));
+        .approve(cryptoJobBoard.address, parseEther("10000"));
       commitmentToken
         .connect(account)
-        .approve(laborMarket.address, parseEther("10000"));
+        .approve(cryptoJobBoard.address, parseEther("10000"));
     };
-    await prepare(projContractor);
+    await prepare(projOwner);
     await prepare(alice);
     await runTimelockTx(
       timelock,
-      dealManager.populateTransaction.setManager(manager.address, true)
+      projManager.populateTransaction.setManager(manager.address, true)
     );
     const description = "helloworld";
     const projId = keccak256(
       defaultAbiCoder.encode(
         ["address", "string"],
-        [projContractor.address, description]
+        [projOwner.address, description]
       )
     );
-    deal = { description, contractor: projContractor.address, projId };
+    project = {
+      id: 0,
+      description: "helloworld",
+      uri: "ipfs://MY_PROJECT_URL",
+    };
     budget = { currency: stableCoin.address, amount: parseEther("100") };
-    await dealManager
-      .connect(projContractor)
-      .createDealWithBudget(deal.description, budget.currency, budget.amount);
+    await projManager
+      .connect(projOwner)
+      .createProject(project.description, project.uri);
+    await projManager
+      .connect(projOwner)
+      .addBudget(project.id, budget.currency, budget.amount);
     await runTimelockTx(
       timelock,
-      dealManager.populateTransaction.hammerOut(deal.projId)
+      projManager.populateTransaction.approveProject(project.id)
     );
-    await dealManager.connect(manager).approveBudget(deal.projId, 0, []);
+    await projManager.connect(manager).approveBudget(project.id, 0, []);
   });
   describe("compensate()", async () => {
     it("the budget owner can execute the budget", async () => {
@@ -89,12 +96,12 @@ describe("LaborMarket.sol", function () {
         alice.address
       );
       await expect(
-        laborMarket
-          .connect(projContractor)
-          .compensate(deal.projId, alice.address, parseEther("1"))
+        cryptoJobBoard
+          .connect(projOwner)
+          .compensate(project.id, alice.address, parseEther("1"))
       )
-        .to.emit(laborMarket, "BudgetExecuted")
-        .withArgs(deal.projId, alice.address, parseEther("1"));
+        .to.emit(cryptoJobBoard, "Payed")
+        .withArgs(project.id, alice.address, parseEther("1"));
       const bal1: BigNumber = await commitmentToken.callStatic.balanceOf(
         alice.address
       );
@@ -103,24 +110,24 @@ describe("LaborMarket.sol", function () {
   });
   describe("redeem()", async () => {
     beforeEach("compensate", async () => {
-      laborMarket
-        .connect(projContractor)
-        .compensate(deal.projId, alice.address, parseEther("1"));
+      cryptoJobBoard
+        .connect(projOwner)
+        .compensate(project.id, alice.address, parseEther("1"));
     });
     it("should return the base currency and burn the commitment token", async () => {
       const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
-      expect(laborMarket.connect(alice).redeem(parseEther("1")))
-        .to.emit(laborMarket, "Redeemed")
+      expect(cryptoJobBoard.connect(alice).redeem(parseEther("1")))
+        .to.emit(cryptoJobBoard, "Redeemed")
         .withArgs(alice.address, parseEther("1"));
       const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base1.sub(base0)).eq(comm0.sub(comm1));
     });
     it("should not change the remaining budget", async () => {
-      const remaining0 = await laborMarket.callStatic.remainingBudget();
-      await laborMarket.connect(alice).redeem(parseEther("1"));
-      const remaining1 = await laborMarket.callStatic.remainingBudget();
+      const remaining0 = await cryptoJobBoard.callStatic.remainingBudget();
+      await cryptoJobBoard.connect(alice).redeem(parseEther("1"));
+      const remaining1 = await cryptoJobBoard.callStatic.remainingBudget();
       expect(remaining1).eq(remaining0);
     });
   });
@@ -129,7 +136,7 @@ describe("LaborMarket.sol", function () {
       const supply0 = await commitmentToken.callStatic.totalSupply();
       const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
-      await laborMarket.connect(alice).payInsteadOfWorking(parseEther("1"));
+      await cryptoJobBoard.connect(alice).payInsteadOfWorking(parseEther("1"));
       const supply1 = await commitmentToken.callStatic.totalSupply();
       const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
@@ -138,9 +145,9 @@ describe("LaborMarket.sol", function () {
       expect(supply1.sub(supply0)).eq(parseEther("1"));
     });
     it("should increase the commitment token budget", async () => {
-      const remaining0 = await laborMarket.callStatic.remainingBudget();
-      await laborMarket.connect(alice).payInsteadOfWorking(parseEther("1"));
-      const remaining1 = await laborMarket.callStatic.remainingBudget();
+      const remaining0 = await cryptoJobBoard.callStatic.remainingBudget();
+      await cryptoJobBoard.connect(alice).payInsteadOfWorking(parseEther("1"));
+      const remaining1 = await cryptoJobBoard.callStatic.remainingBudget();
       expect(remaining1.sub(remaining0)).eq(parseEther("1"));
     });
   });

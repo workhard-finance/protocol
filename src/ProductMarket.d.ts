@@ -34,6 +34,7 @@ interface ProductMarketInterface extends ethers.utils.Interface {
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
     "launchNewProduct(string,string,string,uint256,uint256,uint256)": FunctionFragment;
+    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)": FunctionFragment;
     "nonRecoverable(address)": FunctionFragment;
     "permanentlyNonRecoverable(address)": FunctionFragment;
     "products(address)": FunctionFragment;
@@ -85,6 +86,18 @@ interface ProductMarketInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "launchNewProduct",
     values: [string, string, string, BigNumberish, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "launchNewProductWithMaxSupply",
+    values: [
+      string,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "nonRecoverable",
@@ -156,6 +169,10 @@ interface ProductMarketInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "launchNewProduct",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "launchNewProductWithMaxSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -365,6 +382,28 @@ export class ProductMarket extends Contract {
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    launchNewProductWithMaxSupply(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -612,6 +651,28 @@ export class ProductMarket extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  launchNewProductWithMaxSupply(
+    _name: string,
+    _symbol: string,
+    _baseURI: string,
+    profitRate: BigNumberish,
+    price: BigNumberish,
+    initialStock: BigNumberish,
+    maxSupply: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+    _name: string,
+    _symbol: string,
+    _baseURI: string,
+    profitRate: BigNumberish,
+    price: BigNumberish,
+    initialStock: BigNumberish,
+    maxSupply: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   "nonRecoverable(address)"(
@@ -839,6 +900,28 @@ export class ProductMarket extends Contract {
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    launchNewProductWithMaxSupply(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1131,6 +1214,28 @@ export class ProductMarket extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    launchNewProductWithMaxSupply(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "nonRecoverable(address)"(
@@ -1362,6 +1467,28 @@ export class ProductMarket extends Contract {
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    launchNewProductWithMaxSupply(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+      _name: string,
+      _symbol: string,
+      _baseURI: string,
+      profitRate: BigNumberish,
+      price: BigNumberish,
+      initialStock: BigNumberish,
+      maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

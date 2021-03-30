@@ -108,6 +108,30 @@ contract ProductMarket is ERC20Recoverer, Governed, ReentrancyGuard {
             IProductFactory(factory).create(
                 msg.sender,
                 address(this),
+                0,
+                _name,
+                _symbol,
+                _baseURI
+            );
+        setPrice(prodAddr, price);
+        setProfitRate(prodAddr, profitRate);
+        addStocks(prodAddr, initialStock);
+    }
+
+    function launchNewProductWithMaxSupply(
+        string memory _name,
+        string memory _symbol,
+        string memory _baseURI,
+        uint256 profitRate,
+        uint256 price,
+        uint256 initialStock,
+        uint256 maxSupply
+    ) public {
+        address prodAddr =
+            IProductFactory(factory).create(
+                msg.sender,
+                address(this),
+                maxSupply,
                 _name,
                 _symbol,
                 _baseURI

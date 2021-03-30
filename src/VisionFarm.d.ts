@@ -473,13 +473,13 @@ export class VisionFarm extends Contract {
     ): Promise<ContractTransaction>;
 
     init(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "init(address,address)"(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -767,13 +767,13 @@ export class VisionFarm extends Contract {
   ): Promise<ContractTransaction>;
 
   init(
-    dealManager: string,
+    projManager: string,
     productMarket: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "init(address,address)"(
-    dealManager: string,
+    projManager: string,
     productMarket: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1032,13 +1032,13 @@ export class VisionFarm extends Contract {
     "harvestAndDispatchToNewFarm()"(overrides?: CallOverrides): Promise<void>;
 
     init(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "init(address,address)"(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1316,13 +1316,13 @@ export class VisionFarm extends Contract {
     ): Promise<BigNumber>;
 
     init(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "init(address,address)"(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1603,13 +1603,13 @@ export class VisionFarm extends Contract {
     ): Promise<PopulatedTransaction>;
 
     init(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "init(address,address)"(
-      dealManager: string,
+      projManager: string,
       productMarket: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

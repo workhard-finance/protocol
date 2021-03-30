@@ -5,6 +5,7 @@ interface IProductFactory {
     function create(
         address _manufacturer,
         address _marketplace,
+        uint256 _maxSupply,
         string memory _name,
         string memory _symbol,
         string memory _baseURI

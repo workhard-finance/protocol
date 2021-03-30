@@ -4,10 +4,12 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../libraries/ExchangeLib.sol";
-import "../interfaces/ILaborMarket.sol";
+import "../interfaces/ICryptoJobBoard.sol";
 import "../interfaces/IVisionFarm.sol";
+import "../interfaces/IProject.sol";
 import "../governance/Governed.sol";
 
 struct Budget {
@@ -16,21 +18,17 @@ struct Budget {
     bool transferred;
 }
 
-struct Deal {
-    address contractor;
-    bool hammeredOut;
-    Budget[] budgets;
-}
-
-contract DealManager is Governed, ReentrancyGuard {
+contract ProjectManager is Governed, ReentrancyGuard {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address immutable visionFarm;
+    address public immutable visionFarm;
 
-    address immutable laborMarket;
+    address public immutable cryptoJobBoard;
 
-    address immutable baseCurrency;
+    address public immutable baseCurrency;
+
+    IProject public immutable project;
 
     address public oneInch;
 
@@ -38,45 +36,49 @@ contract DealManager is Governed, ReentrancyGuard {
 
     uint256 public taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
 
-    mapping(bytes32 => Deal) public deals;
-
     mapping(address => uint256) public taxations;
 
     mapping(address => uint256) public funds;
 
     mapping(address => bool) public managers;
 
-    mapping(address => bool) public accepted;
+    mapping(address => bool) public accpetableTokens;
+
+    mapping(uint256 => Budget[]) public projectBudgets;
+
+    mapping(uint256 => bool) public approvedProjects;
 
     event ManagerUpdated(address indexed manager, bool active);
 
-    event DealCreated(bytes32 projId, address contractor, string description);
+    event ProjectPosted(uint256 projId);
 
-    event DealWithdrawn(bytes32 projId);
+    event ProjectClosed(uint256 projId);
 
     event BudgetAdded(
-        bytes32 indexed projId,
+        uint256 indexed projId,
         uint256 index,
         address token,
         uint256 amount
     );
 
-    event BudgetApproved(bytes32 projId, uint256 index);
+    event BudgetApproved(uint256 projId, uint256 index);
 
-    event BudgetWithdrawn(bytes32 projId, uint256 index);
+    event BudgetWithdrawn(uint256 projId, uint256 index);
 
     constructor(
         address _gov,
+        address _project,
         address _visionFarm,
-        address _laborMarket,
+        address _cryptoJobBoard,
         address _baseCurrency,
         address _oneInchExchange
     ) Governed() {
         visionFarm = _visionFarm;
-        laborMarket = _laborMarket;
+        cryptoJobBoard = _cryptoJobBoard;
         baseCurrency = _baseCurrency;
         oneInch = _oneInchExchange;
-        accepted[_baseCurrency] = true;
+        project = IProject(_project);
+        accpetableTokens[_baseCurrency] = true;
         Governed.setGovernance(_gov);
     }
 
@@ -85,63 +87,58 @@ contract DealManager is Governed, ReentrancyGuard {
         _;
     }
 
-    modifier onlyContractor(bytes32 projId) {
-        require(deals[projId].contractor == msg.sender, "Not authorized");
+    modifier onlyProjectOwner(uint256 projId) {
+        require(project.ownerOf(projId) == msg.sender, "Not authorized");
+        _;
+    }
+
+    modifier onlyApprovedProject(uint256 projId) {
+        require(approvedProjects[projId], "Not an approved project.");
         _;
     }
 
     // 3rd party functions
-
-    function createDeal(string memory description)
+    function createProject(string memory description, string memory URI)
         public
-        returns (bytes32 projId)
     {
-        projId = keccak256(abi.encode(msg.sender, description));
-        Deal storage deal = deals[projId];
-        require(deal.contractor == address(0), "Budget already exists");
-        deal.contractor = msg.sender;
-        emit DealCreated(projId, msg.sender, description);
-    }
-
-    function createDealWithBudget(
-        string memory description,
-        address token,
-        uint256 amount
-    ) public {
-        bytes32 projId = createDeal(description);
-        _addBudget(projId, token, amount);
+        uint256 projId = project.create(description);
+        project.setTokenURI(projId, URI);
+        project.safeTransferFrom(address(this), msg.sender, projId);
+        emit ProjectPosted(projId);
     }
 
     function addBudget(
-        bytes32 projId,
+        uint256 projId,
         address token,
         uint256 amount
-    ) public onlyContractor(projId) {
+    ) public onlyProjectOwner(projId) {
         _addBudget(projId, token, amount);
     }
 
-    function withdrawDeal(bytes32 projId) public onlyContractor(projId) {
-        _withdrawDeal(projId);
+    function closeProject(uint256 projId) public onlyProjectOwner(projId) {
+        _withdrawAllBudgets(projId);
+        approvedProjects[projId] = false;
+        emit ProjectClosed(projId);
     }
 
-    function forceApproveBudget(bytes32 projId, uint256 index)
+    function forceApproveBudget(uint256 projId, uint256 index)
         public
-        onlyContractor(projId)
+        onlyProjectOwner(projId)
     {
         // force approve does not allow swap and approve func to prevent
         // exploitation using flash loan attack
-        _approveBudget(projId, index, taxRateForUndeclared);
+        _allocateFund(projId, index, taxRateForUndeclared);
     }
 
     // Operator functions
     function approveBudget(
-        bytes32 projId,
+        uint256 projId,
         uint256 index,
         bytes calldata swapData
     ) public onlyManager {
-        address currency = deals[projId].budgets[index].currency;
+        address currency = projectBudgets[projId][index].currency;
         if (currency == baseCurrency) {
-            _approveBudget(projId, index, normalTaxRate);
+            _allocateFund(projId, index, normalTaxRate);
         } else {
             _swapAndApproveBudget(projId, index, normalTaxRate, swapData);
         }
@@ -150,11 +147,11 @@ contract DealManager is Governed, ReentrancyGuard {
     // Governed functions
 
     function addCurrency(address currency) public governed {
-        accepted[currency] = true;
+        accpetableTokens[currency] = true;
     }
 
     function removeCurrency(address currency) public governed {
-        accepted[currency] = false;
+        accpetableTokens[currency] = false;
     }
 
     function setManager(address manager, bool active) public governed {
@@ -164,12 +161,14 @@ contract DealManager is Governed, ReentrancyGuard {
         managers[manager] = active;
     }
 
-    function hammerOut(bytes32 projId) public governed {
-        _hammerOut(projId);
+    function approveProject(uint256 projId) public governed {
+        _approveProject(projId);
     }
 
-    function breakDeal(bytes32 projId) public governed {
-        _withdrawDeal(projId);
+    function disapproveProject(uint256 projId) public governed {
+        _withdrawAllBudgets(projId);
+        approvedProjects[projId] = false;
+        emit ProjectClosed(projId);
     }
 
     function setExchange(address _oneInch) public governed {
@@ -194,60 +193,53 @@ contract DealManager is Governed, ReentrancyGuard {
     }
 
     // Internal functions
-
     function _addBudget(
-        bytes32 projId,
+        uint256 projId,
         address token,
         uint256 amount
     ) internal {
-        require(accepted[token], "Not a supported currency");
-        Deal storage deal = deals[projId];
+        require(accpetableTokens[token], "Not a supported currency");
         Budget memory budget = Budget(token, amount, false);
-        deal.budgets.push(budget);
-        emit BudgetAdded(projId, deal.budgets.length - 1, token, amount);
+        projectBudgets[projId].push(budget);
+        emit BudgetAdded(
+            projId,
+            projectBudgets[projId].length - 1,
+            token,
+            amount
+        );
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
-    function _hammerOut(bytes32 projId) internal {
-        Deal storage deal = deals[projId];
-        require(deal.contractor != address(0), "Budget does not exists.");
-        require(deal.hammeredOut == false, "Budget is already hammered out.");
-        deal.hammeredOut = true;
-        ILaborMarket(laborMarket).createProject(projId, deal.contractor);
+    function _approveProject(uint256 projId) internal {
+        require(!approvedProjects[projId], "Already approved");
+        approvedProjects[projId] = true;
     }
 
-    function _withdrawDeal(bytes32 projId) internal nonReentrant {
-        Deal storage deal = deals[projId];
-        require(deal.contractor != address(0), "Budget does not exists.");
-        Budget[] storage budgets = deal.budgets;
+    function _withdrawAllBudgets(uint256 projId) internal nonReentrant {
+        Budget[] storage budgets = projectBudgets[projId];
+        address projOwner = project.ownerOf(projId);
         for (uint256 i = 0; i < budgets.length; i += 1) {
             Budget storage budget = budgets[i];
             if (!budget.transferred) {
                 budget.transferred = true;
-                IERC20(budget.currency).transfer(
-                    deal.contractor,
-                    budget.amount
-                );
+                IERC20(budget.currency).transfer(projOwner, budget.amount);
                 emit BudgetWithdrawn(projId, i);
             }
         }
-        delete deals[projId].budgets;
-        delete deals[projId];
-        emit DealWithdrawn(projId);
+        delete projectBudgets[projId];
     }
 
     /**
-     * @param projId The hash of the budget to hammer out.
+     * @param projId The project NFT id for this budget.
      * @param taxRate The tax rate to approve the budget.
      */
-    function _approveBudget(
-        bytes32 projId,
+    function _allocateFund(
+        uint256 projId,
         uint256 index,
         uint256 taxRate
     ) internal {
-        Deal storage deal = deals[projId];
-        Budget storage budget = deal.budgets[index];
-        require(deal.hammeredOut == true, "Deal is not hammered out yet.");
+        Budget storage budget = projectBudgets[projId][index];
+        require(approvedProjects[projId], "Not an approved project.");
         require(budget.transferred == false, "Budget is already transferred.");
         require(
             budget.currency == baseCurrency,
@@ -259,8 +251,8 @@ contract DealManager is Governed, ReentrancyGuard {
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
         taxations[budget.currency] = taxations[budget.currency].add(visionTax);
-        IERC20(baseCurrency).safeTransfer(laborMarket, fund);
-        ILaborMarket(laborMarket).allocateBudget(projId, fund);
+        IERC20(baseCurrency).safeTransfer(cryptoJobBoard, fund);
+        ICryptoJobBoard(cryptoJobBoard).allocateFund(projId, fund);
         emit BudgetApproved(projId, index);
     }
 
@@ -269,16 +261,15 @@ contract DealManager is Governed, ReentrancyGuard {
      * @param swapData Fetched payload from 1inch API
      */
     function _swapAndApproveBudget(
-        bytes32 projId,
+        uint256 projId,
         uint256 index,
         uint256 taxRate,
         bytes calldata swapData
     ) internal {
-        Deal storage deal = deals[projId];
-        Budget storage budget = deal.budgets[index];
-        require(deal.hammeredOut == true, "Budget is not hammered out.");
+        Budget storage budget = projectBudgets[projId][index];
+        require(approvedProjects[projId], "Not an approved project.");
         require(budget.transferred == false, "Budget is already transferred.");
-        require(budget.currency != baseCurrency, "use _approveBudget instead");
+        require(budget.currency != baseCurrency, "use _allocateFund instead");
         // Mark the budget as transferred
         budget.transferred = true;
         // take vision tax from the budget
@@ -286,7 +277,7 @@ contract DealManager is Governed, ReentrancyGuard {
         uint256 fund = budget.amount.sub(visionTax);
         taxations[budget.currency] = taxations[budget.currency].add(visionTax);
         _swapOn1Inch(budget, fund, swapData);
-        ILaborMarket(laborMarket).allocateBudget(projId, fund);
+        ICryptoJobBoard(cryptoJobBoard).allocateFund(projId, fund);
         emit BudgetApproved(projId, index);
     }
 
@@ -312,10 +303,10 @@ contract DealManager is Governed, ReentrancyGuard {
         );
         require(amount == fund, "Input amount is not valid");
         require(
-            dstReceiver == laborMarket,
+            dstReceiver == cryptoJobBoard,
             "Swapped stable coins should go to the labor market"
         );
-        uint256 prevBal = IERC20(baseCurrency).balanceOf(laborMarket);
+        uint256 prevBal = IERC20(baseCurrency).balanceOf(cryptoJobBoard);
         (bool success, bytes memory result) = oneInch.call(swapData);
         require(success, "failed to swap tokens");
         uint256 swappedStables;
@@ -324,7 +315,7 @@ contract DealManager is Governed, ReentrancyGuard {
         }
         require(
             swappedStables ==
-                IERC20(baseCurrency).balanceOf(laborMarket).sub(prevBal),
+                IERC20(baseCurrency).balanceOf(cryptoJobBoard).sub(prevBal),
             "Swapped amount is different with the real swapped amount"
         );
     }

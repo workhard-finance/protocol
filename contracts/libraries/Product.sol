@@ -9,19 +9,22 @@ contract Product is ERC721Burnable {
     address public marketplace;
 
     event MarketplaceUpdated(address indexed _marketplace);
-    event ManufacturerUpdated(address indexed _manufacturer);
 
     mapping(uint256 => string) engravings;
+
+    uint256 public maxSupply; // 0: means no limit
 
     constructor(
         address _manufacturer,
         address _marketplace,
+        uint256 _maxSupply, // default: 0
         string memory _name,
         string memory _symbol,
         string memory _baseURI
     ) ERC721(_name, _symbol) {
         manufacturer = _manufacturer;
         marketplace = _marketplace;
+        maxSupply = _maxSupply;
         _setBaseURI(_baseURI);
     }
 
@@ -35,14 +38,15 @@ contract Product is ERC721Burnable {
         _;
     }
 
-    function setManufacturer(address _manufacturer) public onlyManufacturer {
-        manufacturer = _manufacturer;
-        emit ManufacturerUpdated(_manufacturer);
-    }
-
-    function setMarketplace(address _marketplace) public onlyManufacturer {
-        marketplace = _marketplace;
-        emit MarketplaceUpdated(_marketplace);
+    /**
+     * @notice Set max supply and make it a limited edition.
+     */
+    function setMaxSupply(uint256 _maxSupply) public onlyManufacturer {
+        require(
+            totalSupply() <= _maxSupply,
+            "Max supply is less than current supply"
+        );
+        maxSupply = _maxSupply;
     }
 
     function deliver(address to, uint256 amount)
@@ -53,21 +57,11 @@ contract Product is ERC721Burnable {
         ids = new uint256[](amount);
         for (uint256 i = 0; i < amount; i++) {
             uint256 id = totalSupply();
+            require(maxSupply == 0 || id <= maxSupply, "Sold out");
             ids[i] = id;
             _mint(to, id);
         }
         return ids;
-    }
-
-    function setBaseURI(string memory _baseURI) public onlyManufacturer {
-        _setBaseURI(_baseURI);
-    }
-
-    function setTokenURI(uint256 tokenId, string memory _tokenURI)
-        public
-        onlyManufacturer
-    {
-        _setTokenURI(tokenId, _tokenURI);
     }
 
     /**

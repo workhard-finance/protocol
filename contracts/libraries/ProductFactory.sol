@@ -15,12 +15,20 @@ contract ProductFactory {
     function create(
         address _manufacturer,
         address _marketplace,
+        uint256 _maxSupply,
         string memory _name,
         string memory _symbol,
         string memory _baseURI
     ) public returns (address product) {
         Product prod =
-            new Product(_manufacturer, _marketplace, _name, _symbol, _baseURI);
+            new Product(
+                _manufacturer,
+                _marketplace,
+                _maxSupply,
+                _name,
+                _symbol,
+                _baseURI
+            );
         emit ProductLaunched(
             _manufacturer,
             _marketplace,

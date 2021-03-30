@@ -16,9 +16,17 @@ export type Deployed = {
   };
 };
 
+function deployFileName(): string {
+  const network: MyNetwork = hre.network.name as MyNetwork;
+  const fileName =
+    network === "localhost" ? "deployed.dev.json" : "deployed.json";
+  return fileName;
+}
+
 export function getDeployed(): Deployed {
-  if (fs.existsSync("deployed.json")) {
-    const data = fs.readFileSync("deployed.json", "utf-8");
+  const fileName = deployFileName();
+  if (fs.existsSync(fileName)) {
+    const data = fs.readFileSync(fileName, "utf-8");
     const deployed = JSON.parse(data);
     return deployed;
   }
@@ -30,12 +38,13 @@ export function record(
   contract: ContractNames,
   address: string
 ) {
-  if (network === "hardhat" || network === "localhost") return;
+  if (network === "hardhat") return;
   const deployed = getDeployed();
   const updated = merge(deployed, {
     [network]: { [contract]: address },
   });
-  fs.writeFileSync("deployed.json", JSON.stringify(updated));
+  const fileName = deployFileName();
+  fs.writeFileSync(fileName, JSON.stringify(updated));
 }
 
 export async function autoDeploy(
@@ -46,7 +55,7 @@ export async function autoDeploy(
   const deployed = getDeployed();
   const deployedAddress = deployed[network]?.[name];
 
-  if (network === "hardhat" || network === "localhost") {
+  if (network === "hardhat") {
     const contract = await (await ethers.getContractFactory(name)).deploy(
       ...args
     );

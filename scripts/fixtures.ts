@@ -26,6 +26,7 @@ export interface TokenFixture {
   stableCoin: Contract;
   visionToken: Contract;
   commitmentToken: Contract;
+  projectToken: Contract;
   visionLP: Contract;
 }
 
@@ -44,8 +45,8 @@ export interface MiningFixture extends GovernanceFixture {
 }
 
 export interface AppFixture extends MiningFixture {
-  dealManager: Contract;
-  laborMarket: Contract;
+  projManager: Contract;
+  cryptoJobBoard: Contract;
   productMarket: Contract;
   productFactory: Contract;
 }
@@ -60,37 +61,45 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   // 3. Deploy commitment token
   const commitmentToken = await autoDeploy("CommitmentToken");
   // 4. Deploy uniswap pair
+  const project = await autoDeploy("Project");
+  // 5. Deploy uniswap pair
   const visionLP = await deployUniswapLP(visionToken.address, WETH);
   record(hre.network.name as MyNetwork, "VisionLP", visionLP.address);
-  return { stableCoin, visionToken, commitmentToken, visionLP };
+  return {
+    stableCoin,
+    visionToken,
+    commitmentToken,
+    projectToken: project,
+    visionLP,
+  };
 }
 
 export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
   const { visionToken } = tokenFixture;
-  // 5. Deploy team share
+  // 6. Deploy team share
   const teamShare = await autoDeploy("TeamShare");
-  // 6. Deploy timelock contract
+  // 7. Deploy timelock contract
   const timelock = await autoDeploy("TimelockedGovernance", [deployer.address]);
-  // 7. Deploy vision farm
+  // 8. Deploy vision farm
   const visionFarm = await autoDeploy(
     "VisionFarm",
     timelock.address,
     visionToken.address
   );
-  // 8. Deploy vote counter
+  // 9. Deploy vote counter
   const voteCounter = await autoDeploy(
     "SquareRootVoteCounter",
     visionFarm.address
   );
-  // 9. Deploy farmers union
+  // 10. Deploy farmers union
   const farmersUnion = await autoDeploy(
     "FarmersUnion",
     visionFarm.address,
     voteCounter.address
   );
-  // 10. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
+  // 11. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
   await scheduleGovernanceTransfer(
     timelock,
     farmersUnion.address,
@@ -116,11 +125,11 @@ export async function getMiningFixture(): Promise<MiningFixture> {
     commitmentToken,
     stableCoin,
   } = governanceFixture;
-  // 11. Deploy Burn Mining Factory
+  // 12. Deploy Burn Mining Factory
   const burnMiningFactory = await autoDeploy("BurnMiningPoolFactory");
-  // 12. Deploy Stake Mining Factory
+  // 13. Deploy Stake Mining Factory
   const stakeMiningFactory = await autoDeploy("StakeMiningPoolFactory");
-  // 13. Deploy Vision Token Emitter
+  // 14. Deploy Vision Token Emitter
   const visionTokenEmitter = await autoDeploy(
     "VisionTokenEmitter",
     teamShare.address,
@@ -130,7 +139,7 @@ export async function getMiningFixture(): Promise<MiningFixture> {
     burnMiningFactory.address,
     stakeMiningFactory.address
   );
-  // 14. Launch the visionLP liquidity mining pool
+  // 15. Launch the visionLP liquidity mining pool
   const liquidityMining = await launchStakeMiningPool(
     visionTokenEmitter,
     visionLP.address
@@ -140,7 +149,7 @@ export async function getMiningFixture(): Promise<MiningFixture> {
     "LiquidityMining",
     liquidityMining.address
   );
-  // 15. Launch the commitment burn mining pool
+  // 16. Launch the commitment burn mining pool
   const commitmentMining = await launchBurnMiningPool(
     visionTokenEmitter,
     commitmentToken.address
@@ -160,28 +169,36 @@ export async function getMiningFixture(): Promise<MiningFixture> {
 
 export async function getAppFixture(): Promise<AppFixture> {
   const miningFixture: MiningFixture = await getMiningFixture();
-  // 16. Deploy Labor Market
-  const { timelock, commitmentToken, stableCoin, visionFarm } = miningFixture;
-  const laborMarket = await autoDeploy(
-    "LaborMarket",
+  // 17. Deploy Labor Market
+  const {
+    timelock,
+    projectToken,
+    commitmentToken,
+    stableCoin,
+    visionFarm,
+  } = miningFixture;
+  const cryptoJobBoard = await autoDeploy(
+    "CryptoJobBoard",
     timelock.address,
     commitmentToken.address,
+    projectToken.address,
     stableCoin.address
   );
-  // 17. Move Minter Permission to LaborMarket
-  await commitmentToken.setMinter(laborMarket.address);
-  // 18. Deploy Deal Manager
-  const dealManager = await autoDeploy(
-    "DealManager",
+  // 18. Move Minter Permission to CryptoJobBoard
+  await commitmentToken.setMinter(cryptoJobBoard.address);
+  // 19. Deploy Project Manager
+  const projManager = await autoDeploy(
+    "ProjectManager",
     timelock.address,
+    projectToken.address,
     visionFarm.address,
-    laborMarket.address,
+    cryptoJobBoard.address,
     stableCoin.address,
     ONE_INCH
   );
-  // 19. Deploy Product Factory
+  // 20. Deploy Product Factory
   const productFactory = await autoDeploy("ProductFactory");
-  // 20. Deploy Product Market
+  // 21. Deploy Product Market
   const productMarket = await autoDeploy(
     "ProductMarket",
     timelock.address,
@@ -189,14 +206,14 @@ export async function getAppFixture(): Promise<AppFixture> {
     commitmentToken.address,
     visionFarm.address
   );
-  // 21. Initialize Labor Market
-  await laborMarket.init(dealManager.address);
-  // 22. Initialize Vision Farm
-  await visionFarm.init(dealManager.address, productMarket.address);
+  // 22. Initialize Labor Market
+  await cryptoJobBoard.init(projManager.address);
+  // 23. Initialize Vision Farm
+  await visionFarm.init(projManager.address, productMarket.address);
   return {
     ...miningFixture,
-    dealManager,
-    laborMarket,
+    projManager,
+    cryptoJobBoard,
     productFactory,
     productMarket,
   };
@@ -212,8 +229,8 @@ export async function getDeployedFixtures(): Promise<AppFixture> {
   const fixture: AppFixture = {
     productFactory: await getDeployedContract(deployed, "ProductFactory"),
     productMarket: await getDeployedContract(deployed, "ProductMarket"),
-    laborMarket: await getDeployedContract(deployed, "LaborMarket"),
-    dealManager: await getDeployedContract(deployed, "DealManager"),
+    cryptoJobBoard: await getDeployedContract(deployed, "CryptoJobBoard"),
+    projManager: await getDeployedContract(deployed, "ProjectManager"),
     liquidityMining: await getDeployedContract(deployed, "LiquidityMining"),
     commitmentMining: await getDeployedContract(deployed, "CommitmentMining"),
     visionTokenEmitter: await getDeployedContract(
@@ -226,6 +243,7 @@ export async function getDeployedFixtures(): Promise<AppFixture> {
     voteCounter: await getDeployedContract(deployed, "SquareRootVoteCounter"),
     farmersUnion: await getDeployedContract(deployed, "FarmersUnion"),
     visionLP: await getDeployedContract(deployed, "VisionLP"),
+    projectToken: await getDeployedContract(deployed, "Project"),
     commitmentToken: await getDeployedContract(deployed, "CommitmentToken"),
     visionToken: await getDeployedContract(deployed, "VisionToken"),
     stableCoin: await getDeployedContract(deployed, "StableCoin"),

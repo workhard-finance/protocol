@@ -19,30 +19,19 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface ProductInterface extends ethers.utils.Interface {
+interface IProjectInterface extends ethers.utils.Interface {
   functions: {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "baseURI()": FunctionFragment;
-    "burn(uint256)": FunctionFragment;
-    "deliver(address,uint256)": FunctionFragment;
-    "engrave(uint256,string)": FunctionFragment;
+    "create(string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "manufacturer()": FunctionFragment;
-    "marketplace()": FunctionFragment;
-    "maxSupply()": FunctionFragment;
-    "name()": FunctionFragment;
+    "modifyJobDescription(uint256,string)": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
-    "setMaxSupply(uint256)": FunctionFragment;
+    "setTokenURI(uint256,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
-    "symbol()": FunctionFragment;
-    "tokenByIndex(uint256)": FunctionFragment;
-    "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
-    "tokenURI(uint256)": FunctionFragment;
-    "totalSupply()": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
   };
 
@@ -51,16 +40,7 @@ interface ProductInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
-  encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "deliver",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "engrave",
-    values: [BigNumberish, string]
-  ): string;
+  encodeFunctionData(functionFragment: "create", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -70,15 +50,9 @@ interface ProductInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "manufacturer",
-    values?: undefined
+    functionFragment: "modifyJobDescription",
+    values: [BigNumberish, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "marketplace",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "maxSupply", values?: undefined): string;
-  encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [BigNumberish]
@@ -92,29 +66,12 @@ interface ProductInterface extends ethers.utils.Interface {
     values: [string, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setMaxSupply",
-    values: [BigNumberish]
+    functionFragment: "setTokenURI",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "tokenByIndex",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokenOfOwnerByIndex",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "tokenURI",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalSupply",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "transferFrom",
@@ -123,10 +80,7 @@ interface ProductInterface extends ethers.utils.Interface {
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "deliver", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "engrave", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "create", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -136,15 +90,9 @@ interface ProductInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "manufacturer",
+    functionFragment: "modifyJobDescription",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "marketplace",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "maxSupply", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom",
@@ -155,25 +103,11 @@ interface ProductInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setMaxSupply",
+    functionFragment: "setTokenURI",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "tokenOfOwnerByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -184,17 +118,15 @@ interface ProductInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "MarketplaceUpdated(address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "MarketplaceUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
-export class Product extends Contract {
+export class IProject extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -235,7 +167,7 @@ export class Product extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ProductInterface;
+  interface: IProjectInterface;
 
   functions: {
     approve(
@@ -250,60 +182,35 @@ export class Product extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    balanceOf(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    balanceOf(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     "balanceOf(address)"(
       owner: string,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[BigNumber] & { balance: BigNumber }>;
 
-    baseURI(overrides?: CallOverrides): Promise<[string]>;
-
-    "baseURI()"(overrides?: CallOverrides): Promise<[string]>;
-
-    burn(
-      tokenId: BigNumberish,
+    create(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "burn(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    deliver(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "deliver(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    engrave(
-      tokenId: BigNumberish,
-      perpetualURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "engrave(uint256,string)"(
-      tokenId: BigNumberish,
-      perpetualURI: string,
+    "create(string)"(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string] & { operator: string }>;
 
     "getApproved(uint256)"(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string] & { operator: string }>;
 
     isApprovedForAll(
       owner: string,
@@ -317,31 +224,27 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    manufacturer(overrides?: CallOverrides): Promise<[string]>;
+    modifyJobDescription(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    "manufacturer()"(overrides?: CallOverrides): Promise<[string]>;
-
-    marketplace(overrides?: CallOverrides): Promise<[string]>;
-
-    "marketplace()"(overrides?: CallOverrides): Promise<[string]>;
-
-    maxSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "maxSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    name(overrides?: CallOverrides): Promise<[string]>;
-
-    "name()"(overrides?: CallOverrides): Promise<[string]>;
+    "modifyJobDescription(uint256,string)"(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     ownerOf(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string] & { owner: string }>;
 
     "ownerOf(uint256)"(
       tokenId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string] & { owner: string }>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: string,
@@ -354,29 +257,31 @@ export class Product extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      _data: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setApprovalForAll(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "setApprovalForAll(address,bool)"(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setMaxSupply(
-      _maxSupply: BigNumberish,
+    setTokenURI(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "setMaxSupply(uint256)"(
-      _maxSupply: BigNumberish,
+    "setTokenURI(uint256,string)"(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -389,46 +294,6 @@ export class Product extends Contract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    symbol(overrides?: CallOverrides): Promise<[string]>;
-
-    "symbol()"(overrides?: CallOverrides): Promise<[string]>;
-
-    tokenByIndex(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "tokenByIndex(uint256)"(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    tokenOfOwnerByIndex(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "tokenOfOwnerByIndex(address,uint256)"(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    tokenURI(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "tokenURI(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "totalSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     transferFrom(
       from: string,
@@ -464,41 +329,13 @@ export class Product extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  baseURI(overrides?: CallOverrides): Promise<string>;
-
-  "baseURI()"(overrides?: CallOverrides): Promise<string>;
-
-  burn(
-    tokenId: BigNumberish,
+  create(
+    description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "burn(uint256)"(
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  deliver(
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "deliver(address,uint256)"(
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  engrave(
-    tokenId: BigNumberish,
-    perpetualURI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "engrave(uint256,string)"(
-    tokenId: BigNumberish,
-    perpetualURI: string,
+  "create(string)"(
+    description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -524,21 +361,17 @@ export class Product extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  manufacturer(overrides?: CallOverrides): Promise<string>;
+  modifyJobDescription(
+    projId: BigNumberish,
+    description: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  "manufacturer()"(overrides?: CallOverrides): Promise<string>;
-
-  marketplace(overrides?: CallOverrides): Promise<string>;
-
-  "marketplace()"(overrides?: CallOverrides): Promise<string>;
-
-  maxSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "maxSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  name(overrides?: CallOverrides): Promise<string>;
-
-  "name()"(overrides?: CallOverrides): Promise<string>;
+  "modifyJobDescription(uint256,string)"(
+    projId: BigNumberish,
+    description: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -558,29 +391,31 @@ export class Product extends Contract {
     from: string,
     to: string,
     tokenId: BigNumberish,
-    _data: BytesLike,
+    data: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setApprovalForAll(
     operator: string,
-    approved: boolean,
+    _approved: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "setApprovalForAll(address,bool)"(
     operator: string,
-    approved: boolean,
+    _approved: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setMaxSupply(
-    _maxSupply: BigNumberish,
+  setTokenURI(
+    projId: BigNumberish,
+    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "setMaxSupply(uint256)"(
-    _maxSupply: BigNumberish,
+  "setTokenURI(uint256,string)"(
+    projId: BigNumberish,
+    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -593,43 +428,6 @@ export class Product extends Contract {
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  symbol(overrides?: CallOverrides): Promise<string>;
-
-  "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-  tokenByIndex(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "tokenByIndex(uint256)"(
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  tokenOfOwnerByIndex(
-    owner: string,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "tokenOfOwnerByIndex(address,uint256)"(
-    owner: string,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  tokenURI(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  "tokenURI(uint256)"(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   transferFrom(
     from: string,
@@ -665,40 +463,12 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    baseURI(overrides?: CallOverrides): Promise<string>;
+    create(description: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "baseURI()"(overrides?: CallOverrides): Promise<string>;
-
-    burn(tokenId: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "burn(uint256)"(
-      tokenId: BigNumberish,
+    "create(string)"(
+      description: string,
       overrides?: CallOverrides
-    ): Promise<void>;
-
-    deliver(
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "deliver(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    engrave(
-      tokenId: BigNumberish,
-      perpetualURI: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "engrave(uint256,string)"(
-      tokenId: BigNumberish,
-      perpetualURI: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    ): Promise<BigNumber>;
 
     getApproved(
       tokenId: BigNumberish,
@@ -722,21 +492,17 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    manufacturer(overrides?: CallOverrides): Promise<string>;
+    modifyJobDescription(
+      projId: BigNumberish,
+      description: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "manufacturer()"(overrides?: CallOverrides): Promise<string>;
-
-    marketplace(overrides?: CallOverrides): Promise<string>;
-
-    "marketplace()"(overrides?: CallOverrides): Promise<string>;
-
-    maxSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maxSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<string>;
-
-    "name()"(overrides?: CallOverrides): Promise<string>;
+    "modifyJobDescription(uint256,string)"(
+      projId: BigNumberish,
+      description: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -756,29 +522,31 @@ export class Product extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      _data: BytesLike,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setApprovalForAll(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "setApprovalForAll(address,bool)"(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setMaxSupply(
-      _maxSupply: BigNumberish,
+    setTokenURI(
+      projId: BigNumberish,
+      URI: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setMaxSupply(uint256)"(
-      _maxSupply: BigNumberish,
+    "setTokenURI(uint256,string)"(
+      projId: BigNumberish,
+      URI: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -791,43 +559,6 @@ export class Product extends Contract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    symbol(overrides?: CallOverrides): Promise<string>;
-
-    "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-    tokenByIndex(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "tokenByIndex(uint256)"(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenOfOwnerByIndex(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "tokenOfOwnerByIndex(address,uint256)"(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenURI(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    "tokenURI(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferFrom(
       from: string,
@@ -863,10 +594,6 @@ export class Product extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
-    MarketplaceUpdated(
-      _marketplace: string | null
-    ): TypedEventFilter<[string], { _marketplace: string }>;
-
     Transfer(
       from: string | null,
       to: string | null,
@@ -897,41 +624,13 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    baseURI(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "baseURI()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    burn(
-      tokenId: BigNumberish,
+    create(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "burn(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    deliver(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "deliver(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    engrave(
-      tokenId: BigNumberish,
-      perpetualURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "engrave(uint256,string)"(
-      tokenId: BigNumberish,
-      perpetualURI: string,
+    "create(string)"(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -957,21 +656,17 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    manufacturer(overrides?: CallOverrides): Promise<BigNumber>;
+    modifyJobDescription(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    "manufacturer()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    marketplace(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "marketplace()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    maxSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maxSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    name(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "name()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "modifyJobDescription(uint256,string)"(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     ownerOf(
       tokenId: BigNumberish,
@@ -994,29 +689,31 @@ export class Product extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      _data: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setApprovalForAll(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "setApprovalForAll(address,bool)"(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setMaxSupply(
-      _maxSupply: BigNumberish,
+    setTokenURI(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setMaxSupply(uint256)"(
-      _maxSupply: BigNumberish,
+    "setTokenURI(uint256,string)"(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1029,46 +726,6 @@ export class Product extends Contract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    symbol(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "symbol()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    tokenByIndex(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "tokenByIndex(uint256)"(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenOfOwnerByIndex(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "tokenOfOwnerByIndex(address,uint256)"(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    tokenURI(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "tokenURI(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     transferFrom(
       from: string,
@@ -1108,41 +765,13 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    baseURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "baseURI()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    burn(
-      tokenId: BigNumberish,
+    create(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "burn(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    deliver(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "deliver(address,uint256)"(
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    engrave(
-      tokenId: BigNumberish,
-      perpetualURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "engrave(uint256,string)"(
-      tokenId: BigNumberish,
-      perpetualURI: string,
+    "create(string)"(
+      description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1168,21 +797,17 @@ export class Product extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    manufacturer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    modifyJobDescription(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    "manufacturer()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    marketplace(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "marketplace()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    maxSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "maxSupply()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "name()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "modifyJobDescription(uint256,string)"(
+      projId: BigNumberish,
+      description: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     ownerOf(
       tokenId: BigNumberish,
@@ -1205,29 +830,31 @@ export class Product extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      _data: BytesLike,
+      data: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setApprovalForAll(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "setApprovalForAll(address,bool)"(
       operator: string,
-      approved: boolean,
+      _approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setMaxSupply(
-      _maxSupply: BigNumberish,
+    setTokenURI(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "setMaxSupply(uint256)"(
-      _maxSupply: BigNumberish,
+    "setTokenURI(uint256,string)"(
+      projId: BigNumberish,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1240,46 +867,6 @@ export class Product extends Contract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "symbol()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    tokenByIndex(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "tokenByIndex(uint256)"(
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    tokenOfOwnerByIndex(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "tokenOfOwnerByIndex(address,uint256)"(
-      owner: string,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    tokenURI(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "tokenURI(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "totalSupply()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferFrom(
       from: string,
