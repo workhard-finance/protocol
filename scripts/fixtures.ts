@@ -47,7 +47,7 @@ export interface MiningFixture extends GovernanceFixture {
 export interface AppFixture extends MiningFixture {
   projManager: Contract;
   cryptoJobBoard: Contract;
-  productMarket: Contract;
+  marketplace: Contract;
   productFactory: Contract;
 }
 
@@ -199,8 +199,8 @@ export async function getAppFixture(): Promise<AppFixture> {
   // 20. Deploy Product Factory
   const productFactory = await autoDeploy("ProductFactory");
   // 21. Deploy Product Market
-  const productMarket = await autoDeploy(
-    "ProductMarket",
+  const marketplace = await autoDeploy(
+    "Marketplace",
     timelock.address,
     productFactory.address,
     commitmentToken.address,
@@ -209,13 +209,13 @@ export async function getAppFixture(): Promise<AppFixture> {
   // 22. Initialize Labor Market
   await cryptoJobBoard.init(projManager.address);
   // 23. Initialize Vision Farm
-  await visionFarm.init(projManager.address, productMarket.address);
+  await visionFarm.init(projManager.address, marketplace.address);
   return {
     ...miningFixture,
     projManager,
     cryptoJobBoard,
     productFactory,
-    productMarket,
+    marketplace,
   };
 }
 
@@ -228,7 +228,7 @@ export async function getDeployedFixtures(): Promise<AppFixture> {
   const deployed = getDeployed();
   const fixture: AppFixture = {
     productFactory: await getDeployedContract(deployed, "ProductFactory"),
-    productMarket: await getDeployedContract(deployed, "ProductMarket"),
+    marketplace: await getDeployedContract(deployed, "Marketplace"),
     cryptoJobBoard: await getDeployedContract(deployed, "CryptoJobBoard"),
     projManager: await getDeployedContract(deployed, "ProjectManager"),
     liquidityMining: await getDeployedContract(deployed, "LiquidityMining"),

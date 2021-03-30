@@ -12,7 +12,7 @@ export type DeployableContracts =
   | "CommitmentMining"
   | "LiquidityMining"
   | "CryptoJobBoard"
-  | "ProductMarket"
+  | "Marketplace"
   | "ProductFactory"
   | "ProjectManager"
   | "Project"

@@ -18,7 +18,7 @@ struct ProductInfo {
     uint256 stock; // amount of remaining stocks
 }
 
-contract ProductMarket is ERC20Recoverer, Governed, ReentrancyGuard {
+contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 

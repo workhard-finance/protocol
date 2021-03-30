@@ -2,7 +2,7 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721Burnable.sol";
-import "../interfaces/IProductMarket.sol";
+import "../interfaces/IMarketplace.sol";
 
 contract Project is ERC721Burnable {
     constructor() ERC721("Workhard Project", "PROJ") {}

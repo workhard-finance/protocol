@@ -8,14 +8,14 @@ import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("ProductMarket.sol", function () {
+describe("Marketplace.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let manufacturer: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let fixture: AppFixture;
-  let productMarket: Contract;
+  let marketplace: Contract;
   let productFactory: Contract;
   let cryptoJobBoard: Contract;
   let commitmentToken: Contract;
@@ -32,7 +32,7 @@ describe("ProductMarket.sol", function () {
     fixture = await getAppFixture();
     stableCoin = fixture.stableCoin;
     commitmentToken = fixture.commitmentToken;
-    productMarket = fixture.productMarket;
+    marketplace = fixture.marketplace;
     productFactory = fixture.productFactory;
     cryptoJobBoard = fixture.cryptoJobBoard;
     visionFarm = fixture.visionFarm;
@@ -47,7 +47,7 @@ describe("ProductMarket.sol", function () {
       await cryptoJobBoard.connect(account).payInsteadOfWorking(parseEther("100"));
       commitmentToken
         .connect(account)
-        .approve(productMarket.address, parseEther("10000"));
+        .approve(marketplace.address, parseEther("10000"));
     };
     await prepare(manufacturer);
     await prepare(alice);
@@ -62,7 +62,7 @@ describe("ProductMarket.sol", function () {
     const BASE_URI = "https://storage.workhard.finance/";
     let product: Contract;
     beforeEach("should create a new NFT contract", async () => {
-      const receipt = await productMarket
+      const receipt = await marketplace
         .connect(alice)
         .launchNewProduct(
           PRODUCT_NAME,
@@ -85,7 +85,7 @@ describe("ProductMarket.sol", function () {
       product = await ethers.getContractAt("Product", productAddress);
     });
     it("anyone can buy the NFT by paying Commitment token", async () => {
-      await expect(productMarket.connect(bob).buy(product.address, 3))
+      await expect(marketplace.connect(bob).buy(product.address, 3))
         .to.emit(product, "Transfer")
         .withArgs(constants.AddressZero, bob.address, 0)
         .to.emit(product, "Transfer")
@@ -94,21 +94,21 @@ describe("ProductMarket.sol", function () {
         .withArgs(constants.AddressZero, bob.address, 2);
     });
     it("cannot buy more than stock", async () => {
-      const info = await productMarket.callStatic.products(product.address);
+      const info = await marketplace.callStatic.products(product.address);
       const stock = info.stock;
       expect(stock).eq(INITIAL_STOCK);
       await expect(
-        productMarket.connect(bob).buy(product.address, INITIAL_STOCK + 1)
+        marketplace.connect(bob).buy(product.address, INITIAL_STOCK + 1)
       ).to.be.revertedWith("Sold out");
     });
     it("manufacturer can engrave something on the product", async () => {
       await product.connect(alice).engrave(0, "ipfs://helloworld");
     });
     it("manufacturer can add stocks", async () => {
-      await expect(productMarket.connect(alice).addStocks(product.address, 100))
-        .to.emit(productMarket, "Supply")
+      await expect(marketplace.connect(alice).addStocks(product.address, 100))
+        .to.emit(marketplace, "Supply")
         .withArgs(product.address, 100);
-      const info = await productMarket.callStatic.products(product.address);
+      const info = await marketplace.callStatic.products(product.address);
       const stock = info.stock;
       expect(stock).eq(INITIAL_STOCK + 100);
     });

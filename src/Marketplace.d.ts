@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface ProductMarketInterface extends ethers.utils.Interface {
+interface MarketplaceInterface extends ethers.utils.Interface {
   functions: {
     "RATE_DENOMINATOR()": FunctionFragment;
     "addStocks(address,uint256)": FunctionFragment;
@@ -231,7 +231,7 @@ interface ProductMarketInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TaxRateUpdated"): EventFragment;
 }
 
-export class ProductMarket extends Contract {
+export class Marketplace extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -272,7 +272,7 @@ export class ProductMarket extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ProductMarketInterface;
+  interface: MarketplaceInterface;
 
   functions: {
     RATE_DENOMINATOR(overrides?: CallOverrides): Promise<[BigNumber]>;

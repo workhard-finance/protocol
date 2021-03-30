@@ -3,7 +3,7 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-interface IProductMarket {
+interface IMarketplace {
     function deliver(address to, uint256 amount)
         external
         returns (uint256[] memory ids);

@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface IProductMarketInterface extends ethers.utils.Interface {
+interface IMarketplaceInterface extends ethers.utils.Interface {
   functions: {
     "deliver(address,uint256)": FunctionFragment;
     "engrave(uint256,string)": FunctionFragment;
@@ -40,7 +40,7 @@ interface IProductMarketInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class IProductMarket extends Contract {
+export class IMarketplace extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -81,7 +81,7 @@ export class IProductMarket extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IProductMarketInterface;
+  interface: IMarketplaceInterface;
 
   functions: {
     deliver(

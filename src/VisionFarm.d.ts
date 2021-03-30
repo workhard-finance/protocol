@@ -474,13 +474,13 @@ export class VisionFarm extends Contract {
 
     init(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "init(address,address)"(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -768,13 +768,13 @@ export class VisionFarm extends Contract {
 
   init(
     projManager: string,
-    productMarket: string,
+    marketplace: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "init(address,address)"(
     projManager: string,
-    productMarket: string,
+    marketplace: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1033,13 +1033,13 @@ export class VisionFarm extends Contract {
 
     init(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "init(address,address)"(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1317,13 +1317,13 @@ export class VisionFarm extends Contract {
 
     init(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "init(address,address)"(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1604,13 +1604,13 @@ export class VisionFarm extends Contract {
 
     init(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "init(address,address)"(
       projManager: string,
-      productMarket: string,
+      marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

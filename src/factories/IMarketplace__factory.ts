@@ -5,14 +5,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-import type { IProductMarket } from "../IProductMarket";
+import type { IMarketplace } from "../IMarketplace";
 
-export class IProductMarket__factory {
+export class IMarketplace__factory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IProductMarket {
-    return new Contract(address, _abi, signerOrProvider) as IProductMarket;
+  ): IMarketplace {
+    return new Contract(address, _abi, signerOrProvider) as IMarketplace;
   }
 }
 
