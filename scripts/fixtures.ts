@@ -17,7 +17,7 @@ import { scheduleGovernanceTransfer } from "./helpers/transfer-governance";
 import { launchStakeMiningPool } from "./helpers/launch-stake-mining-pool";
 import { launchBurnMiningPool } from "./helpers/launch-burn-mining-pool";
 import { getBaseCurrency } from "./helpers/get-base-currency";
-import { MyNetwork } from "./utils/types/network";
+import { MyNetwork } from "../deployed";
 
 const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";

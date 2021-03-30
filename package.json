@@ -15,7 +15,9 @@
   "files": [
     "contracts",
     "src",
-    "dist"
+    "dist",
+    "scripts/utils/types/deployed.d.ts",
+    "deployed.json"
   ],
   "version": "1.0.0",
   "main": "dist/src/index.js",
@@ -29,7 +31,9 @@
     "precompile": "yarn clean",
     "compile": "hardhat compile",
     "postcompile": "yarn gen-ts",
-    "gen-ts": "typechain --target ethers-v5 --outDir src artifacts/contracts/**/*[!dbg].json && tsc --build tsconfig.json",
+    "pregen-ts": "rimraf artifacts/contracts/**/*.dbg.json",
+    "gen-ts": "typechain --target ethers-v5 --outDir src \"artifacts/contracts/**/*.json\" && tsc --build tsconfig.json",
+    "postgen-ts": "copyfiles \"src/**/*.d.ts\" dist",
     "prepare": "husky install"
   },
   "devDependencies": {
@@ -40,6 +44,7 @@
     "@types/mocha": "^8.2.0",
     "@types/node": "^14.14.22",
     "chai": "^4.2.0",
+    "copyfiles": "^2.4.1",
     "deepmerge": "^4.2.2",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.26",

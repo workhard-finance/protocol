@@ -25,7 +25,7 @@ interface ProjectInterface extends ethers.utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "baseURI()": FunctionFragment;
     "burn(uint256)": FunctionFragment;
-    "create(string)": FunctionFragment;
+    "create(string,string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "jobDescription(uint256)": FunctionFragment;
@@ -39,6 +39,7 @@ interface ProjectInterface extends ethers.utils.Interface {
     "setTokenURI(uint256,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
+    "titles(uint256)": FunctionFragment;
     "tokenByIndex(uint256)": FunctionFragment;
     "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
@@ -53,7 +54,10 @@ interface ProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "create", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "create",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -100,6 +104,10 @@ interface ProjectInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "titles",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "tokenByIndex",
     values: [BigNumberish]
@@ -166,6 +174,7 @@ interface ProjectInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "titles", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenByIndex",
     data: BytesLike
@@ -187,12 +196,14 @@ interface ProjectInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "NewProject(uint256,string)": EventFragment;
     "Perpetuated(uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewProject"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Perpetuated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -275,11 +286,13 @@ export class Project extends Contract {
     ): Promise<ContractTransaction>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -415,6 +428,13 @@ export class Project extends Contract {
 
     "symbol()"(overrides?: CallOverrides): Promise<[string]>;
 
+    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    "titles(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     tokenByIndex(
       index: BigNumberish,
       overrides?: CallOverrides
@@ -500,11 +520,13 @@ export class Project extends Contract {
   ): Promise<ContractTransaction>;
 
   create(
+    title: string,
     description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string)"(
+  "create(string,string)"(
+    title: string,
     description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -634,6 +656,13 @@ export class Project extends Contract {
 
   "symbol()"(overrides?: CallOverrides): Promise<string>;
 
+  titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  "titles(uint256)"(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   tokenByIndex(
     index: BigNumberish,
     overrides?: CallOverrides
@@ -712,9 +741,14 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    create(description: string, overrides?: CallOverrides): Promise<BigNumber>;
+    create(
+      title: string,
+      description: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -844,6 +878,13 @@ export class Project extends Contract {
 
     "symbol()"(overrides?: CallOverrides): Promise<string>;
 
+    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    "titles(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     tokenByIndex(
       index: BigNumberish,
       overrides?: CallOverrides
@@ -911,6 +952,11 @@ export class Project extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
+    NewProject(
+      id: null,
+      title: null
+    ): TypedEventFilter<[BigNumber, string], { id: BigNumber; title: string }>;
+
     Perpetuated(id: null): TypedEventFilter<[BigNumber], { id: BigNumber }>;
 
     Transfer(
@@ -958,11 +1004,13 @@ export class Project extends Contract {
     ): Promise<BigNumber>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1098,6 +1146,13 @@ export class Project extends Contract {
 
     "symbol()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "titles(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     tokenByIndex(
       index: BigNumberish,
       overrides?: CallOverrides
@@ -1187,11 +1242,13 @@ export class Project extends Contract {
     ): Promise<PopulatedTransaction>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1326,6 +1383,16 @@ export class Project extends Contract {
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "symbol()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    titles(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "titles(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     tokenByIndex(
       index: BigNumberish,

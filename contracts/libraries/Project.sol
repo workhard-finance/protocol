@@ -7,16 +7,25 @@ import "../interfaces/IMarketplace.sol";
 contract Project is ERC721Burnable {
     constructor() ERC721("Workhard Project", "PROJ") {}
 
+    mapping(uint256 => string) public titles;
+
     mapping(uint256 => string) public jobDescription;
 
     mapping(uint256 => bool) public perpetuated;
 
+    event NewProject(uint256 id, string title);
+
     event Perpetuated(uint256 id);
 
-    function create(string memory description) public returns (uint256) {
+    function create(string memory title, string memory description)
+        public
+        returns (uint256)
+    {
         uint256 id = totalSupply();
         _mint(msg.sender, id);
         _setJobDescription(id, description);
+        _setTitle(id, title);
+        emit NewProject(id, title);
         return id;
     }
 
@@ -46,5 +55,10 @@ contract Project is ERC721Burnable {
     {
         require(ownerOf(projId) == msg.sender, "Not an owner");
         jobDescription[projId] = description;
+    }
+
+    function _setTitle(uint256 projId, string memory title) internal {
+        require(ownerOf(projId) == msg.sender, "Not an owner");
+        titles[projId] = title;
     }
 }

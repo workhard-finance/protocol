@@ -44,7 +44,9 @@ describe("Marketplace.sol", function () {
       await stableCoin
         .connect(account)
         .approve(cryptoJobBoard.address, parseEther("10000"));
-      await cryptoJobBoard.connect(account).payInsteadOfWorking(parseEther("100"));
+      await cryptoJobBoard
+        .connect(account)
+        .payInsteadOfWorking(parseEther("100"));
       commitmentToken
         .connect(account)
         .approve(marketplace.address, parseEther("10000"));

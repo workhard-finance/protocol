@@ -25,6 +25,7 @@ describe("ProjectManager.sol", function () {
   let timelock: Contract;
   let project: {
     id: number;
+    title: string;
     description: string;
     uri: string;
   };
@@ -62,6 +63,7 @@ describe("ProjectManager.sol", function () {
     );
     project = {
       id: 0,
+      title: "Workhard is hiring",
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
@@ -73,7 +75,7 @@ describe("ProjectManager.sol", function () {
       await expect(
         projManager
           .connect(projOwner)
-          .createProject(project.description, project.uri)
+          .createProject(project.title, project.description, project.uri)
       )
         .to.emit(projManager, "ProjectPosted")
         .withArgs(expectedId);
@@ -83,7 +85,7 @@ describe("ProjectManager.sol", function () {
     it("should transfer the fund from the proposer to the contract", async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       expect(await stableCoin.callStatic.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
@@ -105,7 +107,7 @@ describe("ProjectManager.sol", function () {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -146,7 +148,7 @@ describe("ProjectManager.sol", function () {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -182,9 +184,9 @@ describe("ProjectManager.sol", function () {
       const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       await projManager.connect(manager).approveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
-      expect(await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)).to.eq(
-        parseEther("80")
-      );
+      expect(
+        await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)
+      ).to.eq(parseEther("80"));
       expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("20")
       );
@@ -195,7 +197,7 @@ describe("ProjectManager.sol", function () {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -245,9 +247,9 @@ describe("ProjectManager.sol", function () {
         .connect(projOwner)
         .forceApproveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
-      expect(await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)).to.eq(
-        parseEther("50")
-      );
+      expect(
+        await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)
+      ).to.eq(parseEther("50"));
       expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("50")
       );
@@ -258,7 +260,7 @@ describe("ProjectManager.sol", function () {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -286,7 +288,7 @@ describe("ProjectManager.sol", function () {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
-        .createProject(project.description, project.uri);
+        .createProject(project.title, project.description, project.uri);
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);

@@ -133,6 +133,11 @@ const _abi = [
     inputs: [
       {
         internalType: "string",
+        name: "title",
+        type: "string",
+      },
+      {
+        internalType: "string",
         name: "description",
         type: "string",
       },

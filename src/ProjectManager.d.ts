@@ -31,7 +31,7 @@ interface ProjectManagerInterface extends ethers.utils.Interface {
     "approvedProjects(uint256)": FunctionFragment;
     "baseCurrency()": FunctionFragment;
     "closeProject(uint256)": FunctionFragment;
-    "createProject(string,string)": FunctionFragment;
+    "createProject(string,string,string)": FunctionFragment;
     "cryptoJobBoard()": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
@@ -93,7 +93,7 @@ interface ProjectManagerInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createProject",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "cryptoJobBoard",
@@ -431,12 +431,14 @@ export class ProjectManager extends Contract {
     ): Promise<ContractTransaction>;
 
     createProject(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createProject(string,string)"(
+    "createProject(string,string,string)"(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -726,12 +728,14 @@ export class ProjectManager extends Contract {
   ): Promise<ContractTransaction>;
 
   createProject(
+    title: string,
     description: string,
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createProject(string,string)"(
+  "createProject(string,string,string)"(
+    title: string,
     description: string,
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1011,12 +1015,14 @@ export class ProjectManager extends Contract {
     ): Promise<void>;
 
     createProject(
+      title: string,
       description: string,
       URI: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createProject(string,string)"(
+    "createProject(string,string,string)"(
+      title: string,
       description: string,
       URI: string,
       overrides?: CallOverrides
@@ -1348,12 +1354,14 @@ export class ProjectManager extends Contract {
     ): Promise<BigNumber>;
 
     createProject(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createProject(string,string)"(
+    "createProject(string,string,string)"(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1635,12 +1643,14 @@ export class ProjectManager extends Contract {
     ): Promise<PopulatedTransaction>;
 
     createProject(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createProject(string,string)"(
+    "createProject(string,string,string)"(
+      title: string,
       description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }

@@ -7,19 +7,18 @@ import hre, { ethers } from "hardhat";
 import { Contract } from "ethers";
 import merge from "deepmerge";
 import fs from "fs";
-import { MyNetwork } from "./types/network";
-import { ContractNames, DeployableContracts } from "./types/contract";
-
-export type Deployed = {
-  [network in MyNetwork]?: {
-    [contract in ContractNames]?: string;
-  };
-};
+import {
+  Deployed,
+  ContractNames,
+  DeployableContracts,
+  MyNetwork,
+} from "../../deployed";
 
 function deployFileName(): string {
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const fileName =
-    network === "localhost" ? "deployed.dev.json" : "deployed.json";
+  const fileName = ["mainnet", "rinkeby"].includes(network)
+    ? "deployed.json"
+    : "deployed.dev.json";
   return fileName;
 }
 

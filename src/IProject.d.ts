@@ -23,7 +23,7 @@ interface IProjectInterface extends ethers.utils.Interface {
   functions: {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "create(string)": FunctionFragment;
+    "create(string,string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "modifyJobDescription(uint256,string)": FunctionFragment;
@@ -40,7 +40,10 @@ interface IProjectInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(functionFragment: "create", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "create",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -193,11 +196,13 @@ export class IProject extends Contract {
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -330,11 +335,13 @@ export class IProject extends Contract {
   ): Promise<BigNumber>;
 
   create(
+    title: string,
     description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string)"(
+  "create(string,string)"(
+    title: string,
     description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -463,9 +470,14 @@ export class IProject extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    create(description: string, overrides?: CallOverrides): Promise<BigNumber>;
+    create(
+      title: string,
+      description: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -625,11 +637,13 @@ export class IProject extends Contract {
     ): Promise<BigNumber>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -766,11 +780,13 @@ export class IProject extends Contract {
     ): Promise<PopulatedTransaction>;
 
     create(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string)"(
+    "create(string,string)"(
+      title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

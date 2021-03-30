@@ -98,10 +98,12 @@ contract ProjectManager is Governed, ReentrancyGuard {
     }
 
     // 3rd party functions
-    function createProject(string memory description, string memory URI)
-        public
-    {
-        uint256 projId = project.create(description);
+    function createProject(
+        string memory title,
+        string memory description,
+        string memory URI
+    ) public {
+        uint256 projId = project.create(title, description);
         project.setTokenURI(projId, URI);
         project.safeTransferFrom(address(this), msg.sender, projId);
         emit ProjectPosted(projId);

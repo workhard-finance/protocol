@@ -24,6 +24,7 @@ describe("CryptoJobBoard.sol", function () {
   let stableCoin: Contract;
   let project: {
     id: number;
+    title: string;
     description: string;
     uri: string;
   };
@@ -74,13 +75,14 @@ describe("CryptoJobBoard.sol", function () {
     );
     project = {
       id: 0,
+      title: "Workhard is firing",
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
     budget = { currency: stableCoin.address, amount: parseEther("100") };
     await projManager
       .connect(projOwner)
-      .createProject(project.description, project.uri);
+      .createProject(project.title, project.description, project.uri);
     await projManager
       .connect(projOwner)
       .addBudget(project.id, budget.currency, budget.amount);
