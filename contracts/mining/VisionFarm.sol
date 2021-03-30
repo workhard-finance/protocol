@@ -71,10 +71,7 @@ contract VisionFarm is Governed, HasInitializer {
         _;
     }
 
-    function init(address projManager, address marketplace)
-        public
-        initializer
-    {
+    function init(address projManager, address marketplace) public initializer {
         _addPlanter(projManager);
         _addPlanter(marketplace);
     }

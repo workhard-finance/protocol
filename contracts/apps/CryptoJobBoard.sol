@@ -17,7 +17,12 @@ import "../governance/Governed.sol";
 /**
  * @notice CryptoJobBoard is the $COMMITMENT token minter. It allows project managers mint $COMMITMENT token.
  */
-contract CryptoJobBoard is ERC20Recoverer, Governed, ICryptoJobBoard, HasInitializer {
+contract CryptoJobBoard is
+    ERC20Recoverer,
+    Governed,
+    ICryptoJobBoard,
+    HasInitializer
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using ECDSA for bytes32;
