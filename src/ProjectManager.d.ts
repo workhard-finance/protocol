@@ -23,6 +23,7 @@ interface ProjectManagerInterface extends ethers.utils.Interface {
   functions: {
     "accpetableTokens(address)": FunctionFragment;
     "addBudget(uint256,address,uint256)": FunctionFragment;
+    "addBudgetAndApprove(uint256,address,uint256,bytes)": FunctionFragment;
     "addCurrency(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
@@ -64,6 +65,10 @@ interface ProjectManagerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "addBudget",
     values: [BigNumberish, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addBudgetAndApprove",
+    values: [BigNumberish, string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "addCurrency", values: [string]): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
@@ -172,6 +177,10 @@ interface ProjectManagerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "addBudget", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "addBudgetAndApprove",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "addCurrency",
     data: BytesLike
@@ -357,6 +366,22 @@ export class ProjectManager extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    addBudgetAndApprove(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -657,6 +682,22 @@ export class ProjectManager extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  addBudgetAndApprove(
+    projId: BigNumberish,
+    token: string,
+    amount: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "addBudgetAndApprove(uint256,address,uint256,bytes)"(
+    projId: BigNumberish,
+    token: string,
+    amount: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   addCurrency(
     currency: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -948,6 +989,22 @@ export class ProjectManager extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addBudgetAndApprove(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1283,6 +1340,22 @@ export class ProjectManager extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    addBudgetAndApprove(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     addCurrency(
       currency: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1569,6 +1642,22 @@ export class ProjectManager extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addBudgetAndApprove(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -117,6 +117,16 @@ contract ProjectManager is Governed, ReentrancyGuard {
         _addBudget(projId, token, amount);
     }
 
+    function addBudgetAndApprove(
+        uint256 projId,
+        address token,
+        uint256 amount,
+        bytes calldata swapData
+    ) public onlyProjectOwner(projId) {
+        uint256 budgetIdx = _addBudget(projId, token, amount);
+        approveBudget(projId, budgetIdx, swapData);
+    }
+
     function closeProject(uint256 projId) public onlyProjectOwner(projId) {
         _withdrawAllBudgets(projId);
         approvedProjects[projId] = false;
@@ -137,7 +147,7 @@ contract ProjectManager is Governed, ReentrancyGuard {
         uint256 projId,
         uint256 index,
         bytes calldata swapData
-    ) public onlyManager {
+    ) public onlyApprovedProject(projId) {
         address currency = projectBudgets[projId][index].currency;
         if (currency == baseCurrency) {
             _allocateFund(projId, index, normalTaxRate);
@@ -199,7 +209,7 @@ contract ProjectManager is Governed, ReentrancyGuard {
         uint256 projId,
         address token,
         uint256 amount
-    ) internal {
+    ) internal returns (uint256) {
         require(accpetableTokens[token], "Not a supported currency");
         Budget memory budget = Budget(token, amount, false);
         projectBudgets[projId].push(budget);
@@ -210,6 +220,7 @@ contract ProjectManager is Governed, ReentrancyGuard {
             amount
         );
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
+        return projectBudgets[projId].length - 1;
     }
 
     function _approveProject(uint256 projId) internal {

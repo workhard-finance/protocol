@@ -41,6 +41,7 @@ export const getNetworkName = (chainId: number): MyNetwork => {
   if (chainId === 1) return "mainnet";
   if (chainId === 4) return "rinkeby";
   else if (chainId === 31337) return "localhost";
+  else throw Error("Unknown network");
 };
 
 export const deployed: Deployed = deployedContract;

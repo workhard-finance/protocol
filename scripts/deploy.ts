@@ -6,7 +6,10 @@
 import { deployAndGetFixtures } from "./fixtures";
 
 async function main() {
-  await deployAndGetFixtures();
+  const fixtures = await deployAndGetFixtures();
+  Object.keys(fixtures).forEach((key) => {
+    console.log(`${key}:\n${fixtures[key].address}\n`);
+  });
 }
 
 // We recommend this pattern to be able to use async/await everywhere

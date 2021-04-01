@@ -14,10 +14,9 @@
   ],
   "files": [
     "contracts",
-    "src",
     "dist",
-    "scripts/utils/types/deployed.d.ts",
-    "deployed.json"
+    "deployed.json",
+    "deployed.dev.json"
   ],
   "version": "1.0.0",
   "main": "dist/src/index.js",
@@ -25,8 +24,10 @@
   "scripts": {
     "test": "hardhat test",
     "hardhat": "hardhat",
+    "deploy:mainnet": "hardhat run scripts/deploy.ts --network mainnet",
     "deploy:rinkeby": "hardhat run scripts/deploy.ts --network rinkeby",
     "deploy:hardhat": "hardhat run scripts/deploy.ts --network hardhat",
+    "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
     "clean": "rimraf src; rimraf dist",
     "precompile": "yarn clean",
     "compile": "hardhat compile",

@@ -26,7 +26,28 @@ if (process.env.FORK?.length > 0) {
  * @type import('hardhat/config').HardhatUserConfig
  */
 export default {
-  solidity: "0.7.6",
+  solidity: {
+    compilers: [
+      {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000,
+          },
+        },
+      },
+      {
+        version: "0.5.16",
+      },
+    ],
+    overrides: {
+      "contracts/interfaces/IUniswapV2Factory.sol": {
+        version: "0.5.16",
+        settings: {},
+      },
+    },
+  },
   networks: {
     hardhat,
     mainnet: {

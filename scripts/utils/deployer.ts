@@ -37,7 +37,6 @@ export function record(
   contract: ContractNames,
   address: string
 ) {
-  if (network === "hardhat") return;
   const deployed = getDeployed();
   const updated = merge(deployed, {
     [network]: { [contract]: address },
