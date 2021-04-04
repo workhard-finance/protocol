@@ -29,7 +29,7 @@ contract CommitmentFund is
 
     CommitmentToken immutable commitmentToken;
 
-    IERC20 immutable basicCurrency;
+    IERC20 immutable baseCurrency;
 
     IERC721 immutable project;
 
@@ -55,11 +55,11 @@ contract CommitmentFund is
         address _gov,
         address _commitmentToken,
         address _projectToken,
-        address _basicCurrency
+        address _baseCurrency
     ) ERC20Recoverer() Governed() HasInitializer() {
         commitmentToken = CommitmentToken(_commitmentToken);
-        basicCurrency = IERC20(_basicCurrency);
-        ERC20Recoverer.disablePermanently(_basicCurrency);
+        baseCurrency = IERC20(_baseCurrency);
+        ERC20Recoverer.disablePermanently(_baseCurrency);
         ERC20Recoverer.disablePermanently(_commitmentToken);
         ERC20Recoverer.setRecoverer(_gov);
         project = IERC721(_projectToken);
@@ -98,13 +98,13 @@ contract CommitmentFund is
             "Not enough balance"
         );
         commitmentToken.burnFrom(msg.sender, amount);
-        basicCurrency.transfer(msg.sender, amount);
+        baseCurrency.transfer(msg.sender, amount);
         emit Redeemed(msg.sender, amount);
     }
 
     function payInsteadOfWorking(uint256 amount) public {
         uint256 amountToPay = amount.mul(priceOfCommitmentToken).div(10000);
-        basicCurrency.safeTransferFrom(msg.sender, address(this), amountToPay);
+        baseCurrency.safeTransferFrom(msg.sender, address(this), amountToPay);
         _mintCommitmentToken(msg.sender, amount);
     }
 
@@ -157,7 +157,7 @@ contract CommitmentFund is
 
     function remainingBudget() public view returns (uint256) {
         uint256 currentSupply = commitmentToken.totalSupply();
-        uint256 currentRedeemable = basicCurrency.balanceOf(address(this));
+        uint256 currentRedeemable = baseCurrency.balanceOf(address(this));
         return currentRedeemable.sub(currentSupply);
     }
 
