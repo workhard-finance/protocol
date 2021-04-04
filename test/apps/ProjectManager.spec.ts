@@ -9,7 +9,7 @@ import { getAppFixture, AppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("ProjectManager.sol", function () {
+describe("CryptoJobBoard.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let manager: SignerWithAddress;
@@ -17,7 +17,7 @@ describe("ProjectManager.sol", function () {
   let bob: SignerWithAddress;
   let fixture: AppFixture;
   let projManager: Contract;
-  let cryptoJobBoard: Contract;
+  let commitmentFund: Contract;
   let commitmentToken: Contract;
   let projectToken: Contract;
   let stableCoin: Contract;
@@ -43,7 +43,7 @@ describe("ProjectManager.sol", function () {
     stableCoin = fixture.stableCoin;
     projManager = fixture.projManager;
     commitmentToken = fixture.commitmentToken;
-    cryptoJobBoard = fixture.cryptoJobBoard;
+    commitmentFund = fixture.commitmentFund;
     projectToken = fixture.projectToken;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
@@ -185,7 +185,7 @@ describe("ProjectManager.sol", function () {
       await projManager.connect(manager).approveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
-        await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)
+        await stableCoin.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("80"));
       expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("20")
@@ -248,7 +248,7 @@ describe("ProjectManager.sol", function () {
         .forceApproveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
-        await stableCoin.callStatic.balanceOf(cryptoJobBoard.address)
+        await stableCoin.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("50"));
       expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
         parseEther("50")

@@ -5,14 +5,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-import type { ICryptoJobBoard } from "../ICryptoJobBoard";
+import type { ICommitmentFund } from "../ICommitmentFund";
 
-export class ICryptoJobBoard__factory {
+export class ICommitmentFund__factory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): ICryptoJobBoard {
-    return new Contract(address, _abi, signerOrProvider) as ICryptoJobBoard;
+  ): ICommitmentFund {
+    return new Contract(address, _abi, signerOrProvider) as ICommitmentFund;
   }
 }
 

@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface ICryptoJobBoardInterface extends ethers.utils.Interface {
+interface ICommitmentFundInterface extends ethers.utils.Interface {
   functions: {
     "allocateFund(uint256,uint256)": FunctionFragment;
   };
@@ -37,7 +37,7 @@ interface ICryptoJobBoardInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class ICryptoJobBoard extends Contract {
+export class ICommitmentFund extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,7 +78,7 @@ export class ICryptoJobBoard extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ICryptoJobBoardInterface;
+  interface: ICommitmentFundInterface;
 
   functions: {
     allocateFund(

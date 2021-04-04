@@ -46,7 +46,7 @@ export interface MiningFixture extends GovernanceFixture {
 
 export interface AppFixture extends MiningFixture {
   projManager: Contract;
-  cryptoJobBoard: Contract;
+  commitmentFund: Contract;
   marketplace: Contract;
   productFactory: Contract;
 }
@@ -177,22 +177,22 @@ export async function getAppFixture(): Promise<AppFixture> {
     stableCoin,
     visionFarm,
   } = miningFixture;
-  const cryptoJobBoard = await autoDeploy(
-    "CryptoJobBoard",
+  const commitmentFund = await autoDeploy(
+    "CommitmentFund",
     timelock.address,
     commitmentToken.address,
     projectToken.address,
     stableCoin.address
   );
-  // 18. Move Minter Permission to CryptoJobBoard
-  await commitmentToken.setMinter(cryptoJobBoard.address);
+  // 18. Move Minter Permission to CommitmentFund
+  await commitmentToken.setMinter(commitmentFund.address);
   // 19. Deploy Project Manager
   const projManager = await autoDeploy(
-    "ProjectManager",
+    "CryptoJobBoard",
     timelock.address,
     projectToken.address,
     visionFarm.address,
-    cryptoJobBoard.address,
+    commitmentFund.address,
     stableCoin.address,
     ONE_INCH
   );
@@ -207,13 +207,13 @@ export async function getAppFixture(): Promise<AppFixture> {
     visionFarm.address
   );
   // 22. Initialize Labor Market
-  await cryptoJobBoard.init(projManager.address);
+  await commitmentFund.init(projManager.address);
   // 23. Initialize Vision Farm
   await visionFarm.init(projManager.address, marketplace.address);
   return {
     ...miningFixture,
     projManager,
-    cryptoJobBoard,
+    commitmentFund,
     productFactory,
     marketplace,
   };
@@ -229,8 +229,8 @@ export async function getDeployedFixtures(): Promise<AppFixture> {
   const fixture: AppFixture = {
     productFactory: await getDeployedContract(deployed, "ProductFactory"),
     marketplace: await getDeployedContract(deployed, "Marketplace"),
-    cryptoJobBoard: await getDeployedContract(deployed, "CryptoJobBoard"),
-    projManager: await getDeployedContract(deployed, "ProjectManager"),
+    commitmentFund: await getDeployedContract(deployed, "CommitmentFund"),
+    projManager: await getDeployedContract(deployed, "CryptoJobBoard"),
     liquidityMining: await getDeployedContract(deployed, "LiquidityMining"),
     commitmentMining: await getDeployedContract(deployed, "CommitmentMining"),
     visionTokenEmitter: await getDeployedContract(

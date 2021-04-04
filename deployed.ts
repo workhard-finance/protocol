@@ -15,10 +15,10 @@ export type DeployableContracts =
   | "StakeMining"
   | "CommitmentMining"
   | "LiquidityMining"
-  | "CryptoJobBoard"
+  | "CommitmentFund"
   | "Marketplace"
   | "ProductFactory"
-  | "ProjectManager"
+  | "CryptoJobBoard"
   | "Project"
   | "TeamShare"
   | "TimelockedGovernance";

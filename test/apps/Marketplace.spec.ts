@@ -17,7 +17,7 @@ describe("Marketplace.sol", function () {
   let fixture: AppFixture;
   let marketplace: Contract;
   let productFactory: Contract;
-  let cryptoJobBoard: Contract;
+  let commitmentFund: Contract;
   let commitmentToken: Contract;
   let stableCoin: Contract;
   let visionFarm: Contract;
@@ -34,7 +34,7 @@ describe("Marketplace.sol", function () {
     commitmentToken = fixture.commitmentToken;
     marketplace = fixture.marketplace;
     productFactory = fixture.productFactory;
-    cryptoJobBoard = fixture.cryptoJobBoard;
+    commitmentFund = fixture.commitmentFund;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
     await stableCoin.mint(deployer.address, parseEther("10000"));
@@ -43,8 +43,8 @@ describe("Marketplace.sol", function () {
       await stableCoin.mint(addr, parseEther("10000"));
       await stableCoin
         .connect(account)
-        .approve(cryptoJobBoard.address, parseEther("10000"));
-      await cryptoJobBoard
+        .approve(commitmentFund.address, parseEther("10000"));
+      await commitmentFund
         .connect(account)
         .payInsteadOfWorking(parseEther("100"));
       commitmentToken

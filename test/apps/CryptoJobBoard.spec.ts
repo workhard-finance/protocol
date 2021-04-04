@@ -9,7 +9,7 @@ import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("CryptoJobBoard.sol", function () {
+describe("CommitmentFund.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let manager: SignerWithAddress;
@@ -17,7 +17,7 @@ describe("CryptoJobBoard.sol", function () {
   let alice: SignerWithAddress;
   let fixture: AppFixture;
   let projManager: Contract;
-  let cryptoJobBoard: Contract;
+  let commitmentFund: Contract;
   let commitmentToken: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
@@ -43,7 +43,7 @@ describe("CryptoJobBoard.sol", function () {
     stableCoin = fixture.stableCoin;
     projManager = fixture.projManager;
     commitmentToken = fixture.commitmentToken;
-    cryptoJobBoard = fixture.cryptoJobBoard;
+    commitmentFund = fixture.commitmentFund;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
     await stableCoin.mint(deployer.address, parseEther("10000"));
@@ -55,10 +55,10 @@ describe("CryptoJobBoard.sol", function () {
         .approve(projManager.address, parseEther("10000"));
       await stableCoin
         .connect(account)
-        .approve(cryptoJobBoard.address, parseEther("10000"));
+        .approve(commitmentFund.address, parseEther("10000"));
       commitmentToken
         .connect(account)
-        .approve(cryptoJobBoard.address, parseEther("10000"));
+        .approve(commitmentFund.address, parseEther("10000"));
     };
     await prepare(projOwner);
     await prepare(alice);
@@ -98,11 +98,11 @@ describe("CryptoJobBoard.sol", function () {
         alice.address
       );
       await expect(
-        cryptoJobBoard
+        commitmentFund
           .connect(projOwner)
           .compensate(project.id, alice.address, parseEther("1"))
       )
-        .to.emit(cryptoJobBoard, "Payed")
+        .to.emit(commitmentFund, "Payed")
         .withArgs(project.id, alice.address, parseEther("1"));
       const bal1: BigNumber = await commitmentToken.callStatic.balanceOf(
         alice.address
@@ -112,24 +112,24 @@ describe("CryptoJobBoard.sol", function () {
   });
   describe("redeem()", async () => {
     beforeEach("compensate", async () => {
-      cryptoJobBoard
+      commitmentFund
         .connect(projOwner)
         .compensate(project.id, alice.address, parseEther("1"));
     });
     it("should return the base currency and burn the commitment token", async () => {
       const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
-      expect(cryptoJobBoard.connect(alice).redeem(parseEther("1")))
-        .to.emit(cryptoJobBoard, "Redeemed")
+      expect(commitmentFund.connect(alice).redeem(parseEther("1")))
+        .to.emit(commitmentFund, "Redeemed")
         .withArgs(alice.address, parseEther("1"));
       const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base1.sub(base0)).eq(comm0.sub(comm1));
     });
     it("should not change the remaining budget", async () => {
-      const remaining0 = await cryptoJobBoard.callStatic.remainingBudget();
-      await cryptoJobBoard.connect(alice).redeem(parseEther("1"));
-      const remaining1 = await cryptoJobBoard.callStatic.remainingBudget();
+      const remaining0 = await commitmentFund.callStatic.remainingBudget();
+      await commitmentFund.connect(alice).redeem(parseEther("1"));
+      const remaining1 = await commitmentFund.callStatic.remainingBudget();
       expect(remaining1).eq(remaining0);
     });
   });
@@ -138,7 +138,7 @@ describe("CryptoJobBoard.sol", function () {
       const supply0 = await commitmentToken.callStatic.totalSupply();
       const base0 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
-      await cryptoJobBoard.connect(alice).payInsteadOfWorking(parseEther("1"));
+      await commitmentFund.connect(alice).payInsteadOfWorking(parseEther("1"));
       const supply1 = await commitmentToken.callStatic.totalSupply();
       const base1 = await stableCoin.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
@@ -147,9 +147,9 @@ describe("CryptoJobBoard.sol", function () {
       expect(supply1.sub(supply0)).eq(parseEther("1"));
     });
     it("should increase the commitment token budget", async () => {
-      const remaining0 = await cryptoJobBoard.callStatic.remainingBudget();
-      await cryptoJobBoard.connect(alice).payInsteadOfWorking(parseEther("1"));
-      const remaining1 = await cryptoJobBoard.callStatic.remainingBudget();
+      const remaining0 = await commitmentFund.callStatic.remainingBudget();
+      await commitmentFund.connect(alice).payInsteadOfWorking(parseEther("1"));
+      const remaining1 = await commitmentFund.callStatic.remainingBudget();
       expect(remaining1.sub(remaining0)).eq(parseEther("1"));
     });
   });
