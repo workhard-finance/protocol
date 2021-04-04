@@ -4,7 +4,7 @@ import { Contract } from "ethers";
 
 const DAI = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
 
-export async function getBaseCurrency(deployerAddress): Promise<Contract> {
+export async function getBaseCurrency(deployerAddress: string): Promise<Contract> {
   if (hre.network.name === "mainnet") {
     const contract = await ethers.getContractAt(
       "@openzeppelin/contracts/token/ERC20/IERC20.sol:IERC20",
