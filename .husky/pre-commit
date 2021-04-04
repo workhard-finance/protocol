@@ -4,4 +4,3 @@
 yarn lint-staged
 yarn compile
 git add src
-yarn test
