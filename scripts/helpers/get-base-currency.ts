@@ -12,7 +12,7 @@ export async function getBaseCurrency(deployerAddress): Promise<Contract> {
     );
     return contract;
   } else {
-    const ERC20 = await ethers.getContractFactory("TestERC20");
+    const ERC20 = await ethers.getContractFactory("ERC20Mock");
     const contract = await ERC20.deploy();
     await contract.mint(deployerAddress, parseEther("10000"));
     return contract;

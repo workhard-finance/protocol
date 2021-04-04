@@ -11,10 +11,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
  *      of redeemable stable coins. Therefore, it's 1:1 pegged to the given stable coin
  *      or expected to have higher value than the redeemable coin values.
  */
-contract TestERC20 is ERC20Burnable {
+contract ERC20Mock is ERC20Burnable {
     address public minter;
 
-    constructor() ERC20("TestERC20", "TST") {
+    constructor() ERC20("ERC20Mock", "MOCK") {
         minter = msg.sender;
     }
 

@@ -19,7 +19,7 @@ describe("Marketplace.sol", function () {
   let productFactory: Contract;
   let commitmentFund: Contract;
   let commitmentToken: Contract;
-  let stableCoin: Contract;
+  let baseCurrency: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
   beforeEach(async () => {
@@ -28,20 +28,20 @@ describe("Marketplace.sol", function () {
     manufacturer = signers[1];
     alice = signers[1];
     bob = signers[2];
-    const ERC20 = await ethers.getContractFactory("TestERC20");
+    const ERC20 = await ethers.getContractFactory("ERC20Mock");
     fixture = await getAppFixture();
-    stableCoin = fixture.stableCoin;
+    baseCurrency = fixture.baseCurrency;
     commitmentToken = fixture.commitmentToken;
     marketplace = fixture.marketplace;
     productFactory = fixture.productFactory;
     commitmentFund = fixture.commitmentFund;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
-    await stableCoin.mint(deployer.address, parseEther("10000"));
+    await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await stableCoin.mint(addr, parseEther("10000"));
-      await stableCoin
+      await baseCurrency.mint(addr, parseEther("10000"));
+      await baseCurrency
         .connect(account)
         .approve(commitmentFund.address, parseEther("10000"));
       await commitmentFund

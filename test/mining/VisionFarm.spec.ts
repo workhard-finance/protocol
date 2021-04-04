@@ -42,7 +42,7 @@ describe("VisionFarm.sol", function () {
     visionToken = fixture.visionToken;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
-    const ERC20 = await ethers.getContractFactory("TestERC20");
+    const ERC20 = await ethers.getContractFactory("ERC20Mock");
     testingRewardToken = await ERC20.deploy();
     await testingRewardToken.mint(planterAddress, parseEther("10000"));
     await testingRewardToken

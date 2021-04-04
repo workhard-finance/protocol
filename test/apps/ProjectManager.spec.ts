@@ -20,7 +20,7 @@ describe("CryptoJobBoard.sol", function () {
   let commitmentFund: Contract;
   let commitmentToken: Contract;
   let projectToken: Contract;
-  let stableCoin: Contract;
+  let baseCurrency: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
   let project: {
@@ -40,18 +40,18 @@ describe("CryptoJobBoard.sol", function () {
     projOwner = signers[2];
     bob = signers[3];
     fixture = await getAppFixture();
-    stableCoin = fixture.stableCoin;
+    baseCurrency = fixture.baseCurrency;
     projManager = fixture.projManager;
     commitmentToken = fixture.commitmentToken;
     commitmentFund = fixture.commitmentFund;
     projectToken = fixture.projectToken;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
-    await stableCoin.mint(deployer.address, parseEther("10000"));
+    await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await stableCoin.mint(addr, parseEther("10000"));
-      await stableCoin
+      await baseCurrency.mint(addr, parseEther("10000"));
+      await baseCurrency
         .connect(account)
         .approve(projManager.address, parseEther("10000"));
     };
@@ -67,7 +67,7 @@ describe("CryptoJobBoard.sol", function () {
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
-    budget = { currency: stableCoin.address, amount: parseEther("100") };
+    budget = { currency: baseCurrency.address, amount: parseEther("100") };
   });
   describe("createProject()", async () => {
     it("should emit ProjectPosted() event", async () => {
@@ -86,21 +86,21 @@ describe("CryptoJobBoard.sol", function () {
       await projManager
         .connect(projOwner)
         .createProject(project.title, project.description, project.uri);
-      expect(await stableCoin.callStatic.balanceOf(projOwner.address)).to.eq(
+      expect(await baseCurrency.callStatic.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
-      expect(await stableCoin.callStatic.balanceOf(projManager.address)).to.eq(
-        parseEther("0")
-      );
+      expect(
+        await baseCurrency.callStatic.balanceOf(projManager.address)
+      ).to.eq(parseEther("0"));
       await projManager
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
-      expect(await stableCoin.callStatic.balanceOf(projOwner.address)).to.eq(
+      expect(await baseCurrency.callStatic.balanceOf(projOwner.address)).to.eq(
         parseEther("9900")
       );
-      expect(await stableCoin.callStatic.balanceOf(projManager.address)).to.eq(
-        parseEther("100")
-      );
+      expect(
+        await baseCurrency.callStatic.balanceOf(projManager.address)
+      ).to.eq(parseEther("100"));
     });
   });
   describe("closeProject() & disapproveProject()", async () => {
@@ -134,11 +134,11 @@ describe("CryptoJobBoard.sol", function () {
         .withArgs(project.id);
     });
     it("should refund the unapproved budgets", async () => {
-      const bal0: BigNumber = await stableCoin.callStatic.balanceOf(
+      const bal0: BigNumber = await baseCurrency.callStatic.balanceOf(
         projOwner.address
       );
       await projManager.connect(projOwner).closeProject(project.id);
-      const bal1: BigNumber = await stableCoin.callStatic.balanceOf(
+      const bal1: BigNumber = await baseCurrency.callStatic.balanceOf(
         projOwner.address
       );
       expect(bal1.sub(bal0)).eq(parseEther("100"));
@@ -185,9 +185,9 @@ describe("CryptoJobBoard.sol", function () {
       await projManager.connect(manager).approveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
-        await stableCoin.callStatic.balanceOf(commitmentFund.address)
+        await baseCurrency.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("80"));
-      expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
+      expect(await projManager.callStatic.taxations(baseCurrency.address)).eq(
         parseEther("20")
       );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("80"));
@@ -248,9 +248,9 @@ describe("CryptoJobBoard.sol", function () {
         .forceApproveBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
-        await stableCoin.callStatic.balanceOf(commitmentFund.address)
+        await baseCurrency.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("50"));
-      expect(await projManager.callStatic.taxations(stableCoin.address)).eq(
+      expect(await projManager.callStatic.taxations(baseCurrency.address)).eq(
         parseEther("50")
       );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
@@ -281,7 +281,7 @@ describe("CryptoJobBoard.sol", function () {
           .addBudget(project.id, budget.currency, budget.amount)
       )
         .to.emit(projManager, "BudgetAdded")
-        .withArgs(project.id, 1, stableCoin.address, parseEther("100"));
+        .withArgs(project.id, 1, baseCurrency.address, parseEther("100"));
     });
   });
   describe("taxToVisionFarm()", async () => {
@@ -302,7 +302,7 @@ describe("CryptoJobBoard.sol", function () {
       await runTimelockTx(
         timelock,
         projManager.populateTransaction.taxToVisionFarm(
-          stableCoin.address,
+          baseCurrency.address,
           parseEther("20")
         )
       );
@@ -310,7 +310,7 @@ describe("CryptoJobBoard.sol", function () {
       const result = await visionFarm.callStatic.getHarvestableCrops(
         currentEpoch + 1
       );
-      expect(result.tokens).to.deep.eq([stableCoin.address]);
+      expect(result.tokens).to.deep.eq([baseCurrency.address]);
       expect(result.amounts).to.deep.eq([parseEther("20")]);
     });
   });

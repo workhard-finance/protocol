@@ -23,7 +23,7 @@ const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
 
 export interface TokenFixture {
-  stableCoin: Contract;
+  baseCurrency: Contract;
   visionToken: Contract;
   commitmentToken: Contract;
   projectToken: Contract;
@@ -54,8 +54,8 @@ export interface AppFixture extends MiningFixture {
 export async function getTokenFixture(): Promise<TokenFixture> {
   const [deployer] = await ethers.getSigners();
   // 1. Get base currency. (In mainnet use DAI & for testing deploy new)
-  const stableCoin = await getBaseCurrency(deployer.address);
-  record(hre.network.name as MyNetwork, "StableCoin", stableCoin.address);
+  const baseCurrency = await getBaseCurrency(deployer.address);
+  record(hre.network.name as MyNetwork, "BaseCurrency", baseCurrency.address);
   // 2. Deploy vision token
   const visionToken = await autoDeploy("VisionToken");
   // 3. Deploy commitment token
@@ -66,7 +66,7 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   const visionLP = await deployUniswapLP(visionToken.address, WETH);
   record(hre.network.name as MyNetwork, "VisionLP", visionLP.address);
   return {
-    stableCoin,
+    baseCurrency,
     visionToken,
     commitmentToken,
     projectToken: project,
@@ -123,7 +123,7 @@ export async function getMiningFixture(): Promise<MiningFixture> {
     visionToken,
     visionLP,
     commitmentToken,
-    stableCoin,
+    baseCurrency,
   } = governanceFixture;
   // 12. Deploy Burn Mining Factory
   const burnMiningFactory = await autoDeploy("BurnMiningPoolFactory");
@@ -174,7 +174,7 @@ export async function getAppFixture(): Promise<AppFixture> {
     timelock,
     projectToken,
     commitmentToken,
-    stableCoin,
+    baseCurrency,
     visionFarm,
   } = miningFixture;
   const commitmentFund = await autoDeploy(
@@ -182,7 +182,7 @@ export async function getAppFixture(): Promise<AppFixture> {
     timelock.address,
     commitmentToken.address,
     projectToken.address,
-    stableCoin.address
+    baseCurrency.address
   );
   // 18. Move Minter Permission to CommitmentFund
   await commitmentToken.setMinter(commitmentFund.address);
@@ -193,7 +193,7 @@ export async function getAppFixture(): Promise<AppFixture> {
     projectToken.address,
     visionFarm.address,
     commitmentFund.address,
-    stableCoin.address,
+    baseCurrency.address,
     ONE_INCH
   );
   // 20. Deploy Product Factory
@@ -246,7 +246,7 @@ export async function getDeployedFixtures(): Promise<AppFixture> {
     projectToken: await getDeployedContract(deployed, "Project"),
     commitmentToken: await getDeployedContract(deployed, "CommitmentToken"),
     visionToken: await getDeployedContract(deployed, "VisionToken"),
-    stableCoin: await getDeployedContract(deployed, "StableCoin"),
+    baseCurrency: await getDeployedContract(deployed, "BaseCurrency"),
   };
   return fixture;
 }

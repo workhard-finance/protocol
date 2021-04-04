@@ -25,7 +25,7 @@ export type DeployableContracts =
 
 export type MyContracts =
   | "VisionLP"
-  | "StableCoin"
+  | "BaseCurrency"
   | "CommitmentMining"
   | "LiquidityMining";
 

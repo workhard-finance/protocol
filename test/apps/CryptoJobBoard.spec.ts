@@ -21,7 +21,7 @@ describe("CommitmentFund.sol", function () {
   let commitmentToken: Contract;
   let visionFarm: Contract;
   let timelock: Contract;
-  let stableCoin: Contract;
+  let baseCurrency: Contract;
   let project: {
     id: number;
     title: string;
@@ -38,22 +38,22 @@ describe("CommitmentFund.sol", function () {
     manager = signers[1];
     projOwner = signers[2];
     alice = signers[3];
-    const ERC20 = await ethers.getContractFactory("TestERC20");
+    const ERC20 = await ethers.getContractFactory("ERC20Mock");
     fixture = await getAppFixture();
-    stableCoin = fixture.stableCoin;
+    baseCurrency = fixture.baseCurrency;
     projManager = fixture.projManager;
     commitmentToken = fixture.commitmentToken;
     commitmentFund = fixture.commitmentFund;
     visionFarm = fixture.visionFarm;
     timelock = fixture.timelock;
-    await stableCoin.mint(deployer.address, parseEther("10000"));
+    await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
-      await stableCoin.mint(addr, parseEther("10000"));
-      await stableCoin
+      await baseCurrency.mint(addr, parseEther("10000"));
+      await baseCurrency
         .connect(account)
         .approve(projManager.address, parseEther("10000"));
-      await stableCoin
+      await baseCurrency
         .connect(account)
         .approve(commitmentFund.address, parseEther("10000"));
       commitmentToken
@@ -79,7 +79,7 @@ describe("CommitmentFund.sol", function () {
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
-    budget = { currency: stableCoin.address, amount: parseEther("100") };
+    budget = { currency: baseCurrency.address, amount: parseEther("100") };
     await projManager
       .connect(projOwner)
       .createProject(project.title, project.description, project.uri);
@@ -117,12 +117,12 @@ describe("CommitmentFund.sol", function () {
         .compensate(project.id, alice.address, parseEther("1"));
     });
     it("should return the base currency and burn the commitment token", async () => {
-      const base0 = await stableCoin.callStatic.balanceOf(alice.address);
+      const base0 = await baseCurrency.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(commitmentFund.connect(alice).redeem(parseEther("1")))
         .to.emit(commitmentFund, "Redeemed")
         .withArgs(alice.address, parseEther("1"));
-      const base1 = await stableCoin.callStatic.balanceOf(alice.address);
+      const base1 = await baseCurrency.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base1.sub(base0)).eq(comm0.sub(comm1));
     });
@@ -136,11 +136,11 @@ describe("CommitmentFund.sol", function () {
   describe("payInsteadOfWorking()", async () => {
     it("should mint commitment tokens when someone pays twice", async () => {
       const supply0 = await commitmentToken.callStatic.totalSupply();
-      const base0 = await stableCoin.callStatic.balanceOf(alice.address);
+      const base0 = await baseCurrency.callStatic.balanceOf(alice.address);
       const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
       await commitmentFund.connect(alice).payInsteadOfWorking(parseEther("1"));
       const supply1 = await commitmentToken.callStatic.totalSupply();
-      const base1 = await stableCoin.callStatic.balanceOf(alice.address);
+      const base1 = await baseCurrency.callStatic.balanceOf(alice.address);
       const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
       expect(base0.sub(base1)).eq(parseEther("2"));
       expect(comm1.sub(comm0)).eq(parseEther("1"));
