@@ -26,6 +26,7 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "execute(uint256,address,uint256,bytes,uint256,uint256)": FunctionFragment;
     "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)": FunctionFragment;
+    "getVotes(address)": FunctionFragment;
     "getVotingStatus(uint256)": FunctionFragment;
     "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)": FunctionFragment;
     "hashTransaction(address,uint256,bytes,uint256,uint256)": FunctionFragment;
@@ -77,6 +78,7 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
       BigNumberish
     ]
   ): string;
+  encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getVotingStatus",
     values: [BigNumberish]
@@ -145,6 +147,7 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     functionFragment: "executeBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVotingStatus",
     data: BytesLike
@@ -299,6 +302,13 @@ export class FarmersUnion extends Contract {
       salt: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    getVotes(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "getVotes(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     getVotingStatus(
       proposalId: BigNumberish,
@@ -559,6 +569,13 @@ export class FarmersUnion extends Contract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "getVotes(address)"(
+    account: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getVotingStatus(
     proposalId: BigNumberish,
     overrides?: CallOverrides
@@ -817,6 +834,13 @@ export class FarmersUnion extends Contract {
       salt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getVotes(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getVotingStatus(
       proposalId: BigNumberish,
@@ -1153,6 +1177,13 @@ export class FarmersUnion extends Contract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getVotes(address)"(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getVotingStatus(
       proposalId: BigNumberish,
       overrides?: CallOverrides
@@ -1351,6 +1382,16 @@ export class FarmersUnion extends Contract {
       predecessor: BigNumberish,
       salt: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getVotes(
+      account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getVotes(address)"(
+      account: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getVotingStatus(

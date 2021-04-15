@@ -225,6 +225,10 @@ contract FarmersUnion is Pausable {
         else return VotingState.Rejected;
     }
 
+    function getVotes(address account) public view returns (uint256) {
+        return memorandom.voteCounter.getVotes(account);
+    }
+
     /**
      * @dev Returns the identifier of an operation containing a single
      * transaction.
