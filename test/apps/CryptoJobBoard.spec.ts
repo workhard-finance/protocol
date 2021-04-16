@@ -56,7 +56,7 @@ describe("CommitmentFund.sol", function () {
       await baseCurrency
         .connect(account)
         .approve(commitmentFund.address, parseEther("10000"));
-      commitmentToken
+      await commitmentToken
         .connect(account)
         .approve(commitmentFund.address, parseEther("10000"));
     };
