@@ -22,12 +22,11 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface CryptoJobBoardInterface extends ethers.utils.Interface {
   functions: {
     "accpetableTokens(address)": FunctionFragment;
+    "addAndExecuteBudget(uint256,address,uint256,bytes)": FunctionFragment;
     "addBudget(uint256,address,uint256)": FunctionFragment;
-    "addBudgetAndApprove(uint256,address,uint256,bytes)": FunctionFragment;
     "addCurrency(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "approveBudget(uint256,uint256,bytes)": FunctionFragment;
     "approveProject(uint256)": FunctionFragment;
     "approvedProjects(uint256)": FunctionFragment;
     "baseCurrency()": FunctionFragment;
@@ -35,10 +34,12 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "commitmentFund()": FunctionFragment;
     "createProject(string,string,string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
+    "executeBudget(uint256,uint256,bytes)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "forceApproveBudget(uint256,uint256)": FunctionFragment;
     "funds(address)": FunctionFragment;
+    "getTotalBudgets(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
     "managers(address)": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
@@ -63,22 +64,18 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "addBudget",
-    values: [BigNumberish, string, BigNumberish]
+    functionFragment: "addAndExecuteBudget",
+    values: [BigNumberish, string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "addBudgetAndApprove",
-    values: [BigNumberish, string, BigNumberish, BytesLike]
+    functionFragment: "addBudget",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "addCurrency", values: [string]): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "anarchizedAt",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "approveBudget",
-    values: [BigNumberish, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "approveProject",
@@ -109,6 +106,10 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "executeBudget",
+    values: [BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "forceAnarchize",
     values?: undefined
   ): string;
@@ -121,6 +122,10 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "funds", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getTotalBudgets",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(functionFragment: "managers", values: [string]): string;
   encodeFunctionData(
@@ -176,11 +181,11 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "accpetableTokens",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "addBudget", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "addBudgetAndApprove",
+    functionFragment: "addAndExecuteBudget",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "addBudget", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "addCurrency",
     data: BytesLike
@@ -188,10 +193,6 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "anarchizedAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "approveBudget",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -223,6 +224,10 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "executeBudget",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "forceAnarchize",
     data: BytesLike
   ): Result;
@@ -235,6 +240,10 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "funds", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getTotalBudgets",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "managers", data: BytesLike): Result;
   decodeFunctionResult(
@@ -283,7 +292,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   events: {
     "Anarchized()": EventFragment;
     "BudgetAdded(uint256,uint256,address,uint256)": EventFragment;
-    "BudgetApproved(uint256,uint256)": EventFragment;
+    "BudgetExecuted(uint256,uint256)": EventFragment;
     "BudgetWithdrawn(uint256,uint256)": EventFragment;
     "ManagerUpdated(address,bool)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
@@ -293,7 +302,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetAdded"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "BudgetApproved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BudgetExecuted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetWithdrawn"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ManagerUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
@@ -355,6 +364,22 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    addAndExecuteBudget(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     addBudget(
       projId: BigNumberish,
       token: string,
@@ -366,22 +391,6 @@ export class CryptoJobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    addBudgetAndApprove(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -406,20 +415,6 @@ export class CryptoJobBoard extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    approveBudget(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "approveBudget(uint256,uint256,bytes)"(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     approveProject(
       projId: BigNumberish,
@@ -483,6 +478,20 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    executeBudget(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "executeBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -511,6 +520,16 @@ export class CryptoJobBoard extends Contract {
 
     "funds(address)"(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getTotalBudgets(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getTotalBudgets(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -668,6 +687,22 @@ export class CryptoJobBoard extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  addAndExecuteBudget(
+    projId: BigNumberish,
+    token: string,
+    amount: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+    projId: BigNumberish,
+    token: string,
+    amount: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   addBudget(
     projId: BigNumberish,
     token: string,
@@ -679,22 +714,6 @@ export class CryptoJobBoard extends Contract {
     projId: BigNumberish,
     token: string,
     amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  addBudgetAndApprove(
-    projId: BigNumberish,
-    token: string,
-    amount: BigNumberish,
-    swapData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "addBudgetAndApprove(uint256,address,uint256,bytes)"(
-    projId: BigNumberish,
-    token: string,
-    amount: BigNumberish,
-    swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -719,20 +738,6 @@ export class CryptoJobBoard extends Contract {
   anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  approveBudget(
-    projId: BigNumberish,
-    index: BigNumberish,
-    swapData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "approveBudget(uint256,uint256,bytes)"(
-    projId: BigNumberish,
-    index: BigNumberish,
-    swapData: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   approveProject(
     projId: BigNumberish,
@@ -796,6 +801,20 @@ export class CryptoJobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  executeBudget(
+    projId: BigNumberish,
+    index: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "executeBudget(uint256,uint256,bytes)"(
+    projId: BigNumberish,
+    index: BigNumberish,
+    swapData: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   forceAnarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -823,6 +842,16 @@ export class CryptoJobBoard extends Contract {
   funds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "funds(address)"(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  getTotalBudgets(
+    projId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getTotalBudgets(uint256)"(
+    projId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   gov(overrides?: CallOverrides): Promise<string>;
 
@@ -978,6 +1007,22 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    addAndExecuteBudget(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     addBudget(
       projId: BigNumberish,
       token: string,
@@ -989,22 +1034,6 @@ export class CryptoJobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    addBudgetAndApprove(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1022,20 +1051,6 @@ export class CryptoJobBoard extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    approveBudget(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "approveBudget(uint256,uint256,bytes)"(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     approveProject(
       projId: BigNumberish,
@@ -1099,6 +1114,20 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    executeBudget(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "executeBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     forceAnarchize(overrides?: CallOverrides): Promise<void>;
 
     "forceAnarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -1123,6 +1152,16 @@ export class CryptoJobBoard extends Contract {
 
     "funds(address)"(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalBudgets(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getTotalBudgets(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1274,7 +1313,7 @@ export class CryptoJobBoard extends Contract {
       { projId: BigNumber; index: BigNumber; token: string; amount: BigNumber }
     >;
 
-    BudgetApproved(
+    BudgetExecuted(
       projId: null,
       index: null
     ): TypedEventFilter<
@@ -1326,6 +1365,22 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    addAndExecuteBudget(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     addBudget(
       projId: BigNumberish,
       token: string,
@@ -1337,22 +1392,6 @@ export class CryptoJobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    addBudgetAndApprove(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1377,20 +1416,6 @@ export class CryptoJobBoard extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    approveBudget(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "approveBudget(uint256,uint256,bytes)"(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     approveProject(
       projId: BigNumberish,
@@ -1454,6 +1479,20 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    executeBudget(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "executeBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1482,6 +1521,16 @@ export class CryptoJobBoard extends Contract {
 
     "funds(address)"(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getTotalBudgets(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getTotalBudgets(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1631,6 +1680,22 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    addAndExecuteBudget(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+      projId: BigNumberish,
+      token: string,
+      amount: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     addBudget(
       projId: BigNumberish,
       token: string,
@@ -1642,22 +1707,6 @@ export class CryptoJobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    addBudgetAndApprove(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "addBudgetAndApprove(uint256,address,uint256,bytes)"(
-      projId: BigNumberish,
-      token: string,
-      amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1682,20 +1731,6 @@ export class CryptoJobBoard extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    approveBudget(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "approveBudget(uint256,uint256,bytes)"(
-      projId: BigNumberish,
-      index: BigNumberish,
-      swapData: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     approveProject(
       projId: BigNumberish,
@@ -1761,6 +1796,20 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    executeBudget(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "executeBudget(uint256,uint256,bytes)"(
+      projId: BigNumberish,
+      index: BigNumberish,
+      swapData: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1794,6 +1843,16 @@ export class CryptoJobBoard extends Contract {
 
     "funds(address)"(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getTotalBudgets(
+      projId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getTotalBudgets(uint256)"(
+      projId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

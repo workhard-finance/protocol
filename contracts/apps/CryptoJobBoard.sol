@@ -61,7 +61,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         uint256 amount
     );
 
-    event BudgetApproved(uint256 projId, uint256 index);
+    event BudgetExecuted(uint256 projId, uint256 index);
 
     event BudgetWithdrawn(uint256 projId, uint256 index);
 
@@ -117,14 +117,14 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         _addBudget(projId, token, amount);
     }
 
-    function addBudgetAndApprove(
+    function addAndExecuteBudget(
         uint256 projId,
         address token,
         uint256 amount,
         bytes calldata swapData
     ) public onlyProjectOwner(projId) {
         uint256 budgetIdx = _addBudget(projId, token, amount);
-        approveBudget(projId, budgetIdx, swapData);
+        executeBudget(projId, budgetIdx, swapData);
     }
 
     function closeProject(uint256 projId) public onlyProjectOwner(projId) {
@@ -143,7 +143,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     }
 
     // Operator functions
-    function approveBudget(
+    function executeBudget(
         uint256 projId,
         uint256 index,
         bytes calldata swapData
@@ -202,6 +202,10 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         taxations[currency] = taxations[currency].sub(amount);
         IERC20(currency).safeApprove(visionFarm, amount);
         IVisionFarm(visionFarm).plantSeeds(currency, amount);
+    }
+
+    function getTotalBudgets(uint256 projId) public view returns (uint256) {
+        return projectBudgets[projId].length;
     }
 
     // Internal functions
@@ -266,7 +270,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         taxations[budget.currency] = taxations[budget.currency].add(visionTax);
         IERC20(baseCurrency).safeTransfer(commitmentFund, fund);
         ICommitmentFund(commitmentFund).allocateFund(projId, fund);
-        emit BudgetApproved(projId, index);
+        emit BudgetExecuted(projId, index);
     }
 
     /**
@@ -291,7 +295,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         taxations[budget.currency] = taxations[budget.currency].add(visionTax);
         _swapOn1Inch(budget, fund, swapData);
         ICommitmentFund(commitmentFund).allocateFund(projId, fund);
-        emit BudgetApproved(projId, index);
+        emit BudgetExecuted(projId, index);
     }
 
     function _swapOn1Inch(

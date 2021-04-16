@@ -90,7 +90,7 @@ describe("CommitmentFund.sol", function () {
       timelock,
       projManager.populateTransaction.approveProject(project.id)
     );
-    await projManager.connect(manager).approveBudget(project.id, 0, []);
+    await projManager.connect(manager).executeBudget(project.id, 0, []);
   });
   describe("compensate()", async () => {
     it("the budget owner can execute the budget", async () => {

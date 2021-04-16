@@ -144,7 +144,7 @@ describe("CryptoJobBoard.sol", function () {
       expect(bal1.sub(bal0)).eq(parseEther("100"));
     });
   });
-  describe("approveBudget()", async () => {
+  describe("executeBudget()", async () => {
     beforeEach(async () => {
       await projManager
         .connect(projOwner)
@@ -155,25 +155,25 @@ describe("CryptoJobBoard.sol", function () {
     });
     it("should be run after the project is approved by the governance", async () => {
       await expect(
-        projManager.connect(manager).approveBudget(project.id, 0, [])
+        projManager.connect(manager).executeBudget(project.id, 0, [])
       ).to.be.revertedWith("Not an approved project.");
       await runTimelockTx(
         timelock,
         projManager.populateTransaction.approveProject(project.id)
       );
       await expect(
-        projManager.connect(manager).approveBudget(project.id, 0, [])
+        projManager.connect(manager).executeBudget(project.id, 0, [])
       ).not.to.reverted;
     });
-    it("should emit BudgetApproved()", async () => {
+    it("should emit BudgetExecuted()", async () => {
       await runTimelockTx(
         timelock,
         projManager.populateTransaction.approveProject(project.id)
       );
       await expect(
-        projManager.connect(manager).approveBudget(project.id, 0, [])
+        projManager.connect(manager).executeBudget(project.id, 0, [])
       )
-        .to.emit(projManager, "BudgetApproved")
+        .to.emit(projManager, "BudgetExecuted")
         .withArgs(project.id, 0);
     });
     it("should send the 80% of the fund to the labor market and mint commitment token", async () => {
@@ -182,7 +182,7 @@ describe("CryptoJobBoard.sol", function () {
         projManager.populateTransaction.approveProject(project.id)
       );
       const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
-      await projManager.connect(manager).approveBudget(project.id, 0, []);
+      await projManager.connect(manager).executeBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
         await baseCurrency.callStatic.balanceOf(commitmentFund.address)
@@ -226,7 +226,7 @@ describe("CryptoJobBoard.sol", function () {
         projManager.connect(projOwner).forceApproveBudget(project.id, 0)
       ).not.to.be.reverted;
     });
-    it("should emit BudgetApproved()", async () => {
+    it("should emit BudgetExecuted()", async () => {
       await runTimelockTx(
         timelock,
         projManager.populateTransaction.approveProject(project.id)
@@ -234,7 +234,7 @@ describe("CryptoJobBoard.sol", function () {
       await expect(
         projManager.connect(projOwner).forceApproveBudget(project.id, 0)
       )
-        .to.emit(projManager, "BudgetApproved")
+        .to.emit(projManager, "BudgetExecuted")
         .withArgs(project.id, 0);
     });
     it("should take 50% of the fund for the fee.", async () => {
@@ -296,7 +296,7 @@ describe("CryptoJobBoard.sol", function () {
         timelock,
         projManager.populateTransaction.approveProject(project.id)
       );
-      await projManager.connect(manager).approveBudget(project.id, 0, []);
+      await projManager.connect(manager).executeBudget(project.id, 0, []);
     });
     it("should pass the taxations to the vision farm", async () => {
       await runTimelockTx(
