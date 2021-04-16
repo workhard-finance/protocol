@@ -54,6 +54,12 @@ describe("CryptoJobBoard.sol", function () {
       await baseCurrency
         .connect(account)
         .approve(projManager.address, parseEther("10000"));
+      await baseCurrency
+        .connect(account)
+        .approve(commitmentFund.address, parseEther("10000"));
+      await commitmentToken
+        .connect(account)
+        .approve(commitmentFund.address, parseEther("10000"));
     };
     await prepare(projOwner);
     await prepare(bob);
@@ -312,6 +318,22 @@ describe("CryptoJobBoard.sol", function () {
       );
       expect(result.tokens).to.deep.eq([baseCurrency.address]);
       expect(result.amounts).to.deep.eq([parseEther("20")]);
+    });
+  });
+  describe("grant()", async () => {
+    it("should grant commitment token for project", async () => {
+      await commitmentFund.connect(bob).payInsteadOfWorking(parseEther("1"));
+      const remaining0 = await commitmentFund.callStatic.remainingBudget();
+      expect(remaining0).not.eq(BigNumber.from(0));
+      const budget0 = await commitmentFund.callStatic.projectFund(project.id);
+      await runTimelockTx(
+        timelock,
+        projManager.populateTransaction.grant(project.id, remaining0)
+      );
+      const remaining1 = await commitmentFund.callStatic.remainingBudget();
+      const budget1 = await commitmentFund.callStatic.projectFund(project.id);
+      expect(remaining1).eq(BigNumber.from(0));
+      expect(budget1.sub(budget0)).eq(remaining0);
     });
   });
 });
