@@ -41,6 +41,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "funds(address)": FunctionFragment;
     "getTotalBudgets(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
+    "grant(uint256,uint256)": FunctionFragment;
     "managers(address)": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
     "oneInch()": FunctionFragment;
@@ -127,6 +128,10 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "grant",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "managers", values: [string]): string;
   encodeFunctionData(
     functionFragment: "normalTaxRate",
@@ -245,6 +250,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "grant", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "managers", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "normalTaxRate",
@@ -294,6 +300,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "BudgetAdded(uint256,uint256,address,uint256)": EventFragment;
     "BudgetExecuted(uint256,uint256)": EventFragment;
     "BudgetWithdrawn(uint256,uint256)": EventFragment;
+    "Grant(uint256,uint256)": EventFragment;
     "ManagerUpdated(address,bool)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
     "ProjectClosed(uint256)": EventFragment;
@@ -304,6 +311,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "BudgetAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetExecuted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BudgetWithdrawn"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Grant"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ManagerUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProjectClosed"): EventFragment;
@@ -536,6 +544,18 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
+
+    grant(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "grant(uint256,uint256)"(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     managers(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -857,6 +877,18 @@ export class CryptoJobBoard extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  grant(
+    projId: BigNumberish,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "grant(uint256,uint256)"(
+    projId: BigNumberish,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   "managers(address)"(
@@ -1169,6 +1201,18 @@ export class CryptoJobBoard extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
+    grant(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "grant(uint256,uint256)"(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     "managers(address)"(
@@ -1327,6 +1371,14 @@ export class CryptoJobBoard extends Contract {
     ): TypedEventFilter<
       [BigNumber, BigNumber],
       { projId: BigNumber; index: BigNumber }
+    >;
+
+    Grant(
+      projId: null,
+      amount: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber],
+      { projId: BigNumber; amount: BigNumber }
     >;
 
     ManagerUpdated(
@@ -1537,6 +1589,18 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    grant(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "grant(uint256,uint256)"(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     managers(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1859,6 +1923,18 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    grant(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "grant(uint256,uint256)"(
+      projId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     managers(
       arg0: string,

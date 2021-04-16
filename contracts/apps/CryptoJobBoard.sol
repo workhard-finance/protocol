@@ -54,6 +54,8 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
 
     event ProjectClosed(uint256 projId);
 
+    event Grant(uint256 projId, uint256 amount);
+
     event BudgetAdded(
         uint256 indexed projId,
         uint256 index,
@@ -157,6 +159,11 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     }
 
     // Governed functions
+
+    function grant(uint256 projId, uint256 amount) public governed {
+        ICommitmentFund(commitmentFund).allocateFund(projId, amount);
+        emit Grant(projId, amount);
+    }
 
     function addCurrency(address currency) public governed {
         accpetableTokens[currency] = true;
