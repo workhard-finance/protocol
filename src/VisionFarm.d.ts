@@ -473,13 +473,13 @@ export class VisionFarm extends Contract {
     ): Promise<ContractTransaction>;
 
     init(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "init(address,address)"(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -767,13 +767,13 @@ export class VisionFarm extends Contract {
   ): Promise<ContractTransaction>;
 
   init(
-    projManager: string,
+    cryptoJobBoard: string,
     marketplace: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "init(address,address)"(
-    projManager: string,
+    cryptoJobBoard: string,
     marketplace: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1032,13 +1032,13 @@ export class VisionFarm extends Contract {
     "harvestAndDispatchToNewFarm()"(overrides?: CallOverrides): Promise<void>;
 
     init(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "init(address,address)"(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1316,13 +1316,13 @@ export class VisionFarm extends Contract {
     ): Promise<BigNumber>;
 
     init(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "init(address,address)"(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1603,13 +1603,13 @@ export class VisionFarm extends Contract {
     ): Promise<PopulatedTransaction>;
 
     init(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "init(address,address)"(
-      projManager: string,
+      cryptoJobBoard: string,
       marketplace: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
