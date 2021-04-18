@@ -148,6 +148,7 @@ contract VisionTokenEmitter is Governed {
     }
 
     function start() public governed {
+        require(emissionStarted == 0, "Already started");
         emissionStarted = block.timestamp;
         emit Start();
     }
