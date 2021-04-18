@@ -115,7 +115,9 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   };
 }
 
-export async function getMiningFixture(): Promise<MiningFixture> {
+export async function getMiningFixture(option?: {
+  skipMinterSetting?: boolean;
+}): Promise<MiningFixture> {
   const governanceFixture: GovernanceFixture = await getGovernanceFixture();
   const {
     teamShare,
@@ -154,11 +156,15 @@ export async function getMiningFixture(): Promise<MiningFixture> {
     visionTokenEmitter,
     commitmentToken.address
   );
+  const [deployer] = await ethers.getSigners();
   record(
     hre.network.name as MyNetwork,
     "CommitmentMining",
     commitmentMining.address
   );
+  if (!option?.skipMinterSetting) {
+    await visionToken.connect(deployer).setMinter(visionTokenEmitter.address);
+  }
   return {
     ...governanceFixture,
     visionTokenEmitter,

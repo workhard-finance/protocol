@@ -31,7 +31,7 @@ describe("FarmersUnion.sol", function () {
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    fixture = await getMiningFixture();
+    fixture = await getMiningFixture({ skipMinterSetting: true });
     visionToken = fixture.visionToken;
     visionFarm = fixture.visionFarm;
     farmersUnion = fixture.farmersUnion;

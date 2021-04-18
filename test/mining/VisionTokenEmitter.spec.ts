@@ -143,7 +143,6 @@ describe("VisionTokenEmitter.sol", function () {
     let testingStakeMiningPool: Contract;
     let testingBurnMiningPool: Contract;
     beforeEach(async () => {
-      await visionToken.setMinter(visionTokenEmitter.address);
       const VisionToken = await ethers.getContractFactory("VisionToken");
       const CommitmentToken = await ethers.getContractFactory(
         "CommitmentToken"

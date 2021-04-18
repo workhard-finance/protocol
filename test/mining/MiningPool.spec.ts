@@ -63,7 +63,6 @@ describe("MiningPool.sol", function () {
         testingStakeToken.address
       )
     );
-    await visionToken.setMinter(visionTokenEmitter.address);
     const prepare = async (account: Signer) => {
       const addr = await account.getAddress();
       await testingStakeToken.mint(addr, parseEther("10000"));

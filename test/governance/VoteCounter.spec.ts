@@ -37,7 +37,7 @@ describe("SquareRootVoteCounter.sol", function () {
     aliceAddress = await alice.getAddress();
     bobAddress = await bob.getAddress();
     carlAddress = await carl.getAddress();
-    fixture = await getMiningFixture();
+    fixture = await getMiningFixture({ skipMinterSetting: true });
     visionToken = fixture.visionToken;
     visionFarm = fixture.visionFarm;
     voteCounter = fixture.voteCounter;
