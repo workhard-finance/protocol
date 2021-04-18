@@ -220,6 +220,10 @@ contract VisionTokenEmitter is Governed {
         return emission;
     }
 
+    function getNumberOfPools() public view returns (uint256) {
+        return pools.length;
+    }
+
     function getPoolWeight(uint256 poolIndex) public view returns (uint256) {
         return emissionWeight.pools[poolIndex];
     }
