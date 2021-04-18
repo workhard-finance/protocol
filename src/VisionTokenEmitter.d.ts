@@ -35,6 +35,7 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     "emissionWeight()": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
+    "getEmission()": FunctionFragment;
     "getPoolWeight(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
     "minEmissionRatePerWeek()": FunctionFragment;
@@ -102,6 +103,10 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "forceAnarchizeAt",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getEmission",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -209,6 +214,10 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchizeAt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getEmission",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -426,6 +435,10 @@ export class VisionTokenEmitter extends Contract {
     forceAnarchizeAt(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getEmission(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "getEmission()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getPoolWeight(
       poolIndex: BigNumberish,
@@ -658,6 +671,10 @@ export class VisionTokenEmitter extends Contract {
 
   "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getEmission(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   getPoolWeight(
     poolIndex: BigNumberish,
     overrides?: CallOverrides
@@ -873,6 +890,10 @@ export class VisionTokenEmitter extends Contract {
     forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getEmission(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getPoolWeight(
       poolIndex: BigNumberish,
@@ -1118,6 +1139,10 @@ export class VisionTokenEmitter extends Contract {
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getEmission(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getPoolWeight(
       poolIndex: BigNumberish,
       overrides?: CallOverrides
@@ -1350,6 +1375,10 @@ export class VisionTokenEmitter extends Contract {
     "forceAnarchizeAt()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    getEmission(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getEmission()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getPoolWeight(
       poolIndex: BigNumberish,
