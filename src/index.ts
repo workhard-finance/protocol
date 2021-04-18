@@ -12,6 +12,7 @@ export type { TimelockedGovernance } from "./TimelockedGovernance";
 export type { IMiningPool } from "./IMiningPool";
 export type { ICommitmentFund } from "./ICommitmentFund";
 export type { ICommitmentToken } from "./ICommitmentToken";
+export type { IERC20 } from "./IERC20";
 export type { IMarketplace } from "./IMarketplace";
 export type { IMiningPoolFactory } from "./IMiningPoolFactory";
 export type { IProduct } from "./IProduct";
@@ -47,6 +48,7 @@ export { TimelockedGovernance__factory } from "./factories/TimelockedGovernance_
 export { IMiningPool__factory } from "./factories/IMiningPool__factory";
 export { ICommitmentFund__factory } from "./factories/ICommitmentFund__factory";
 export { ICommitmentToken__factory } from "./factories/ICommitmentToken__factory";
+export { IERC20__factory } from "./factories/IERC20__factory";
 export { IMarketplace__factory } from "./factories/IMarketplace__factory";
 export { IMiningPoolFactory__factory } from "./factories/IMiningPoolFactory__factory";
 export { IProduct__factory } from "./factories/IProduct__factory";
