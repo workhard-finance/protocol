@@ -7,12 +7,7 @@ import hre, { ethers } from "hardhat";
 import { Contract } from "ethers";
 import { deployUniswapLP } from "./helpers/deploy-uniswap-v2-pair";
 
-import {
-  autoDeploy,
-  getDeployed,
-  getDeployedContract,
-  record,
-} from "./utils/deployer";
+import { autoDeploy, record } from "./utils/deployer";
 import { scheduleGovernanceTransfer } from "./helpers/transfer-governance";
 import { launchStakeMiningPool } from "./helpers/launch-stake-mining-pool";
 import { launchBurnMiningPool } from "./helpers/launch-burn-mining-pool";
@@ -228,31 +223,4 @@ export async function getAppFixture(): Promise<AppFixture> {
 export async function deployAndGetFixtures(): Promise<AppFixture> {
   const appFixture = await getAppFixture();
   return appFixture;
-}
-
-export async function getDeployedFixtures(): Promise<AppFixture> {
-  const deployed = getDeployed();
-  const fixture: AppFixture = {
-    productFactory: await getDeployedContract(deployed, "ProductFactory"),
-    marketplace: await getDeployedContract(deployed, "Marketplace"),
-    commitmentFund: await getDeployedContract(deployed, "CommitmentFund"),
-    cryptoJobBoard: await getDeployedContract(deployed, "CryptoJobBoard"),
-    liquidityMining: await getDeployedContract(deployed, "LiquidityMining"),
-    commitmentMining: await getDeployedContract(deployed, "CommitmentMining"),
-    visionTokenEmitter: await getDeployedContract(
-      deployed,
-      "VisionTokenEmitter"
-    ),
-    visionFarm: await getDeployedContract(deployed, "VisionFarm"),
-    teamShare: await getDeployedContract(deployed, "TeamShare"),
-    timelock: await getDeployedContract(deployed, "TimelockedGovernance"),
-    voteCounter: await getDeployedContract(deployed, "SquareRootVoteCounter"),
-    farmersUnion: await getDeployedContract(deployed, "FarmersUnion"),
-    visionLP: await getDeployedContract(deployed, "VisionLP"),
-    projectToken: await getDeployedContract(deployed, "Project"),
-    commitmentToken: await getDeployedContract(deployed, "CommitmentToken"),
-    visionToken: await getDeployedContract(deployed, "VisionToken"),
-    baseCurrency: await getDeployedContract(deployed, "BaseCurrency"),
-  };
-  return fixture;
 }

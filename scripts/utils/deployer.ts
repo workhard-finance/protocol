@@ -74,11 +74,15 @@ export async function autoDeploy(
 
 export async function getDeployedContract(
   deployed: Deployed,
-  name: ContractNames
+  name: ContractNames,
+  artifactName?: string
 ) {
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployedAddress = deployed[network]?.[name];
   if (!deployedAddress) throw Error(`${name} is not deployed on ${network}`);
-  const contract = await ethers.getContractAt(name, deployedAddress);
+  const contract = await ethers.getContractAt(
+    artifactName || name,
+    deployedAddress
+  );
   return contract;
 }
