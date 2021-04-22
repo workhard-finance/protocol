@@ -24,6 +24,7 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     "addPlanter(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
+    "balanceOf(address)": FunctionFragment;
     "batchDispatch()": FunctionFragment;
     "dispatchFarmers(uint256)": FunctionFragment;
     "dispatchableFarmers(address,uint256)": FunctionFragment;
@@ -33,19 +34,24 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "genesis()": FunctionFragment;
+    "getAllHarvestableCropsFor(uint256,address)": FunctionFragment;
+    "getAllHarvestedCropsOf(address)": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
     "getHarvestableCrops(uint256)": FunctionFragment;
-    "getHarvestableCropsFor(uint256,address)": FunctionFragment;
+    "getHarvestableCropsFor(uint256,address,address[])": FunctionFragment;
+    "getHarvestedCropsOf(address,address[])": FunctionFragment;
     "getNextEpoch()": FunctionFragment;
     "gov()": FunctionFragment;
-    "harvest(uint256)": FunctionFragment;
-    "harvestAndDispatchToNewFarm()": FunctionFragment;
+    "harvest(uint256,address[])": FunctionFragment;
+    "harvestAll(uint256)": FunctionFragment;
     "init(address,address)": FunctionFragment;
     "isHarvestable(uint256)": FunctionFragment;
     "lock(uint256)": FunctionFragment;
     "maximumLock()": FunctionFragment;
     "minimumLock()": FunctionFragment;
     "plantSeeds(address,uint256)": FunctionFragment;
+    "planted(address)": FunctionFragment;
+    "plantedTokens(uint256)": FunctionFragment;
     "remainingLocks(address)": FunctionFragment;
     "removePlanter(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
@@ -55,6 +61,8 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     "stakings(address)": FunctionFragment;
     "unstake(uint256)": FunctionFragment;
     "visionToken()": FunctionFragment;
+    "withdraw(address[])": FunctionFragment;
+    "withdrawAll()": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "addPlanter", values: [string]): string;
@@ -63,6 +71,7 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     functionFragment: "anarchizedAt",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(
     functionFragment: "batchDispatch",
     values?: undefined
@@ -91,6 +100,14 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "genesis", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "getAllHarvestableCropsFor",
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAllHarvestedCropsOf",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCurrentEpoch",
     values?: undefined
   ): string;
@@ -100,7 +117,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getHarvestableCropsFor",
-    values: [BigNumberish, string]
+    values: [BigNumberish, string, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getHarvestedCropsOf",
+    values: [string, string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getNextEpoch",
@@ -109,11 +130,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "harvest",
-    values: [BigNumberish]
+    values: [BigNumberish, string[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "harvestAndDispatchToNewFarm",
-    values?: undefined
+    functionFragment: "harvestAll",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "init",
@@ -135,6 +156,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "plantSeeds",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "planted", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "plantedTokens",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "remainingLocks",
@@ -166,6 +192,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     functionFragment: "visionToken",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "withdraw", values: [string[]]): string;
+  encodeFunctionData(
+    functionFragment: "withdrawAll",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(functionFragment: "addPlanter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
@@ -173,6 +204,7 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     functionFragment: "anarchizedAt",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "batchDispatch",
     data: BytesLike
@@ -201,6 +233,14 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "genesis", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getAllHarvestableCropsFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllHarvestedCropsOf",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getCurrentEpoch",
     data: BytesLike
   ): Result;
@@ -213,15 +253,16 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getHarvestedCropsOf",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getNextEpoch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "harvestAndDispatchToNewFarm",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "harvestAll", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isHarvestable",
@@ -237,6 +278,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "plantSeeds", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "planted", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "plantedTokens",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "remainingLocks",
     data: BytesLike
@@ -262,6 +308,11 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "unstake", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "visionToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawAll",
     data: BytesLike
   ): Result;
 
@@ -340,6 +391,13 @@ export class VisionFarm extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    balanceOf(farmer: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "balanceOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     batchDispatch(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -412,6 +470,36 @@ export class VisionFarm extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getAllHarvestableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getAllHarvestableCropsFor(uint256,address)"(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    getAllHarvestedCropsOf(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getAllHarvestedCropsOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
     getCurrentEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -433,18 +521,28 @@ export class VisionFarm extends Contract {
     getHarvestableCropsFor(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
-    "getHarvestableCropsFor(uint256,address)"(
+    "getHarvestableCropsFor(uint256,address,address[])"(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getHarvestedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    "getHarvestedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -456,19 +554,23 @@ export class VisionFarm extends Contract {
 
     harvest(
       epoch: BigNumberish,
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "harvest(uint256)"(
+    "harvest(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    harvestAll(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    harvestAndDispatchToNewFarm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "harvestAndDispatchToNewFarm()"(
+    "harvestAll(uint256)"(
+      epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -523,6 +625,23 @@ export class VisionFarm extends Contract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    planted(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    "planted(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    plantedTokens(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "plantedTokens(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     remainingLocks(
       staker: string,
@@ -613,6 +732,24 @@ export class VisionFarm extends Contract {
     visionToken(overrides?: CallOverrides): Promise<[string]>;
 
     "visionToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    withdraw(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdraw(address[])"(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdrawAll()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
 
   addPlanter(
@@ -636,6 +773,13 @@ export class VisionFarm extends Contract {
   anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "balanceOf(address)"(
+    farmer: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   batchDispatch(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -706,6 +850,36 @@ export class VisionFarm extends Contract {
 
   "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getAllHarvestableCropsFor(
+    epoch: BigNumberish,
+    staker: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
+  "getAllHarvestableCropsFor(uint256,address)"(
+    epoch: BigNumberish,
+    staker: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
+  getAllHarvestedCropsOf(
+    farmer: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
+  "getAllHarvestedCropsOf(address)"(
+    farmer: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
   getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -727,18 +901,28 @@ export class VisionFarm extends Contract {
   getHarvestableCropsFor(
     epoch: BigNumberish,
     staker: string,
+    tokens: string[],
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
+  ): Promise<BigNumber[]>;
 
-  "getHarvestableCropsFor(uint256,address)"(
+  "getHarvestableCropsFor(uint256,address,address[])"(
     epoch: BigNumberish,
     staker: string,
+    tokens: string[],
     overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
+  ): Promise<BigNumber[]>;
+
+  getHarvestedCropsOf(
+    farmer: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  "getHarvestedCropsOf(address,address[])"(
+    farmer: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
 
   getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -750,19 +934,23 @@ export class VisionFarm extends Contract {
 
   harvest(
     epoch: BigNumberish,
+    tokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "harvest(uint256)"(
+  "harvest(uint256,address[])"(
+    epoch: BigNumberish,
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  harvestAll(
     epoch: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  harvestAndDispatchToNewFarm(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "harvestAndDispatchToNewFarm()"(
+  "harvestAll(uint256)"(
+    epoch: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -817,6 +1005,17 @@ export class VisionFarm extends Contract {
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  planted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "planted(address)"(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  plantedTokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  "plantedTokens(uint256)"(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   remainingLocks(staker: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -901,6 +1100,24 @@ export class VisionFarm extends Contract {
 
   "visionToken()"(overrides?: CallOverrides): Promise<string>;
 
+  withdraw(
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdraw(address[])"(
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawAll(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdrawAll()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     addPlanter(planter: string, overrides?: CallOverrides): Promise<void>;
 
@@ -916,6 +1133,13 @@ export class VisionFarm extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "balanceOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     batchDispatch(overrides?: CallOverrides): Promise<void>;
 
@@ -978,6 +1202,36 @@ export class VisionFarm extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAllHarvestableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getAllHarvestableCropsFor(uint256,address)"(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    getAllHarvestedCropsOf(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getAllHarvestedCropsOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -999,18 +1253,28 @@ export class VisionFarm extends Contract {
     getHarvestableCropsFor(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<BigNumber[]>;
 
-    "getHarvestableCropsFor(uint256,address)"(
+    "getHarvestableCropsFor(uint256,address,address[])"(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
+    ): Promise<BigNumber[]>;
+
+    getHarvestedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    "getHarvestedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1020,16 +1284,24 @@ export class VisionFarm extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
-    harvest(epoch: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "harvest(uint256)"(
+    harvest(
       epoch: BigNumberish,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    harvestAndDispatchToNewFarm(overrides?: CallOverrides): Promise<void>;
+    "harvest(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "harvestAndDispatchToNewFarm()"(overrides?: CallOverrides): Promise<void>;
+    harvestAll(epoch: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    "harvestAll(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     init(
       cryptoJobBoard: string,
@@ -1079,6 +1351,23 @@ export class VisionFarm extends Contract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    planted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "planted(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    plantedTokens(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "plantedTokens(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     remainingLocks(
       staker: string,
@@ -1157,6 +1446,17 @@ export class VisionFarm extends Contract {
     visionToken(overrides?: CallOverrides): Promise<string>;
 
     "visionToken()"(overrides?: CallOverrides): Promise<string>;
+
+    withdraw(tokens: string[], overrides?: CallOverrides): Promise<void>;
+
+    "withdraw(address[])"(
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawAll(overrides?: CallOverrides): Promise<void>;
+
+    "withdrawAll()"(overrides?: CallOverrides): Promise<void>;
   };
 
   filters: {
@@ -1193,6 +1493,13 @@ export class VisionFarm extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "balanceOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     batchDispatch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1263,6 +1570,28 @@ export class VisionFarm extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getAllHarvestableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getAllHarvestableCropsFor(uint256,address)"(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAllHarvestedCropsOf(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getAllHarvestedCropsOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1280,12 +1609,26 @@ export class VisionFarm extends Contract {
     getHarvestableCropsFor(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getHarvestableCropsFor(uint256,address)"(
+    "getHarvestableCropsFor(uint256,address,address[])"(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getHarvestedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getHarvestedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1299,19 +1642,23 @@ export class VisionFarm extends Contract {
 
     harvest(
       epoch: BigNumberish,
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "harvest(uint256)"(
+    "harvest(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    harvestAll(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    harvestAndDispatchToNewFarm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "harvestAndDispatchToNewFarm()"(
+    "harvestAll(uint256)"(
+      epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1365,6 +1712,23 @@ export class VisionFarm extends Contract {
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    planted(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "planted(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    plantedTokens(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "plantedTokens(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     remainingLocks(
@@ -1449,6 +1813,24 @@ export class VisionFarm extends Contract {
     visionToken(overrides?: CallOverrides): Promise<BigNumber>;
 
     "visionToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdraw(address[])"(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    withdrawAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdrawAll()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1473,6 +1855,16 @@ export class VisionFarm extends Contract {
     anarchizedAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    balanceOf(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     batchDispatch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1548,6 +1940,28 @@ export class VisionFarm extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getAllHarvestableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getAllHarvestableCropsFor(uint256,address)"(
+      epoch: BigNumberish,
+      staker: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAllHarvestedCropsOf(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getAllHarvestedCropsOf(address)"(
+      farmer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getCurrentEpoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getCurrentEpoch()"(
@@ -1567,12 +1981,26 @@ export class VisionFarm extends Contract {
     getHarvestableCropsFor(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getHarvestableCropsFor(uint256,address)"(
+    "getHarvestableCropsFor(uint256,address,address[])"(
       epoch: BigNumberish,
       staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getHarvestedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getHarvestedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1586,19 +2014,23 @@ export class VisionFarm extends Contract {
 
     harvest(
       epoch: BigNumberish,
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "harvest(uint256)"(
+    "harvest(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    harvestAll(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    harvestAndDispatchToNewFarm(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "harvestAndDispatchToNewFarm()"(
+    "harvestAll(uint256)"(
+      epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1652,6 +2084,26 @@ export class VisionFarm extends Contract {
       token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    planted(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "planted(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    plantedTokens(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "plantedTokens(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     remainingLocks(
@@ -1739,5 +2191,23 @@ export class VisionFarm extends Contract {
     visionToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "visionToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw(address[])"(
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawAll(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdrawAll()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }

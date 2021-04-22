@@ -3,6 +3,7 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../libraries/Utils.sol";
 import "../libraries/HasInitializer.sol";
 import "../governance/Governed.sol";
@@ -22,11 +23,18 @@ struct Staking {
 /** @title Vision Farm */
 contract VisionFarm is Governed, HasInitializer {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
     using Utils for address[];
 
     address public immutable visionToken;
 
     mapping(address => bool) planters;
+
+    mapping(address => mapping(address => uint256)) harvested;
+
+    mapping(address => bool) public planted;
+
+    address[] public plantedTokens;
 
     /** @notice The block timestamp when the contract is deployed */
     uint256 public immutable genesis;
@@ -95,16 +103,20 @@ contract VisionFarm is Governed, HasInitializer {
      *      cost of harvest() call, only permitted planters can call this function.
      */
     function plantSeeds(address token, uint256 amount) public plantersOnly {
+        require(amount != 0, "No amount");
         require(
             IERC20(token).balanceOf(msg.sender) >= amount,
             "Not enough token balance."
         );
+        if (!planted[token]) {
+            planted[token] = true;
+            plantedTokens.push(token);
+        }
         Farm storage farm = farms[getNextEpoch()];
-        (bool exist, ) = farm.tokens.find(token); // Utils.sol#5L
-        if (!exist) {
+        if (farm.crops[token] == 0) {
             farm.tokens.push(token);
         }
-        IERC20(token).transferFrom(msg.sender, address(this), amount);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
         farm.crops[token] = farm.crops[token].add(amount);
     }
 
@@ -116,7 +128,7 @@ contract VisionFarm is Governed, HasInitializer {
      */
     function stake(uint256 amount) public {
         Staking storage staking = stakings[msg.sender];
-        IERC20(visionToken).transferFrom(msg.sender, address(this), amount);
+        IERC20(visionToken).safeTransferFrom(msg.sender, address(this), amount);
         staking.amount = staking.amount.add(amount);
     }
 
@@ -150,7 +162,7 @@ contract VisionFarm is Governed, HasInitializer {
         require(staking.locked < getCurrentEpoch(), "Staking is locked");
         require(staking.amount >= amount, "Not enough balance");
         staking.amount = staking.amount.sub(amount);
-        IERC20(visionToken).transfer(msg.sender, amount);
+        IERC20(visionToken).safeTransfer(msg.sender, amount);
     }
 
     /**
@@ -186,16 +198,25 @@ contract VisionFarm is Governed, HasInitializer {
         farm.dispatchedFarmers[msg.sender] = dispatchable;
     }
 
-    function harvest(uint256 epoch) public {
+    function harvestAll(uint256 epoch) public {
+        harvest(epoch, farms[epoch].tokens);
+    }
+
+    /**
+     * @dev When the harvestable crops are too many, farmers can seletively
+     *  harvest crops. Note that the non-selected crops will distributed to
+     *  the other farmers.
+     */
+    function harvest(uint256 epoch, address[] memory tokens) public {
         require(isHarvestable(epoch), "Unripe yet");
         Farm storage farm = farms[epoch];
-        (address[] memory tokens, uint256[] memory amounts) =
-            getHarvestableCropsFor(epoch, msg.sender);
+        uint256[] memory amounts =
+            getHarvestableCropsFor(epoch, msg.sender, tokens);
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
             uint256 amount = amounts[i];
             farm.crops[token] = farm.crops[token].sub(amount);
-            IERC20(token).transfer(msg.sender, amount);
+            harvested[msg.sender][token] += amount;
         }
         farm.totalFarmers = farm.totalFarmers.sub(
             farm.dispatchedFarmers[msg.sender]
@@ -203,10 +224,19 @@ contract VisionFarm is Governed, HasInitializer {
         farm.dispatchedFarmers[msg.sender] = 0; // withdraw dispatched farmers
     }
 
-    function harvestAndDispatchToNewFarm() public {
-        uint256 currentEpoch = getCurrentEpoch();
-        harvest(currentEpoch);
-        dispatchFarmers(currentEpoch + 1);
+    function withdrawAll() public {
+        withdraw(plantedTokens);
+    }
+
+    function withdraw(address[] memory tokens) public {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            address token = tokens[i];
+            uint256 amount = harvested[msg.sender][token];
+            if (amount != 0) {
+                harvested[msg.sender][token] = 0;
+                IERC20(token).safeTransfer(msg.sender, amount);
+            }
+        }
     }
 
     function batchDispatch() public {
@@ -279,13 +309,21 @@ contract VisionFarm is Governed, HasInitializer {
         return (tokens, amounts);
     }
 
-    function getHarvestableCropsFor(uint256 epoch, address staker)
+    function getAllHarvestableCropsFor(uint256 epoch, address staker)
         public
         view
         returns (address[] memory tokens, uint256[] memory amounts)
     {
+        tokens = farms[epoch].tokens;
+        amounts = getHarvestableCropsFor(epoch, staker, tokens);
+    }
+
+    function getHarvestableCropsFor(
+        uint256 epoch,
+        address staker,
+        address[] memory tokens
+    ) public view returns (uint256[] memory amounts) {
         Farm storage farm = farms[epoch];
-        tokens = farm.tokens;
         amounts = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
@@ -293,7 +331,27 @@ contract VisionFarm is Governed, HasInitializer {
                 .mul(farm.dispatchedFarmers[staker])
                 .div(farm.totalFarmers);
         }
-        return (tokens, amounts);
+    }
+
+    function getAllHarvestedCropsOf(address farmer)
+        public
+        view
+        returns (address[] memory tokens, uint256[] memory amounts)
+    {
+        tokens = plantedTokens;
+        amounts = getHarvestedCropsOf(farmer, tokens);
+    }
+
+    function getHarvestedCropsOf(address farmer, address[] memory tokens)
+        public
+        view
+        returns (uint256[] memory amounts)
+    {
+        amounts = new uint256[](tokens.length);
+        for (uint256 i = 0; i < tokens.length; i++) {
+            address token = tokens[i];
+            amounts[i] = harvested[farmer][token];
+        }
     }
 
     /** @notice default 1 epoch is 4 weeks */
@@ -303,6 +361,13 @@ contract VisionFarm is Governed, HasInitializer {
 
     function getNextEpoch() public view returns (uint256) {
         return getCurrentEpoch() + 1;
+    }
+
+    /**
+     * @dev can be used like ERC20 balanceOf
+     */
+    function balanceOf(address farmer) public view returns (uint256) {
+        return dispatchableFarmers(farmer, getCurrentEpoch());
     }
 
     function _addPlanter(address planter) internal {

@@ -148,17 +148,19 @@ describe("VisionFarm.sol", function () {
       await visionFarm.connect(bob).stakeAndLock(parseEther("10"), 40);
       await visionFarm.connect(carl).stakeAndLock(parseEther("100"), 2);
     });
-    it("batchDispatch() automatically dispatch farmers for the future epochs", async () => {
+    it("batchDispatch() automatically dispatches farmers for the future epochs", async () => {
       await visionFarm.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
       await ethers.provider.send("evm_mine", []);
-      await expect(visionFarm.connect(alice).harvest(1))
+      await visionFarm.connect(alice).harvestAll(1);
+      await expect(visionFarm.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(visionFarm.address, aliceAddress, parseEther("100")); // harvest for epoch 1
       await goTo(3600 * 24 * 7 * 4); // go to epoch 3
       await ethers.provider.send("evm_mine", []);
       // no seed were planted for epoch 2.
-      await expect(visionFarm.connect(alice).harvest(2)).not.to.emit(
+      await visionFarm.connect(alice).harvestAll(2);
+      await expect(visionFarm.connect(alice).withdrawAll()).not.to.emit(
         testingRewardToken,
         "Transfer"
       ); // harvest for epoch 2
@@ -169,21 +171,24 @@ describe("VisionFarm.sol", function () {
       await visionFarm.connect(carl).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
       await ethers.provider.send("evm_mine", []);
-      await expect(visionFarm.connect(alice).harvest(1))
+      await visionFarm.connect(alice).harvestAll(1);
+      await expect(visionFarm.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           visionFarm.address,
           aliceAddress,
           parseEther("100").mul(400).div(1000)
         ); // alice harvests for epoch 1
-      await expect(visionFarm.connect(bob).harvest(1))
+      await visionFarm.connect(bob).harvestAll(1);
+      await expect(visionFarm.connect(bob).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           visionFarm.address,
           bobAddress,
           parseEther("100").mul(400).div(1000)
         ); // bob harvests for epoch 1
-      await expect(visionFarm.connect(carl).harvest(1))
+      await visionFarm.connect(carl).harvestAll(1);
+      await expect(visionFarm.connect(carl).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           visionFarm.address,
