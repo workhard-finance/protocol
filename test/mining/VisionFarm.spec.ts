@@ -66,10 +66,8 @@ describe("VisionFarm.sol", function () {
     it("should increment by monthly", async () => {
       expect(await visionFarm.callStatic.getCurrentEpoch()).eq(0);
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       expect(await visionFarm.callStatic.getCurrentEpoch()).eq(1);
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       expect(await visionFarm.callStatic.getCurrentEpoch()).eq(2);
     });
   });
@@ -127,7 +125,6 @@ describe("VisionFarm.sol", function () {
           .reverted;
         const epochs = 5;
         await goTo(3600 * 24 * 7 * 4 * epochs);
-        await ethers.provider.send("evm_mine", []);
         const prevBal = await visionToken.callStatic.balanceOf(aliceAddress);
         await visionFarm.connect(alice).unstake(parseEther("100"));
         const updatedBal = await visionToken.callStatic.balanceOf(aliceAddress);
@@ -151,13 +148,11 @@ describe("VisionFarm.sol", function () {
     it("batchDispatch() automatically dispatches farmers for the future epochs", async () => {
       await visionFarm.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await ethers.provider.send("evm_mine", []);
       await visionFarm.connect(alice).harvestAll(1);
       await expect(visionFarm.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(visionFarm.address, aliceAddress, parseEther("100")); // harvest for epoch 1
       await goTo(3600 * 24 * 7 * 4); // go to epoch 3
-      await ethers.provider.send("evm_mine", []);
       // no seed were planted for epoch 2.
       await visionFarm.connect(alice).harvestAll(2);
       await expect(visionFarm.connect(alice).withdrawAll()).not.to.emit(
@@ -170,7 +165,6 @@ describe("VisionFarm.sol", function () {
       await visionFarm.connect(bob).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await visionFarm.connect(carl).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await ethers.provider.send("evm_mine", []);
       await visionFarm.connect(alice).harvestAll(1);
       await expect(visionFarm.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")

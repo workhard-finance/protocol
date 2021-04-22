@@ -3,7 +3,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { goTo, goToNextWeek } from "../utils/utilities";
+import { goTo, goToNextWeek, setNextBlockTimestamp } from "../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
@@ -104,9 +104,7 @@ describe("MiningPool.sol", function () {
     ];
     await timelock.schedule(...startTxParams, 86400);
     await timelock.schedule(...setEmissionTxParams, 86400);
-    await ethers.provider.send("evm_setNextBlockTimestamp", [
-      (await ethers.provider.getBlock("latest")).timestamp + 86401,
-    ]);
+    await goTo(86401);
     await timelock.execute(...setEmissionTxParams);
     await timelock.execute(...startTxParams);
   });
@@ -119,11 +117,11 @@ describe("MiningPool.sol", function () {
       it("should return the value depending on the staking period", async () => {
         const bal0 = await visionToken.callStatic.balanceOf(aliceAddress);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
-        await goTo(10000);
+        await setNextBlockTimestamp(10000);
         await stakeMiningPool.connect(alice).exit();
         const bal1 = await visionToken.callStatic.balanceOf(aliceAddress);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
-        await goTo(20000);
+        await setNextBlockTimestamp(20000);
         await stakeMiningPool.connect(alice).exit();
         const bal2 = await visionToken.callStatic.balanceOf(aliceAddress);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
@@ -157,11 +155,11 @@ describe("MiningPool.sol", function () {
       it("should return the value depending on the burned period", async () => {
         const bal0 = await visionToken.callStatic.balanceOf(aliceAddress);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
-        await goTo(10000);
+        await setNextBlockTimestamp(10000);
         await burnMiningPool.connect(alice).exit();
         const bal1 = await visionToken.callStatic.balanceOf(aliceAddress);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
-        await goTo(20000);
+        await setNextBlockTimestamp(20000);
         await burnMiningPool.connect(alice).exit();
         const bal2 = await visionToken.callStatic.balanceOf(aliceAddress);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));

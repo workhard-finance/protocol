@@ -2,6 +2,7 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, Signer, constants } from "ethers";
+import { goTo } from "../utils/utilities";
 
 chai.use(solidity);
 
@@ -67,10 +68,7 @@ describe("Governed.sol", function () {
       const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
       await _governed.setAnarchyPoint(timestamp + 100);
       await expect(_governed.forceAnarchize()).to.be.reverted;
-      await ethers.provider.send("evm_setNextBlockTimestamp", [
-        timestamp + 110,
-      ]);
-      await ethers.provider.send("evm_mine", []);
+      await goTo(110);
       await expect(_governed.forceAnarchize())
         .to.emit(_governed, "Anarchized")
         .withArgs();

@@ -3,7 +3,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
-import { getCreate2Address, goToNextWeek } from "../utils/utilities";
+import { getCreate2Address, goTo, goToNextWeek } from "../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
@@ -67,9 +67,7 @@ describe("VisionTokenEmitter.sol", function () {
       ];
       await timelock.schedule(...timelockTxParams, 86400);
       await expect(timelock.execute(...timelockTxParams)).to.be.reverted;
-      await ethers.provider.send("evm_setNextBlockTimestamp", [
-        (await ethers.provider.getBlock("latest")).timestamp + 86401,
-      ]);
+      await goTo(86401);
       await expect(timelock.execute(...timelockTxParams))
         .to.emit(visionTokenEmitter, "EmissionWeightUpdated")
         .withArgs(2);
@@ -195,9 +193,7 @@ describe("VisionTokenEmitter.sol", function () {
         ];
         await timelock.schedule(...startTxParams, 86400);
         await timelock.schedule(...setEmissionTxParams, 86400);
-        await ethers.provider.send("evm_setNextBlockTimestamp", [
-          (await ethers.provider.getBlock("latest")).timestamp + 86401,
-        ]);
+        await goTo(86401);
         await timelock.execute(...setEmissionTxParams);
         await timelock.execute(...startTxParams);
       });

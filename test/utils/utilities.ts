@@ -3,16 +3,19 @@ import { ethers } from "hardhat";
 
 const { keccak256, solidityPack, getAddress } = ethers.utils;
 
-export const goToNextWeek = async () => {
+export const setNextBlockTimestamp = async (seconds: number) => {
   await ethers.provider.send("evm_setNextBlockTimestamp", [
-    (await ethers.provider.getBlock("latest")).timestamp + 604800,
+    (await ethers.provider.getBlock("latest")).timestamp + seconds,
   ]);
 };
 
 export const goTo = async (seconds: number) => {
-  await ethers.provider.send("evm_setNextBlockTimestamp", [
-    (await ethers.provider.getBlock("latest")).timestamp + seconds,
-  ]);
+  await setNextBlockTimestamp(seconds);
+  await ethers.provider.send("evm_mine", []);
+};
+
+export const goToNextWeek = async () => {
+  await goTo(604800);
 };
 
 export const runTimelockTx = async (
@@ -62,11 +65,11 @@ const ONE = ethers.BigNumber.from(1);
 const TWO = ethers.BigNumber.from(2);
 
 export const sqrt = (x: BigNumber) => {
-    let z = x.add(ONE).div(TWO);
-    let y = x;
-    while (z.sub(y).isNegative()) {
-        y = z;
-        z = x.div(z).add(z).div(TWO);
-    }
-    return y;
-}
+  let z = x.add(ONE).div(TWO);
+  let y = x;
+  while (z.sub(y).isNegative()) {
+    y = z;
+    z = x.div(z).add(z).div(TWO);
+  }
+  return y;
+};

@@ -77,7 +77,6 @@ describe("FarmersUnion.sol", function () {
         "Wait a bit please."
       );
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await expect(farmersUnion.launch()).not.to.be.reverted;
       expect(await farmersUnion.callStatic.paused()).to.be.false;
     });
@@ -90,7 +89,6 @@ describe("FarmersUnion.sol", function () {
   describe("proposeTx()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.launch();
     });
     it("should propose a new tx and start voting", async () => {
@@ -138,7 +136,6 @@ describe("FarmersUnion.sol", function () {
   describe("vote()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeTx(...params);
     });
@@ -149,21 +146,18 @@ describe("FarmersUnion.sol", function () {
     });
     it("should revert after the voting period", async () => {
       await goTo(3600 * 24 * 7 * 5);
-      await ethers.provider.send("evm_mine", []);
       await expect(
         farmersUnion.connect(alice).vote(0, true)
       ).to.be.revertedWith("Not in the voting period");
     });
     it("should vote and increase the for vote", async () => {
       await goTo(3600 * 24 * 2);
-      await ethers.provider.send("evm_mine", []);
       await expect(farmersUnion.connect(alice).vote(0, true))
         .to.emit(farmersUnion, "Vote")
         .withArgs(0, alice.address, true);
     });
     it("should not be double-voteable", async () => {
       await goTo(3600 * 24 * 2);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.connect(alice).vote(0, true);
 
       const forVotes0 = (await farmersUnion.callStatic.proposals(0))
@@ -185,11 +179,9 @@ describe("FarmersUnion.sol", function () {
   describe("execute()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeTx(...params);
       await goTo(3600 * 24 * 2);
-      await ethers.provider.send("evm_mine", []);
     });
     it("should be executed when it's total for votes is greater than the minimum", async () => {
       const txHash = await farmersUnion.callStatic.hashTransaction(
@@ -197,7 +189,6 @@ describe("FarmersUnion.sol", function () {
       );
       await farmersUnion.connect(bob).vote(0, true);
       await goTo(3600 * 24 * 7);
-      await ethers.provider.send("evm_mine", []);
       await expect(farmersUnion.execute(0, ...params.slice(0, 5)))
         .to.emit(farmersUnion, "ProposalExecuted")
         .withArgs(0, txHash);
@@ -205,7 +196,6 @@ describe("FarmersUnion.sol", function () {
     it("should not execute the tx when its for vote is less than the minimum", async () => {
       await farmersUnion.connect(alice).vote(0, true);
       await goTo(3600 * 24 * 7);
-      await ethers.provider.send("evm_mine", []);
       await expect(
         farmersUnion.execute(0, ...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
@@ -214,7 +204,6 @@ describe("FarmersUnion.sol", function () {
       await farmersUnion.connect(alice).vote(0, true);
       await farmersUnion.connect(bob).vote(0, false);
       await goTo(3600 * 24 * 7);
-      await ethers.provider.send("evm_mine", []);
       await expect(
         farmersUnion.execute(0, ...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
@@ -223,14 +212,11 @@ describe("FarmersUnion.sol", function () {
   describe("changeMemorandom()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeTx(...params);
       await goTo(3600 * 24 * 2);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.connect(bob).vote(0, true);
       await goTo(3600 * 24 * 7);
-      await ethers.provider.send("evm_mine", []);
     });
     it("should update the memorandom", async () => {
       await farmersUnion.execute(0, ...params.slice(0, 5));
@@ -256,14 +242,11 @@ describe("FarmersUnion.sol", function () {
         3600 * 24 * 7,
       ];
       await goTo(3600 * 24 * 7 * 4);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeBatchTx(...batchTxParams);
       await goTo(3600 * 24 * 2);
-      await ethers.provider.send("evm_mine", []);
       await farmersUnion.connect(bob).vote(0, true);
       await goTo(3600 * 24 * 7);
-      await ethers.provider.send("evm_mine", []);
     });
     it("should update the memorandom correctly", async () => {
       await farmersUnion.executeBatch(0, ...batchTxParams.slice(0, 5));
