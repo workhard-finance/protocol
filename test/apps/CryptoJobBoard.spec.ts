@@ -193,10 +193,20 @@ describe("CryptoJobBoard.sol", function () {
       expect(
         await baseCurrency.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("80"));
-      expect(
-        await cryptoJobBoard.callStatic.taxations(baseCurrency.address)
-      ).eq(parseEther("20"));
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("80"));
+    });
+    it("should send the 20% of the fund to the vision farm", async () => {
+      await runTimelockTx(
+        timelock,
+        cryptoJobBoard.populateTransaction.approveProject(project.id)
+      );
+      await cryptoJobBoard.connect(manager).executeBudget(project.id, 0, []);
+      const currentEpoch = await visionFarm.callStatic.getCurrentEpoch();
+      const result = await visionFarm.callStatic.getHarvestableCrops(
+        currentEpoch + 1
+      );
+      expect(result.tokens).to.deep.eq([baseCurrency.address]);
+      expect(result.amounts).to.deep.eq([parseEther("20")]);
     });
   });
   describe("forceApproveBudget()", async () => {
@@ -256,10 +266,13 @@ describe("CryptoJobBoard.sol", function () {
       expect(
         await baseCurrency.callStatic.balanceOf(commitmentFund.address)
       ).to.eq(parseEther("50"));
-      expect(
-        await cryptoJobBoard.callStatic.taxations(baseCurrency.address)
-      ).eq(parseEther("50"));
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
+      const currentEpoch = await visionFarm.callStatic.getCurrentEpoch();
+      const result = await visionFarm.callStatic.getHarvestableCrops(
+        currentEpoch + 1
+      );
+      expect(result.tokens).to.deep.eq([baseCurrency.address]);
+      expect(result.amounts).to.deep.eq([parseEther("50")]);
     });
   });
   describe("addBudget(): should allow project owners add new budgets and manager can approve them without governance approval", async () => {
@@ -288,36 +301,6 @@ describe("CryptoJobBoard.sol", function () {
       )
         .to.emit(cryptoJobBoard, "BudgetAdded")
         .withArgs(project.id, 1, baseCurrency.address, parseEther("100"));
-    });
-  });
-  describe("taxToVisionFarm()", async () => {
-    beforeEach(async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
-      await cryptoJobBoard
-        .connect(projOwner)
-        .addBudget(project.id, budget.currency, budget.amount);
-      await runTimelockTx(
-        timelock,
-        cryptoJobBoard.populateTransaction.approveProject(project.id)
-      );
-      await cryptoJobBoard.connect(manager).executeBudget(project.id, 0, []);
-    });
-    it("should pass the taxations to the vision farm", async () => {
-      await runTimelockTx(
-        timelock,
-        cryptoJobBoard.populateTransaction.taxToVisionFarm(
-          baseCurrency.address,
-          parseEther("20")
-        )
-      );
-      const currentEpoch = await visionFarm.callStatic.getCurrentEpoch();
-      const result = await visionFarm.callStatic.getHarvestableCrops(
-        currentEpoch + 1
-      );
-      expect(result.tokens).to.deep.eq([baseCurrency.address]);
-      expect(result.amounts).to.deep.eq([parseEther("20")]);
     });
   });
   describe("grant()", async () => {
