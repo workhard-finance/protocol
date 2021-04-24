@@ -12,7 +12,6 @@ import "../mining/VisionFarm.sol";
 
 struct Proposal {
     address proposer;
-    bytes32 txHash;
     uint256 start;
     uint256 end;
     uint256 totalForVotes;
@@ -42,26 +41,23 @@ contract FarmersUnion is Pausable {
 
     enum VotingState {Pending, Voting, Passed, Rejected, Executed} // Enum
 
-    uint256 public constant NO_DEPENDENCY = uint256(0) - 1;
+    bytes32 public constant NO_DEPENDENCY = bytes32(0);
 
     Memorandom public memorandom;
 
-    Proposal[] public proposals;
+    mapping(bytes32 => Proposal) public proposals;
 
     uint256 private _launch;
-
-    /**
-     * @dev Emitted when a call is scheduled as part of operation `id`.
-     */
-    event NewProposal(uint256 indexed index, bytes32 txHash, bool batchTx);
 
     event TxProposed(
         bytes32 indexed txHash,
         address target,
         uint256 value,
         bytes data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt,
+        uint256 start,
+        uint256 end
     );
 
     event BatchTxProposed(
@@ -69,17 +65,19 @@ contract FarmersUnion is Pausable {
         address[] target,
         uint256[] value,
         bytes[] data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt,
+        uint256 start,
+        uint256 end
     );
 
-    event Vote(uint256 id, address voter, bool forVote);
-    event VoteUpdated(uint256 id, uint256 forVotes, uint256 againsVotes);
+    event Vote(bytes32 txHash, address voter, bool forVote);
+    event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
     /**
      * @dev Emitted when a call is performed as part of operation `id`.
      */
-    event ProposalExecuted(uint256 indexed proposalIndex, bytes32 txHash);
+    event ProposalExecuted(bytes32 txHash);
 
     constructor(address _visionFarm, address _voteCounter) {
         visionFarm = VisionFarm(_visionFarm);
@@ -147,8 +145,8 @@ contract FarmersUnion is Pausable {
         address target,
         uint256 value,
         bytes calldata data,
-        uint256 predecessor,
-        uint256 salt,
+        bytes32 predecessor,
+        bytes32 salt,
         uint256 startsIn,
         uint256 votingPeriod
     ) public {
@@ -156,15 +154,24 @@ contract FarmersUnion is Pausable {
         bytes32 txHash =
             hashTransaction(target, value, data, predecessor, salt);
         _propose(txHash, startsIn, votingPeriod);
-        emit TxProposed(txHash, target, value, data, predecessor, salt);
+        emit TxProposed(
+            txHash,
+            target,
+            value,
+            data,
+            predecessor,
+            salt,
+            block.timestamp + startsIn,
+            block.timestamp + startsIn + votingPeriod
+        );
     }
 
     function proposeBatchTx(
         address[] calldata target,
         uint256[] calldata value,
         bytes[] calldata data,
-        uint256 predecessor,
-        uint256 salt,
+        bytes32 predecessor,
+        bytes32 salt,
         uint256 startsIn,
         uint256 votingPeriod
     ) public whenNotPaused {
@@ -172,7 +179,16 @@ contract FarmersUnion is Pausable {
         bytes32 txHash =
             hashBatchTransaction(target, value, data, predecessor, salt);
         _propose(txHash, startsIn, votingPeriod);
-        emit BatchTxProposed(txHash, target, value, data, predecessor, salt);
+        emit BatchTxProposed(
+            txHash,
+            target,
+            value,
+            data,
+            predecessor,
+            salt,
+            block.timestamp + startsIn,
+            block.timestamp + startsIn + votingPeriod
+        );
     }
 
     /**
@@ -181,10 +197,10 @@ contract FarmersUnion is Pausable {
      *      To have more detail information about how voting power is computed,
      *      Please go to the QVCounter.sol.
      */
-    function vote(uint256 proposalId, bool agree) public {
-        Proposal storage proposal = proposals[proposalId];
+    function vote(bytes32 txHash, bool agree) public {
+        Proposal storage proposal = proposals[txHash];
         require(
-            getVotingStatus(proposalId) == VotingState.Voting,
+            getVotingStatus(txHash) == VotingState.Voting,
             "Not in the voting period"
         );
         uint256 prevForVotes = proposal.forVotes[msg.sender];
@@ -200,20 +216,16 @@ contract FarmersUnion is Pausable {
             .totalAgainstVotes
             .add(agree ? 0 : votes)
             .sub(prevAgainstVotes);
-        emit Vote(proposalId, msg.sender, agree);
+        emit Vote(txHash, msg.sender, agree);
         emit VoteUpdated(
-            proposalId,
+            txHash,
             proposal.totalForVotes,
             proposal.totalAgainstVotes
         );
     }
 
-    function getVotingStatus(uint256 proposalId)
-        public
-        view
-        returns (VotingState)
-    {
-        Proposal storage proposal = proposals[proposalId];
+    function getVotingStatus(bytes32 txHash) public view returns (VotingState) {
+        Proposal storage proposal = proposals[txHash];
         require(proposal.start != 0, "Not an existing proposal");
         if (block.timestamp < proposal.start) return VotingState.Pending;
         else if (block.timestamp <= proposal.end) return VotingState.Voting;
@@ -237,8 +249,8 @@ contract FarmersUnion is Pausable {
         address target,
         uint256 value,
         bytes calldata data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt
     ) public pure virtual returns (bytes32) {
         return keccak256(abi.encode(target, value, data, predecessor, salt));
     }
@@ -251,8 +263,8 @@ contract FarmersUnion is Pausable {
         address[] calldata target,
         uint256[] calldata value,
         bytes[] calldata data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt
     ) public pure virtual returns (bytes32) {
         return keccak256(abi.encode(target, value, data, predecessor, salt));
     }
@@ -267,18 +279,17 @@ contract FarmersUnion is Pausable {
      * - the caller must have the 'executor' role.
      */
     function execute(
-        uint256 proposalId,
         address target,
         uint256 value,
         bytes calldata data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt
     ) public payable {
         bytes32 txHash =
             hashTransaction(target, value, data, predecessor, salt);
-        _beforeCall(predecessor, proposalId, txHash);
+        _beforeCall(predecessor, txHash);
         _call(target, value, data);
-        _afterCall(proposalId, txHash);
+        _afterCall(txHash);
     }
 
     /**
@@ -291,23 +302,22 @@ contract FarmersUnion is Pausable {
      * - the caller must have the 'executor' role.
      */
     function executeBatch(
-        uint256 proposalId,
         address[] calldata target,
         uint256[] calldata value,
         bytes[] calldata data,
-        uint256 predecessor,
-        uint256 salt
+        bytes32 predecessor,
+        bytes32 salt
     ) public payable {
         require(target.length == value.length, "length mismatch");
         require(target.length == data.length, "length mismatch");
 
         bytes32 txHash =
             hashBatchTransaction(target, value, data, predecessor, salt);
-        _beforeCall(predecessor, proposalId, txHash);
+        _beforeCall(predecessor, txHash);
         for (uint256 i = 0; i < target.length; ++i) {
             _call(target[i], value[i], data[i]);
         }
-        _afterCall(proposalId, txHash);
+        _afterCall(txHash);
     }
 
     function _propose(
@@ -315,13 +325,11 @@ contract FarmersUnion is Pausable {
         uint256 startsIn,
         uint256 votingPeriod
     ) private whenNotPaused {
-        proposals.push();
-        Proposal storage proposal = proposals[proposals.length - 1];
+        require(proposals[txHash].proposer == address(0));
+        Proposal storage proposal = proposals[txHash];
         proposal.proposer = msg.sender;
-        proposal.txHash = txHash;
         proposal.start = block.timestamp + startsIn;
         proposal.end = proposal.start + votingPeriod;
-        emit NewProposal(proposals.length - 1, txHash, false);
     }
 
     function _beforePropose(uint256 startsIn, uint256 votingPeriod)
@@ -354,11 +362,7 @@ contract FarmersUnion is Pausable {
     /**
      * @dev Checks before execution of an operation's calls.
      */
-    function _beforeCall(
-        uint256 predecessor,
-        uint256 proposalId,
-        bytes32 txHash
-    ) private view {
+    function _beforeCall(bytes32 predecessor, bytes32 txHash) private view {
         if (predecessor != NO_DEPENDENCY) {
             require(
                 getVotingStatus(predecessor) == VotingState.Executed,
@@ -366,10 +370,9 @@ contract FarmersUnion is Pausable {
             );
         }
         require(
-            getVotingStatus(proposalId) == VotingState.Passed,
+            getVotingStatus(txHash) == VotingState.Passed,
             "vote is not passed"
         );
-        require(proposals[proposalId].txHash == txHash, "invalid tx data");
     }
 
     /**
@@ -390,8 +393,8 @@ contract FarmersUnion is Pausable {
     /**
      * @dev Checks after execution of an operation's calls.
      */
-    function _afterCall(uint256 proposalId, bytes32 txHash) private {
-        proposals[proposalId].executed = true;
-        emit ProposalExecuted(proposalId, txHash);
+    function _afterCall(bytes32 txHash) private {
+        proposals[txHash].executed = true;
+        emit ProposalExecuted(txHash);
     }
 }

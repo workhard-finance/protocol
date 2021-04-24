@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, constants, PopulatedTransaction } from "ethers";
+import { Contract, constants, PopulatedTransaction, providers } from "ethers";
 import { parseEther, parseUnits } from "ethers/lib/utils";
 import { goTo } from "../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
@@ -24,6 +24,7 @@ describe("FarmersUnion.sol", function () {
   let newMemorandom: any[];
   let pTx: PopulatedTransaction;
   let params: any[];
+  let txHash: string;
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
@@ -65,11 +66,14 @@ describe("FarmersUnion.sol", function () {
       pTx.to,
       pTx.value || 0,
       pTx.data,
-      constants.MaxUint256,
-      0,
+      constants.HashZero,
+      constants.HashZero,
       3600 * 24,
       3600 * 24 * 7,
     ];
+    txHash = await farmersUnion.callStatic.hashTransaction(
+      ...params.slice(0, 5)
+    );
   });
   describe("launch()", async () => {
     it("should be launched after 4 weeks", async () => {
@@ -92,12 +96,20 @@ describe("FarmersUnion.sol", function () {
       await farmersUnion.launch();
     });
     it("should propose a new tx and start voting", async () => {
-      const txHash = await farmersUnion.callStatic.hashTransaction(
-        ...params.slice(0, 5)
-      );
+      const currentTimestamp = (await ethers.provider.getBlock("latest"))
+        .timestamp as number;
+      const nextTimestamp = currentTimestamp + 1;
+      await ethers.provider.send("evm_setNextBlockTimestamp", [nextTimestamp]);
       await expect(farmersUnion.connect(alice).proposeTx(...params))
-        .to.emit(farmersUnion, "NewProposal")
-        .withArgs(0, txHash, false);
+        .to.emit(farmersUnion, "TxProposed")
+        .withArgs(
+          ...[
+            txHash,
+            ...params.slice(0, 5),
+            nextTimestamp + params[5],
+            nextTimestamp + params[5] + params[6],
+          ]
+        );
     });
     it("should revert when the proposer does not have enough voting power", async () => {
       await expect(
@@ -141,37 +153,37 @@ describe("FarmersUnion.sol", function () {
     });
     it("should revert during the pending period", async () => {
       await expect(
-        farmersUnion.connect(alice).vote(0, true)
+        farmersUnion.connect(alice).vote(txHash, true)
       ).to.be.revertedWith("Not in the voting period");
     });
     it("should revert after the voting period", async () => {
       await goTo(3600 * 24 * 7 * 5);
       await expect(
-        farmersUnion.connect(alice).vote(0, true)
+        farmersUnion.connect(alice).vote(txHash, true)
       ).to.be.revertedWith("Not in the voting period");
     });
     it("should vote and increase the for vote", async () => {
       await goTo(3600 * 24 * 2);
-      await expect(farmersUnion.connect(alice).vote(0, true))
+      await expect(farmersUnion.connect(alice).vote(txHash, true))
         .to.emit(farmersUnion, "Vote")
-        .withArgs(0, alice.address, true);
+        .withArgs(txHash, alice.address, true);
     });
     it("should not be double-voteable", async () => {
       await goTo(3600 * 24 * 2);
-      await farmersUnion.connect(alice).vote(0, true);
+      await farmersUnion.connect(alice).vote(txHash, true);
 
-      const forVotes0 = (await farmersUnion.callStatic.proposals(0))
+      const forVotes0 = (await farmersUnion.callStatic.proposals(txHash))
         .totalForVotes;
-      await farmersUnion.connect(alice).vote(0, true);
-      const forVotes1 = (await farmersUnion.callStatic.proposals(0))
+      await farmersUnion.connect(alice).vote(txHash, true);
+      const forVotes1 = (await farmersUnion.callStatic.proposals(txHash))
         .totalForVotes;
-      const againstVotes1 = (await farmersUnion.callStatic.proposals(0))
+      const againstVotes1 = (await farmersUnion.callStatic.proposals(txHash))
         .totalAgainstVotes;
       expect(forVotes0).eq(forVotes1);
-      await farmersUnion.connect(alice).vote(0, false);
-      const forVotes2 = (await farmersUnion.callStatic.proposals(0))
+      await farmersUnion.connect(alice).vote(txHash, false);
+      const forVotes2 = (await farmersUnion.callStatic.proposals(txHash))
         .totalForVotes;
-      const againstVotes2 = (await farmersUnion.callStatic.proposals(0))
+      const againstVotes2 = (await farmersUnion.callStatic.proposals(txHash))
         .totalAgainstVotes;
       expect(forVotes1.sub(forVotes2)).eq(againstVotes2.sub(againstVotes1));
     });
@@ -184,28 +196,25 @@ describe("FarmersUnion.sol", function () {
       await goTo(3600 * 24 * 2);
     });
     it("should be executed when it's total for votes is greater than the minimum", async () => {
-      const txHash = await farmersUnion.callStatic.hashTransaction(
-        ...params.slice(0, 5)
-      );
-      await farmersUnion.connect(bob).vote(0, true);
+      await farmersUnion.connect(bob).vote(txHash, true);
       await goTo(3600 * 24 * 7);
-      await expect(farmersUnion.execute(0, ...params.slice(0, 5)))
+      await expect(farmersUnion.execute(...params.slice(0, 5)))
         .to.emit(farmersUnion, "ProposalExecuted")
-        .withArgs(0, txHash);
+        .withArgs(txHash);
     });
     it("should not execute the tx when its for vote is less than the minimum", async () => {
-      await farmersUnion.connect(alice).vote(0, true);
+      await farmersUnion.connect(alice).vote(txHash, true);
       await goTo(3600 * 24 * 7);
       await expect(
-        farmersUnion.execute(0, ...params.slice(0, 5))
+        farmersUnion.execute(...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
     });
     it("should not execute the tx when it's total against votes is greater than for votes", async () => {
-      await farmersUnion.connect(alice).vote(0, true);
-      await farmersUnion.connect(bob).vote(0, false);
+      await farmersUnion.connect(alice).vote(txHash, true);
+      await farmersUnion.connect(bob).vote(txHash, false);
       await goTo(3600 * 24 * 7);
       await expect(
-        farmersUnion.execute(0, ...params.slice(0, 5))
+        farmersUnion.execute(...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
     });
   });
@@ -215,11 +224,11 @@ describe("FarmersUnion.sol", function () {
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeTx(...params);
       await goTo(3600 * 24 * 2);
-      await farmersUnion.connect(bob).vote(0, true);
+      await farmersUnion.connect(bob).vote(txHash, true);
       await goTo(3600 * 24 * 7);
     });
     it("should update the memorandom", async () => {
-      await farmersUnion.execute(0, ...params.slice(0, 5));
+      await farmersUnion.execute(...params.slice(0, 5));
       const newMemorandom = await farmersUnion.callStatic.memorandom();
       expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
       expect(newMemorandom.maximumPending).eq(newMemorandom[1]);
@@ -230,26 +239,32 @@ describe("FarmersUnion.sol", function () {
     });
   });
   describe("proposeBatchTx() & executeBatchTx", async () => {
+    let batchTxHash: string;
     let batchTxParams: any[];
     beforeEach(async () => {
       batchTxParams = [
         Array(3).fill(params[0]),
         Array(3).fill(params[1]),
         Array(3).fill(params[2]),
-        constants.MaxUint256,
-        0,
+        constants.HashZero,
+        constants.HashZero,
         3600 * 24,
         3600 * 24 * 7,
       ];
+      batchTxHash = await farmersUnion.callStatic.hashBatchTransaction(
+        ...batchTxParams.slice(0, 5)
+      );
       await goTo(3600 * 24 * 7 * 4);
       await farmersUnion.launch();
       await farmersUnion.connect(alice).proposeBatchTx(...batchTxParams);
       await goTo(3600 * 24 * 2);
-      await farmersUnion.connect(bob).vote(0, true);
+      await farmersUnion.connect(bob).vote(batchTxHash, true);
       await goTo(3600 * 24 * 7);
     });
     it("should update the memorandom correctly", async () => {
-      await farmersUnion.executeBatch(0, ...batchTxParams.slice(0, 5));
+      await expect(farmersUnion.executeBatch(...batchTxParams.slice(0, 5)))
+        .to.emit(farmersUnion, "ProposalExecuted")
+        .withArgs(batchTxHash);
       const newMemorandom = await farmersUnion.callStatic.memorandom();
       expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
       expect(newMemorandom.maximumPending).eq(newMemorandom[1]);

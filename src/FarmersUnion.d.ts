@@ -24,20 +24,20 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
   functions: {
     "NO_DEPENDENCY()": FunctionFragment;
     "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
-    "execute(uint256,address,uint256,bytes,uint256,uint256)": FunctionFragment;
-    "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)": FunctionFragment;
+    "execute(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
+    "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
     "getVotes(address)": FunctionFragment;
-    "getVotingStatus(uint256)": FunctionFragment;
-    "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)": FunctionFragment;
-    "hashTransaction(address,uint256,bytes,uint256,uint256)": FunctionFragment;
+    "getVotingStatus(bytes32)": FunctionFragment;
+    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
+    "hashTransaction(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "launch()": FunctionFragment;
     "memorandom()": FunctionFragment;
     "paused()": FunctionFragment;
-    "proposals(uint256)": FunctionFragment;
-    "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)": FunctionFragment;
-    "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "proposals(bytes32)": FunctionFragment;
+    "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)": FunctionFragment;
+    "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)": FunctionFragment;
     "visionFarm()": FunctionFragment;
-    "vote(uint256,bool)": FunctionFragment;
+    "vote(bytes32,bool)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -58,38 +58,24 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "execute",
-    values: [
-      BigNumberish,
-      string,
-      BigNumberish,
-      BytesLike,
-      BigNumberish,
-      BigNumberish
-    ]
+    values: [string, BigNumberish, BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "executeBatch",
-    values: [
-      BigNumberish,
-      string[],
-      BigNumberish[],
-      BytesLike[],
-      BigNumberish,
-      BigNumberish
-    ]
+    values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getVotingStatus",
-    values: [BigNumberish]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "hashBatchTransaction",
-    values: [string[], BigNumberish[], BytesLike[], BigNumberish, BigNumberish]
+    values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "hashTransaction",
-    values: [string, BigNumberish, BytesLike, BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BytesLike, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "launch", values?: undefined): string;
   encodeFunctionData(
@@ -99,7 +85,7 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "proposals",
-    values: [BigNumberish]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "proposeBatchTx",
@@ -107,8 +93,8 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
       string[],
       BigNumberish[],
       BytesLike[],
-      BigNumberish,
-      BigNumberish,
+      BytesLike,
+      BytesLike,
       BigNumberish,
       BigNumberish
     ]
@@ -119,8 +105,8 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
       string,
       BigNumberish,
       BytesLike,
-      BigNumberish,
-      BigNumberish,
+      BytesLike,
+      BytesLike,
       BigNumberish,
       BigNumberish
     ]
@@ -131,7 +117,7 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "vote",
-    values: [BigNumberish, boolean]
+    values: [BytesLike, boolean]
   ): string;
 
   decodeFunctionResult(
@@ -173,18 +159,16 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
 
   events: {
-    "BatchTxProposed(bytes32,address[],uint256[],bytes[],uint256,uint256)": EventFragment;
-    "NewProposal(uint256,bytes32,bool)": EventFragment;
+    "BatchTxProposed(bytes32,address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)": EventFragment;
     "Paused(address)": EventFragment;
-    "ProposalExecuted(uint256,bytes32)": EventFragment;
-    "TxProposed(bytes32,address,uint256,bytes,uint256,uint256)": EventFragment;
+    "ProposalExecuted(bytes32)": EventFragment;
+    "TxProposed(bytes32,address,uint256,bytes,bytes32,bytes32,uint256,uint256)": EventFragment;
     "Unpaused(address)": EventFragment;
-    "Vote(uint256,address,bool)": EventFragment;
-    "VoteUpdated(uint256,uint256,uint256)": EventFragment;
+    "Vote(bytes32,address,bool)": EventFragment;
+    "VoteUpdated(bytes32,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "BatchTxProposed"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewProposal"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProposalExecuted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TxProposed"): EventFragment;
@@ -237,9 +221,9 @@ export class FarmersUnion extends Contract {
   interface: FarmersUnionInterface;
 
   functions: {
-    NO_DEPENDENCY(overrides?: CallOverrides): Promise<[BigNumber]>;
+    NO_DEPENDENCY(overrides?: CallOverrides): Promise<[string]>;
 
-    "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<[string]>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -264,42 +248,38 @@ export class FarmersUnion extends Contract {
     ): Promise<ContractTransaction>;
 
     execute(
-      proposalId: BigNumberish,
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "execute(uint256,address,uint256,bytes,uint256,uint256)"(
-      proposalId: BigNumberish,
+    "execute(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     executeBatch(
-      proposalId: BigNumberish,
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)"(
-      proposalId: BigNumberish,
+    "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -311,12 +291,12 @@ export class FarmersUnion extends Contract {
     ): Promise<[BigNumber]>;
 
     getVotingStatus(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
-    "getVotingStatus(uint256)"(
-      proposalId: BigNumberish,
+    "getVotingStatus(bytes32)"(
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<[number]>;
 
@@ -324,17 +304,17 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)"(
+    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -342,17 +322,17 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "hashTransaction(address,uint256,bytes,uint256,uint256)"(
+    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
@@ -413,12 +393,11 @@ export class FarmersUnion extends Contract {
     "paused()"(overrides?: CallOverrides): Promise<[boolean]>;
 
     proposals(
-      arg0: BigNumberish,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
         proposer: string;
-        txHash: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
@@ -427,13 +406,12 @@ export class FarmersUnion extends Contract {
       }
     >;
 
-    "proposals(uint256)"(
-      arg0: BigNumberish,
+    "proposals(bytes32)"(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
         proposer: string;
-        txHash: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
@@ -446,19 +424,19 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)"(
+    "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -468,19 +446,19 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)"(
+    "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -491,21 +469,21 @@ export class FarmersUnion extends Contract {
     "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
 
     vote(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "vote(uint256,bool)"(
-      proposalId: BigNumberish,
+    "vote(bytes32,bool)"(
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
-  NO_DEPENDENCY(overrides?: CallOverrides): Promise<BigNumber>;
+  NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
 
-  "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<string>;
 
   changeMemorandom(
     minimumPendingPeriod: BigNumberish,
@@ -530,42 +508,38 @@ export class FarmersUnion extends Contract {
   ): Promise<ContractTransaction>;
 
   execute(
-    proposalId: BigNumberish,
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "execute(uint256,address,uint256,bytes,uint256,uint256)"(
-    proposalId: BigNumberish,
+  "execute(address,uint256,bytes,bytes32,bytes32)"(
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   executeBatch(
-    proposalId: BigNumberish,
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)"(
-    proposalId: BigNumberish,
+  "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -577,12 +551,12 @@ export class FarmersUnion extends Contract {
   ): Promise<BigNumber>;
 
   getVotingStatus(
-    proposalId: BigNumberish,
+    txHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<number>;
 
-  "getVotingStatus(uint256)"(
-    proposalId: BigNumberish,
+  "getVotingStatus(bytes32)"(
+    txHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<number>;
 
@@ -590,17 +564,17 @@ export class FarmersUnion extends Contract {
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)"(
+  "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -608,17 +582,17 @@ export class FarmersUnion extends Contract {
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "hashTransaction(address,uint256,bytes,uint256,uint256)"(
+  "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     overrides?: CallOverrides
   ): Promise<string>;
 
@@ -679,12 +653,11 @@ export class FarmersUnion extends Contract {
   "paused()"(overrides?: CallOverrides): Promise<boolean>;
 
   proposals(
-    arg0: BigNumberish,
+    arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
       proposer: string;
-      txHash: string;
       start: BigNumber;
       end: BigNumber;
       totalForVotes: BigNumber;
@@ -693,13 +666,12 @@ export class FarmersUnion extends Contract {
     }
   >;
 
-  "proposals(uint256)"(
-    arg0: BigNumberish,
+  "proposals(bytes32)"(
+    arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
       proposer: string;
-      txHash: string;
       start: BigNumber;
       end: BigNumber;
       totalForVotes: BigNumber;
@@ -712,19 +684,19 @@ export class FarmersUnion extends Contract {
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     startsIn: BigNumberish,
     votingPeriod: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)"(
+  "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)"(
     target: string[],
     value: BigNumberish[],
     data: BytesLike[],
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     startsIn: BigNumberish,
     votingPeriod: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -734,19 +706,19 @@ export class FarmersUnion extends Contract {
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     startsIn: BigNumberish,
     votingPeriod: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)"(
+  "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)"(
     target: string,
     value: BigNumberish,
     data: BytesLike,
-    predecessor: BigNumberish,
-    salt: BigNumberish,
+    predecessor: BytesLike,
+    salt: BytesLike,
     startsIn: BigNumberish,
     votingPeriod: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -757,21 +729,21 @@ export class FarmersUnion extends Contract {
   "visionFarm()"(overrides?: CallOverrides): Promise<string>;
 
   vote(
-    proposalId: BigNumberish,
+    txHash: BytesLike,
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "vote(uint256,bool)"(
-    proposalId: BigNumberish,
+  "vote(bytes32,bool)"(
+    txHash: BytesLike,
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    NO_DEPENDENCY(overrides?: CallOverrides): Promise<BigNumber>;
+    NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
 
-    "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<string>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -796,42 +768,38 @@ export class FarmersUnion extends Contract {
     ): Promise<void>;
 
     execute(
-      proposalId: BigNumberish,
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "execute(uint256,address,uint256,bytes,uint256,uint256)"(
-      proposalId: BigNumberish,
+    "execute(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     executeBatch(
-      proposalId: BigNumberish,
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)"(
-      proposalId: BigNumberish,
+    "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -843,12 +811,12 @@ export class FarmersUnion extends Contract {
     ): Promise<BigNumber>;
 
     getVotingStatus(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<number>;
 
-    "getVotingStatus(uint256)"(
-      proposalId: BigNumberish,
+    "getVotingStatus(bytes32)"(
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<number>;
 
@@ -856,17 +824,17 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)"(
+    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -874,17 +842,17 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "hashTransaction(address,uint256,bytes,uint256,uint256)"(
+    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
 
@@ -941,12 +909,11 @@ export class FarmersUnion extends Contract {
     "paused()"(overrides?: CallOverrides): Promise<boolean>;
 
     proposals(
-      arg0: BigNumberish,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
         proposer: string;
-        txHash: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
@@ -955,13 +922,12 @@ export class FarmersUnion extends Contract {
       }
     >;
 
-    "proposals(uint256)"(
-      arg0: BigNumberish,
+    "proposals(bytes32)"(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
         proposer: string;
-        txHash: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
@@ -974,19 +940,19 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)"(
+    "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: CallOverrides
@@ -996,19 +962,19 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)"(
+    "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: CallOverrides
@@ -1019,13 +985,13 @@ export class FarmersUnion extends Contract {
     "visionFarm()"(overrides?: CallOverrides): Promise<string>;
 
     vote(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "vote(uint256,bool)"(
-      proposalId: BigNumberish,
+    "vote(bytes32,bool)"(
+      txHash: BytesLike,
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1038,37 +1004,37 @@ export class FarmersUnion extends Contract {
       value: null,
       data: null,
       predecessor: null,
-      salt: null
+      salt: null,
+      start: null,
+      end: null
     ): TypedEventFilter<
-      [string, string[], BigNumber[], string[], BigNumber, BigNumber],
+      [
+        string,
+        string[],
+        BigNumber[],
+        string[],
+        string,
+        string,
+        BigNumber,
+        BigNumber
+      ],
       {
         txHash: string;
         target: string[];
         value: BigNumber[];
         data: string[];
-        predecessor: BigNumber;
-        salt: BigNumber;
+        predecessor: string;
+        salt: string;
+        start: BigNumber;
+        end: BigNumber;
       }
-    >;
-
-    NewProposal(
-      index: BigNumberish | null,
-      txHash: null,
-      batchTx: null
-    ): TypedEventFilter<
-      [BigNumber, string, boolean],
-      { index: BigNumber; txHash: string; batchTx: boolean }
     >;
 
     Paused(account: null): TypedEventFilter<[string], { account: string }>;
 
     ProposalExecuted(
-      proposalIndex: BigNumberish | null,
       txHash: null
-    ): TypedEventFilter<
-      [BigNumber, string],
-      { proposalIndex: BigNumber; txHash: string }
-    >;
+    ): TypedEventFilter<[string], { txHash: string }>;
 
     TxProposed(
       txHash: BytesLike | null,
@@ -1076,37 +1042,41 @@ export class FarmersUnion extends Contract {
       value: null,
       data: null,
       predecessor: null,
-      salt: null
+      salt: null,
+      start: null,
+      end: null
     ): TypedEventFilter<
-      [string, string, BigNumber, string, BigNumber, BigNumber],
+      [string, string, BigNumber, string, string, string, BigNumber, BigNumber],
       {
         txHash: string;
         target: string;
         value: BigNumber;
         data: string;
-        predecessor: BigNumber;
-        salt: BigNumber;
+        predecessor: string;
+        salt: string;
+        start: BigNumber;
+        end: BigNumber;
       }
     >;
 
     Unpaused(account: null): TypedEventFilter<[string], { account: string }>;
 
     Vote(
-      id: null,
+      txHash: null,
       voter: null,
       forVote: null
     ): TypedEventFilter<
-      [BigNumber, string, boolean],
-      { id: BigNumber; voter: string; forVote: boolean }
+      [string, string, boolean],
+      { txHash: string; voter: string; forVote: boolean }
     >;
 
     VoteUpdated(
-      id: null,
+      txHash: null,
       forVotes: null,
       againsVotes: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { id: BigNumber; forVotes: BigNumber; againsVotes: BigNumber }
+      [string, BigNumber, BigNumber],
+      { txHash: string; forVotes: BigNumber; againsVotes: BigNumber }
     >;
   };
 
@@ -1138,42 +1108,38 @@ export class FarmersUnion extends Contract {
     ): Promise<BigNumber>;
 
     execute(
-      proposalId: BigNumberish,
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "execute(uint256,address,uint256,bytes,uint256,uint256)"(
-      proposalId: BigNumberish,
+    "execute(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     executeBatch(
-      proposalId: BigNumberish,
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)"(
-      proposalId: BigNumberish,
+    "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1185,12 +1151,12 @@ export class FarmersUnion extends Contract {
     ): Promise<BigNumber>;
 
     getVotingStatus(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getVotingStatus(uint256)"(
-      proposalId: BigNumberish,
+    "getVotingStatus(bytes32)"(
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1198,17 +1164,17 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)"(
+    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1216,17 +1182,17 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "hashTransaction(address,uint256,bytes,uint256,uint256)"(
+    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1246,13 +1212,10 @@ export class FarmersUnion extends Contract {
 
     "paused()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    proposals(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    proposals(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "proposals(uint256)"(
-      arg0: BigNumberish,
+    "proposals(bytes32)"(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1260,19 +1223,19 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)"(
+    "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1282,19 +1245,19 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)"(
+    "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1305,13 +1268,13 @@ export class FarmersUnion extends Contract {
     "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     vote(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "vote(uint256,bool)"(
-      proposalId: BigNumberish,
+    "vote(bytes32,bool)"(
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1345,42 +1308,38 @@ export class FarmersUnion extends Contract {
     ): Promise<PopulatedTransaction>;
 
     execute(
-      proposalId: BigNumberish,
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "execute(uint256,address,uint256,bytes,uint256,uint256)"(
-      proposalId: BigNumberish,
+    "execute(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     executeBatch(
-      proposalId: BigNumberish,
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "executeBatch(uint256,address[],uint256[],bytes[],uint256,uint256)"(
-      proposalId: BigNumberish,
+    "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1395,12 +1354,12 @@ export class FarmersUnion extends Contract {
     ): Promise<PopulatedTransaction>;
 
     getVotingStatus(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getVotingStatus(uint256)"(
-      proposalId: BigNumberish,
+    "getVotingStatus(bytes32)"(
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1408,17 +1367,17 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],uint256,uint256)"(
+    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1426,17 +1385,17 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "hashTransaction(address,uint256,bytes,uint256,uint256)"(
+    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1457,12 +1416,12 @@ export class FarmersUnion extends Contract {
     "paused()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposals(
-      arg0: BigNumberish,
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "proposals(uint256)"(
-      arg0: BigNumberish,
+    "proposals(bytes32)"(
+      arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1470,19 +1429,19 @@ export class FarmersUnion extends Contract {
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "proposeBatchTx(address[],uint256[],bytes[],uint256,uint256,uint256,uint256)"(
+    "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)"(
       target: string[],
       value: BigNumberish[],
       data: BytesLike[],
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1492,19 +1451,19 @@ export class FarmersUnion extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "proposeTx(address,uint256,bytes,uint256,uint256,uint256,uint256)"(
+    "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)"(
       target: string,
       value: BigNumberish,
       data: BytesLike,
-      predecessor: BigNumberish,
-      salt: BigNumberish,
+      predecessor: BytesLike,
+      salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1515,13 +1474,13 @@ export class FarmersUnion extends Contract {
     "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     vote(
-      proposalId: BigNumberish,
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "vote(uint256,bool)"(
-      proposalId: BigNumberish,
+    "vote(bytes32,bool)"(
+      txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
