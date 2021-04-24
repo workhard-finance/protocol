@@ -1,7 +1,7 @@
 import { Contract, constants } from "ethers";
 import { keccak256, isAddress, solidityKeccak256 } from "ethers/lib/utils";
 
-const getRoleHash = (str) => {
+export const getRoleHash = (str) => {
   return solidityKeccak256(["string"], [str]);
 };
 export async function scheduleGovernanceTransfer(
@@ -13,6 +13,8 @@ export async function scheduleGovernanceTransfer(
   const multisig = isAddress(MULTISIG_WALLET) ? MULTISIG_WALLET : deployer;
   await timelock.grantRole(getRoleHash("PROPOSER_ROLE"), multisig);
   await timelock.grantRole(getRoleHash("EXECUTOR_ROLE"), multisig);
+  await timelock.grantRole(getRoleHash("PROPOSER_ROLE"), farmersUnion);
+  await timelock.grantRole(getRoleHash("EXECUTOR_ROLE"), farmersUnion);
   await timelock.grantRole(getRoleHash("TIMELOCK_ADMIN_ROLE"), farmersUnion);
   await timelock.revokeRole(getRoleHash("TIMELOCK_ADMIN_ROLE"), deployer);
   const populated = await timelock.populateTransaction.revokeRole(

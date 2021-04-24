@@ -23,25 +23,37 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface FarmersUnionInterface extends ethers.utils.Interface {
   functions: {
     "NO_DEPENDENCY()": FunctionFragment;
+    "anarchize()": FunctionFragment;
+    "anarchizedAt()": FunctionFragment;
     "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "execute(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
+    "forceAnarchize()": FunctionFragment;
+    "forceAnarchizeAt()": FunctionFragment;
     "getVotes(address)": FunctionFragment;
     "getVotingStatus(bytes32)": FunctionFragment;
-    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
-    "hashTransaction(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
+    "gov()": FunctionFragment;
     "launch()": FunctionFragment;
     "memorandom()": FunctionFragment;
     "paused()": FunctionFragment;
     "proposals(bytes32)": FunctionFragment;
     "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)": FunctionFragment;
     "proposeTx(address,uint256,bytes,bytes32,bytes32,uint256,uint256)": FunctionFragment;
+    "schedule(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
+    "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
+    "setAnarchyPoint(uint256)": FunctionFragment;
+    "setGovernance(address)": FunctionFragment;
     "visionFarm()": FunctionFragment;
     "vote(bytes32,bool)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "NO_DEPENDENCY",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "anarchizedAt",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -64,19 +76,20 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     functionFragment: "executeBatch",
     values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "forceAnarchize",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forceAnarchizeAt",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getVotingStatus",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "hashBatchTransaction",
-    values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "hashTransaction",
-    values: [string, BigNumberish, BytesLike, BytesLike, BytesLike]
-  ): string;
+  encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(functionFragment: "launch", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "memorandom",
@@ -112,6 +125,22 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "schedule",
+    values: [string, BigNumberish, BytesLike, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "scheduleBatch",
+    values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAnarchyPoint",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setGovernance",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "visionFarm",
     values?: undefined
   ): string;
@@ -124,6 +153,11 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     functionFragment: "NO_DEPENDENCY",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "anarchizedAt",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "changeMemorandom",
     data: BytesLike
@@ -133,19 +167,20 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     functionFragment: "executeBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceAnarchize",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceAnarchizeAt",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getVotingStatus",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "hashBatchTransaction",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "hashTransaction",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "launch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "memorandom", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -155,22 +190,37 @@ interface FarmersUnionInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "proposeTx", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "schedule", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "scheduleBatch",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setAnarchyPoint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setGovernance",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
 
   events: {
+    "Anarchized()": EventFragment;
     "BatchTxProposed(bytes32,address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)": EventFragment;
+    "NewGovernance(address,address)": EventFragment;
     "Paused(address)": EventFragment;
-    "ProposalExecuted(bytes32)": EventFragment;
     "TxProposed(bytes32,address,uint256,bytes,bytes32,bytes32,uint256,uint256)": EventFragment;
     "Unpaused(address)": EventFragment;
     "Vote(bytes32,address,bool)": EventFragment;
     "VoteUpdated(bytes32,uint256,uint256)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "BatchTxProposed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Paused"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProposalExecuted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TxProposed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Vote"): EventFragment;
@@ -224,6 +274,18 @@ export class FarmersUnion extends Contract {
     NO_DEPENDENCY(overrides?: CallOverrides): Promise<[string]>;
 
     "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<[string]>;
+
+    anarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "anarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    anarchizedAt(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -283,6 +345,18 @@ export class FarmersUnion extends Contract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    forceAnarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "forceAnarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    forceAnarchizeAt(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     getVotes(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getVotes(address)"(
@@ -300,41 +374,9 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<[number]>;
 
-    hashBatchTransaction(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    gov(overrides?: CallOverrides): Promise<[string]>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    hashTransaction(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -396,13 +438,12 @@ export class FarmersUnion extends Contract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         proposer: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
         totalAgainstVotes: BigNumber;
-        executed: boolean;
       }
     >;
 
@@ -410,13 +451,12 @@ export class FarmersUnion extends Contract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         proposer: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
         totalAgainstVotes: BigNumber;
-        executed: boolean;
       }
     >;
 
@@ -464,6 +504,62 @@ export class FarmersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    schedule(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "schedule(address,uint256,bytes,bytes32,bytes32)"(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    scheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setAnarchyPoint(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setAnarchyPoint(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setGovernance(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setGovernance(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     visionFarm(overrides?: CallOverrides): Promise<[string]>;
 
     "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
@@ -484,6 +580,18 @@ export class FarmersUnion extends Contract {
   NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
 
   "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<string>;
+
+  anarchize(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "anarchize()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   changeMemorandom(
     minimumPendingPeriod: BigNumberish,
@@ -543,6 +651,18 @@ export class FarmersUnion extends Contract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  forceAnarchize(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "forceAnarchize()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   "getVotes(address)"(
@@ -560,41 +680,9 @@ export class FarmersUnion extends Contract {
     overrides?: CallOverrides
   ): Promise<number>;
 
-  hashBatchTransaction(
-    target: string[],
-    value: BigNumberish[],
-    data: BytesLike[],
-    predecessor: BytesLike,
-    salt: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  gov(overrides?: CallOverrides): Promise<string>;
 
-  "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
-    target: string[],
-    value: BigNumberish[],
-    data: BytesLike[],
-    predecessor: BytesLike,
-    salt: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  hashTransaction(
-    target: string,
-    value: BigNumberish,
-    data: BytesLike,
-    predecessor: BytesLike,
-    salt: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
-    target: string,
-    value: BigNumberish,
-    data: BytesLike,
-    predecessor: BytesLike,
-    salt: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<string>;
+  "gov()"(overrides?: CallOverrides): Promise<string>;
 
   launch(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -656,13 +744,12 @@ export class FarmersUnion extends Contract {
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
       proposer: string;
       start: BigNumber;
       end: BigNumber;
       totalForVotes: BigNumber;
       totalAgainstVotes: BigNumber;
-      executed: boolean;
     }
   >;
 
@@ -670,13 +757,12 @@ export class FarmersUnion extends Contract {
     arg0: BytesLike,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
       proposer: string;
       start: BigNumber;
       end: BigNumber;
       totalForVotes: BigNumber;
       totalAgainstVotes: BigNumber;
-      executed: boolean;
     }
   >;
 
@@ -724,6 +810,62 @@ export class FarmersUnion extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  schedule(
+    target: string,
+    value: BigNumberish,
+    data: BytesLike,
+    predecessor: BytesLike,
+    salt: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "schedule(address,uint256,bytes,bytes32,bytes32)"(
+    target: string,
+    value: BigNumberish,
+    data: BytesLike,
+    predecessor: BytesLike,
+    salt: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  scheduleBatch(
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
+    predecessor: BytesLike,
+    salt: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
+    predecessor: BytesLike,
+    salt: BytesLike,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setAnarchyPoint(
+    timestamp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setAnarchyPoint(uint256)"(
+    timestamp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setGovernance(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setGovernance(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   visionFarm(overrides?: CallOverrides): Promise<string>;
 
   "visionFarm()"(overrides?: CallOverrides): Promise<string>;
@@ -744,6 +886,14 @@ export class FarmersUnion extends Contract {
     NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
 
     "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<string>;
+
+    anarchize(overrides?: CallOverrides): Promise<void>;
+
+    "anarchize()"(overrides?: CallOverrides): Promise<void>;
+
+    anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -803,6 +953,14 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    forceAnarchize(overrides?: CallOverrides): Promise<void>;
+
+    "forceAnarchize()"(overrides?: CallOverrides): Promise<void>;
+
+    forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "getVotes(address)"(
@@ -820,41 +978,9 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<number>;
 
-    hashBatchTransaction(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    gov(overrides?: CallOverrides): Promise<string>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    hashTransaction(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<string>;
+    "gov()"(overrides?: CallOverrides): Promise<string>;
 
     launch(overrides?: CallOverrides): Promise<void>;
 
@@ -912,13 +1038,12 @@ export class FarmersUnion extends Contract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         proposer: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
         totalAgainstVotes: BigNumber;
-        executed: boolean;
       }
     >;
 
@@ -926,13 +1051,12 @@ export class FarmersUnion extends Contract {
       arg0: BytesLike,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         proposer: string;
         start: BigNumber;
         end: BigNumber;
         totalForVotes: BigNumber;
         totalAgainstVotes: BigNumber;
-        executed: boolean;
       }
     >;
 
@@ -980,6 +1104,59 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    schedule(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "schedule(address,uint256,bytes,bytes32,bytes32)"(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    scheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setAnarchyPoint(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setAnarchyPoint(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setGovernance(_gov: string, overrides?: CallOverrides): Promise<void>;
+
+    "setGovernance(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     visionFarm(overrides?: CallOverrides): Promise<string>;
 
     "visionFarm()"(overrides?: CallOverrides): Promise<string>;
@@ -998,6 +1175,8 @@ export class FarmersUnion extends Contract {
   };
 
   filters: {
+    Anarchized(): TypedEventFilter<[], {}>;
+
     BatchTxProposed(
       txHash: BytesLike | null,
       target: null,
@@ -1030,11 +1209,15 @@ export class FarmersUnion extends Contract {
       }
     >;
 
-    Paused(account: null): TypedEventFilter<[string], { account: string }>;
+    NewGovernance(
+      _prevGovernance: string | null,
+      _newGovernance: string | null
+    ): TypedEventFilter<
+      [string, string],
+      { _prevGovernance: string; _newGovernance: string }
+    >;
 
-    ProposalExecuted(
-      txHash: null
-    ): TypedEventFilter<[string], { txHash: string }>;
+    Paused(account: null): TypedEventFilter<[string], { account: string }>;
 
     TxProposed(
       txHash: BytesLike | null,
@@ -1084,6 +1267,18 @@ export class FarmersUnion extends Contract {
     NO_DEPENDENCY(overrides?: CallOverrides): Promise<BigNumber>;
 
     "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    anarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "anarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    anarchizedAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -1143,6 +1338,18 @@ export class FarmersUnion extends Contract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    forceAnarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "forceAnarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "getVotes(address)"(
@@ -1160,41 +1367,9 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    hashBatchTransaction(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    gov(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    hashTransaction(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1263,6 +1438,62 @@ export class FarmersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    schedule(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "schedule(address,uint256,bytes,bytes32,bytes32)"(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    scheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setAnarchyPoint(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setAnarchyPoint(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setGovernance(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setGovernance(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
 
     "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1284,6 +1515,18 @@ export class FarmersUnion extends Contract {
     NO_DEPENDENCY(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "NO_DEPENDENCY()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    anarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "anarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    anarchizedAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     changeMemorandom(
       minimumPendingPeriod: BigNumberish,
@@ -1343,6 +1586,20 @@ export class FarmersUnion extends Contract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    forceAnarchize(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "forceAnarchize()"(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    forceAnarchizeAt(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "forceAnarchizeAt()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getVotes(
       account: string,
       overrides?: CallOverrides
@@ -1363,41 +1620,9 @@ export class FarmersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    hashBatchTransaction(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "hashBatchTransaction(address[],uint256[],bytes[],bytes32,bytes32)"(
-      target: string[],
-      value: BigNumberish[],
-      data: BytesLike[],
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    hashTransaction(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "hashTransaction(address,uint256,bytes,bytes32,bytes32)"(
-      target: string,
-      value: BigNumberish,
-      data: BytesLike,
-      predecessor: BytesLike,
-      salt: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1466,6 +1691,62 @@ export class FarmersUnion extends Contract {
       salt: BytesLike,
       startsIn: BigNumberish,
       votingPeriod: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    schedule(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "schedule(address,uint256,bytes,bytes32,bytes32)"(
+      target: string,
+      value: BigNumberish,
+      data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    scheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAnarchyPoint(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setAnarchyPoint(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setGovernance(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setGovernance(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

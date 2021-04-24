@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IVoteCounter.sol";
 import "../libraries/Sqrt.sol";
 import "../mining/VisionFarm.sol";
+import "./Governed.sol";
 
 struct Proposal {
     address proposer;
@@ -16,7 +17,6 @@ struct Proposal {
     uint256 end;
     uint256 totalForVotes;
     uint256 totalAgainstVotes;
-    bool executed;
     mapping(address => uint256) forVotes;
     mapping(address => uint256) againstVotes;
 }
@@ -34,7 +34,7 @@ struct Memorandom {
 /**
  * @notice referenced openzeppelin's TimelockController.sol
  */
-contract FarmersUnion is Pausable {
+contract FarmersUnion is Pausable, Governed {
     VisionFarm public visionFarm;
     using SafeMath for uint256;
     using Sqrt for uint256;
@@ -74,12 +74,11 @@ contract FarmersUnion is Pausable {
     event Vote(bytes32 txHash, address voter, bool forVote);
     event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
-    /**
-     * @dev Emitted when a call is performed as part of operation `id`.
-     */
-    event ProposalExecuted(bytes32 txHash);
-
-    constructor(address _visionFarm, address _voteCounter) {
+    constructor(
+        address _visionFarm,
+        address _voteCounter,
+        address _timelockGov
+    ) {
         visionFarm = VisionFarm(_visionFarm);
         memorandom = Memorandom(
             1 days, // minimum pending for vote
@@ -90,13 +89,9 @@ contract FarmersUnion is Pausable {
             1000 gwei, // minimum votes
             IVoteCounter(_voteCounter)
         );
+        setGovernance(_timelockGov);
         _pause();
         _launch = block.timestamp + 4 weeks;
-    }
-
-    modifier selfGoverned() {
-        require(msg.sender == address(this), "Not a proposal execution");
-        _;
     }
 
     /**
@@ -117,7 +112,7 @@ contract FarmersUnion is Pausable {
         uint256 minimumVotesForProposing,
         uint256 minimumVotes,
         IVoteCounter voteCounter
-    ) public selfGoverned {
+    ) public governed {
         uint256 maxLock = visionFarm.maximumLock();
         uint256 totalSupply = IERC20(visionFarm.visionToken()).totalSupply();
         uint256 c = totalSupply.mul(maxLock).sqrt();
@@ -152,7 +147,7 @@ contract FarmersUnion is Pausable {
     ) public {
         _beforePropose(startsIn, votingPeriod);
         bytes32 txHash =
-            hashTransaction(target, value, data, predecessor, salt);
+            _timelock().hashOperation(target, value, data, predecessor, salt);
         _propose(txHash, startsIn, votingPeriod);
         emit TxProposed(
             txHash,
@@ -177,7 +172,13 @@ contract FarmersUnion is Pausable {
     ) public whenNotPaused {
         _beforePropose(startsIn, votingPeriod);
         bytes32 txHash =
-            hashBatchTransaction(target, value, data, predecessor, salt);
+            _timelock().hashOperationBatch(
+                target,
+                value,
+                data,
+                predecessor,
+                salt
+            );
         _propose(txHash, startsIn, votingPeriod);
         emit BatchTxProposed(
             txHash,
@@ -229,7 +230,8 @@ contract FarmersUnion is Pausable {
         require(proposal.start != 0, "Not an existing proposal");
         if (block.timestamp < proposal.start) return VotingState.Pending;
         else if (block.timestamp <= proposal.end) return VotingState.Voting;
-        else if (proposal.executed) return VotingState.Executed;
+        else if (_timelock().isOperationDone(txHash))
+            return VotingState.Executed;
         else if (proposal.totalForVotes < memorandom.minimumVotes)
             return VotingState.Rejected;
         else if (proposal.totalForVotes > proposal.totalAgainstVotes)
@@ -241,43 +243,58 @@ contract FarmersUnion is Pausable {
         return memorandom.voteCounter.getVotes(account);
     }
 
-    /**
-     * @dev Returns the identifier of an operation containing a single
-     * transaction.
-     */
-    function hashTransaction(
+    function schedule(
         address target,
         uint256 value,
         bytes calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public pure virtual returns (bytes32) {
-        return keccak256(abi.encode(target, value, data, predecessor, salt));
+    ) public payable {
+        bytes32 txHash =
+            _timelock().hashOperation(target, value, data, predecessor, salt);
+        require(
+            getVotingStatus(txHash) == VotingState.Passed,
+            "vote is not passed"
+        );
+        _timelock().schedule(
+            target,
+            value,
+            data,
+            predecessor,
+            salt,
+            _timelock().getMinDelay()
+        );
     }
 
-    /**
-     * @dev Returns the identifier of an operation containing a batch of
-     * transactions.
-     */
-    function hashBatchTransaction(
+    function scheduleBatch(
         address[] calldata target,
         uint256[] calldata value,
         bytes[] calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public pure virtual returns (bytes32) {
-        return keccak256(abi.encode(target, value, data, predecessor, salt));
+    ) public payable {
+        bytes32 txHash =
+            _timelock().hashOperationBatch(
+                target,
+                value,
+                data,
+                predecessor,
+                salt
+            );
+        require(
+            getVotingStatus(txHash) == VotingState.Passed,
+            "vote is not passed"
+        );
+        _timelock().scheduleBatch(
+            target,
+            value,
+            data,
+            predecessor,
+            salt,
+            _timelock().getMinDelay()
+        );
     }
 
-    /**
-     * @dev Execute a passed proposals' transaction.
-     *
-     * Emits a {CallExecuted} event.
-     *
-     * Requirements:
-     *
-     * - the caller must have the 'executor' role.
-     */
     function execute(
         address target,
         uint256 value,
@@ -286,21 +303,20 @@ contract FarmersUnion is Pausable {
         bytes32 salt
     ) public payable {
         bytes32 txHash =
-            hashTransaction(target, value, data, predecessor, salt);
-        _beforeCall(predecessor, txHash);
-        _call(target, value, data);
-        _afterCall(txHash);
+            _timelock().hashOperation(target, value, data, predecessor, salt);
+        require(
+            getVotingStatus(txHash) == VotingState.Passed,
+            "vote is not passed"
+        );
+        _timelock().execute{value: msg.value}(
+            target,
+            value,
+            data,
+            predecessor,
+            salt
+        );
     }
 
-    /**
-     * @dev Execute an (ready) operation containing a batch of transactions.
-     *
-     * Emits one {CallExecuted} event per transaction in the batch.
-     *
-     * Requirements:
-     *
-     * - the caller must have the 'executor' role.
-     */
     function executeBatch(
         address[] calldata target,
         uint256[] calldata value,
@@ -310,14 +326,25 @@ contract FarmersUnion is Pausable {
     ) public payable {
         require(target.length == value.length, "length mismatch");
         require(target.length == data.length, "length mismatch");
-
         bytes32 txHash =
-            hashBatchTransaction(target, value, data, predecessor, salt);
-        _beforeCall(predecessor, txHash);
-        for (uint256 i = 0; i < target.length; ++i) {
-            _call(target[i], value[i], data[i]);
-        }
-        _afterCall(txHash);
+            _timelock().hashOperationBatch(
+                target,
+                value,
+                data,
+                predecessor,
+                salt
+            );
+        require(
+            getVotingStatus(txHash) == VotingState.Passed,
+            "vote is not passed"
+        );
+        _timelock().executeBatch{value: msg.value}(
+            target,
+            value,
+            data,
+            predecessor,
+            salt
+        );
     }
 
     function _propose(
@@ -359,42 +386,7 @@ contract FarmersUnion is Pausable {
         );
     }
 
-    /**
-     * @dev Checks before execution of an operation's calls.
-     */
-    function _beforeCall(bytes32 predecessor, bytes32 txHash) private view {
-        if (predecessor != NO_DEPENDENCY) {
-            require(
-                getVotingStatus(predecessor) == VotingState.Executed,
-                "missing dependency"
-            );
-        }
-        require(
-            getVotingStatus(txHash) == VotingState.Passed,
-            "vote is not passed"
-        );
-    }
-
-    /**
-     * @dev Execute an operation's call.
-     *
-     * Emits a {CallExecuted} event.
-     */
-    function _call(
-        address target,
-        uint256 value,
-        bytes calldata data
-    ) private {
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = target.call{value: value}(data);
-        require(success, "FarmersUnion: underlying transaction reverted");
-    }
-
-    /**
-     * @dev Checks after execution of an operation's calls.
-     */
-    function _afterCall(bytes32 txHash) private {
-        proposals[txHash].executed = true;
-        emit ProposalExecuted(txHash);
+    function _timelock() internal view returns (TimelockController) {
+        return TimelockController(payable(gov));
     }
 }

@@ -92,7 +92,8 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const farmersUnion = await autoDeploy(
     "FarmersUnion",
     visionFarm.address,
-    voteCounter.address
+    voteCounter.address,
+    timelock.address
   );
   // 11. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
   await scheduleGovernanceTransfer(

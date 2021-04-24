@@ -20,6 +20,7 @@ describe("FarmersUnion.sol", function () {
   let visionToken: Contract;
   let visionFarm: Contract;
   let farmersUnion: Contract;
+  let timelock: Contract;
   let voteCounter: Contract;
   let newMemorandom: any[];
   let pTx: PopulatedTransaction;
@@ -36,6 +37,7 @@ describe("FarmersUnion.sol", function () {
     visionToken = fixture.visionToken;
     visionFarm = fixture.visionFarm;
     farmersUnion = fixture.farmersUnion;
+    timelock = fixture.timelock;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
@@ -71,9 +73,7 @@ describe("FarmersUnion.sol", function () {
       3600 * 24,
       3600 * 24 * 7,
     ];
-    txHash = await farmersUnion.callStatic.hashTransaction(
-      ...params.slice(0, 5)
-    );
+    txHash = await timelock.callStatic.hashOperation(...params.slice(0, 5));
   });
   describe("launch()", async () => {
     it("should be launched after 4 weeks", async () => {
@@ -188,7 +188,7 @@ describe("FarmersUnion.sol", function () {
       expect(forVotes1.sub(forVotes2)).eq(againstVotes2.sub(againstVotes1));
     });
   });
-  describe("execute()", async () => {
+  describe("schedule() & execute()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
       await farmersUnion.launch();
@@ -198,15 +198,16 @@ describe("FarmersUnion.sol", function () {
     it("should be executed when it's total for votes is greater than the minimum", async () => {
       await farmersUnion.connect(bob).vote(txHash, true);
       await goTo(3600 * 24 * 7);
-      await expect(farmersUnion.execute(...params.slice(0, 5)))
-        .to.emit(farmersUnion, "ProposalExecuted")
-        .withArgs(txHash);
+      await expect(farmersUnion.schedule(...params.slice(0, 5))).to.emit(
+        timelock,
+        "CallScheduled"
+      );
     });
     it("should not execute the tx when its for vote is less than the minimum", async () => {
       await farmersUnion.connect(alice).vote(txHash, true);
       await goTo(3600 * 24 * 7);
       await expect(
-        farmersUnion.execute(...params.slice(0, 5))
+        farmersUnion.schedule(...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
     });
     it("should not execute the tx when it's total against votes is greater than for votes", async () => {
@@ -214,10 +215,24 @@ describe("FarmersUnion.sol", function () {
       await farmersUnion.connect(bob).vote(txHash, false);
       await goTo(3600 * 24 * 7);
       await expect(
-        farmersUnion.execute(...params.slice(0, 5))
+        farmersUnion.schedule(...params.slice(0, 5))
       ).to.be.revertedWith("vote is not passed");
     });
+    it("should be executed when after the minimum time lock", async () => {
+      await farmersUnion.connect(bob).vote(txHash, true);
+      await goTo(3600 * 24 * 7);
+      await expect(farmersUnion.schedule(...params.slice(0, 5))).to.emit(
+        timelock,
+        "CallScheduled"
+      );
+      await goTo(3600 * 24 * 2);
+      await expect(farmersUnion.execute(...params.slice(0, 5))).to.emit(
+        timelock,
+        "CallExecuted"
+      );
+    });
   });
+
   describe("changeMemorandom()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
@@ -228,6 +243,8 @@ describe("FarmersUnion.sol", function () {
       await goTo(3600 * 24 * 7);
     });
     it("should update the memorandom", async () => {
+      await farmersUnion.schedule(...params.slice(0, 5));
+      await goTo(3600 * 24 * 1);
       await farmersUnion.execute(...params.slice(0, 5));
       const newMemorandom = await farmersUnion.callStatic.memorandom();
       expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
@@ -251,7 +268,7 @@ describe("FarmersUnion.sol", function () {
         3600 * 24,
         3600 * 24 * 7,
       ];
-      batchTxHash = await farmersUnion.callStatic.hashBatchTransaction(
+      batchTxHash = await timelock.callStatic.hashOperationBatch(
         ...batchTxParams.slice(0, 5)
       );
       await goTo(3600 * 24 * 7 * 4);
@@ -262,9 +279,11 @@ describe("FarmersUnion.sol", function () {
       await goTo(3600 * 24 * 7);
     });
     it("should update the memorandom correctly", async () => {
-      await expect(farmersUnion.executeBatch(...batchTxParams.slice(0, 5)))
-        .to.emit(farmersUnion, "ProposalExecuted")
-        .withArgs(batchTxHash);
+      await expect(
+        farmersUnion.scheduleBatch(...batchTxParams.slice(0, 5))
+      ).to.emit(timelock, "CallScheduled");
+      await goTo(3600 * 24 * 1);
+      await farmersUnion.executeBatch(...batchTxParams.slice(0, 5));
       const newMemorandom = await farmersUnion.callStatic.memorandom();
       expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
       expect(newMemorandom.maximumPending).eq(newMemorandom[1]);
