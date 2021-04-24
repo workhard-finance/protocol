@@ -15,7 +15,7 @@ export async function scheduleGovernanceTransfer(
   await timelock.grantRole(getRoleHash("EXECUTOR_ROLE"), multisig);
   await timelock.grantRole(getRoleHash("TIMELOCK_ADMIN_ROLE"), farmersUnion);
   await timelock.revokeRole(getRoleHash("TIMELOCK_ADMIN_ROLE"), deployer);
-  const populated = await timelock.populateTransaction.renounceRole(
+  const populated = await timelock.populateTransaction.revokeRole(
     getRoleHash("EXECUTOR_ROLE"),
     deployer
   );
