@@ -55,8 +55,6 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "setTaxRate(uint256)": FunctionFragment;
     "setTaxRateForUndeclared(uint256)": FunctionFragment;
     "taxRateForUndeclared()": FunctionFragment;
-    "taxToVisionFarm(address,uint256)": FunctionFragment;
-    "taxations(address)": FunctionFragment;
     "visionFarm()": FunctionFragment;
   };
 
@@ -173,11 +171,6 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "taxToVisionFarm",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "taxations", values: [string]): string;
-  encodeFunctionData(
     functionFragment: "visionFarm",
     values?: undefined
   ): string;
@@ -288,11 +281,6 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "taxRateForUndeclared",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "taxToVisionFarm",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "taxations", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {
@@ -676,25 +664,6 @@ export class CryptoJobBoard extends Contract {
 
     "taxRateForUndeclared()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    taxToVisionFarm(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "taxToVisionFarm(address,uint256)"(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    taxations(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "taxations(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     visionFarm(overrides?: CallOverrides): Promise<[string]>;
 
     "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
@@ -1008,25 +977,6 @@ export class CryptoJobBoard extends Contract {
 
   "taxRateForUndeclared()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  taxToVisionFarm(
-    currency: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "taxToVisionFarm(address,uint256)"(
-    currency: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  taxations(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "taxations(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   visionFarm(overrides?: CallOverrides): Promise<string>;
 
   "visionFarm()"(overrides?: CallOverrides): Promise<string>;
@@ -1319,25 +1269,6 @@ export class CryptoJobBoard extends Contract {
     taxRateForUndeclared(overrides?: CallOverrides): Promise<BigNumber>;
 
     "taxRateForUndeclared()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    taxToVisionFarm(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "taxToVisionFarm(address,uint256)"(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    taxations(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "taxations(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     visionFarm(overrides?: CallOverrides): Promise<string>;
 
@@ -1709,25 +1640,6 @@ export class CryptoJobBoard extends Contract {
 
     "taxRateForUndeclared()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    taxToVisionFarm(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "taxToVisionFarm(address,uint256)"(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    taxations(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "taxations(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
 
     "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2047,28 +1959,6 @@ export class CryptoJobBoard extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "taxRateForUndeclared()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    taxToVisionFarm(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "taxToVisionFarm(address,uint256)"(
-      currency: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    taxations(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "taxations(address)"(
-      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

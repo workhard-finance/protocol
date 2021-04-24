@@ -36,8 +36,6 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
 
     uint256 public taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
 
-    mapping(address => uint256) public taxations;
-
     mapping(address => uint256) public funds;
 
     mapping(address => bool) public managers;
@@ -154,7 +152,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         if (currency == baseCurrency) {
             _allocateFund(projId, index, normalTaxRate);
         } else {
-            _swapAndApproveBudget(projId, index, normalTaxRate, swapData);
+            _swapAndAllocateFund(projId, index, normalTaxRate, swapData);
         }
     }
 
@@ -202,13 +200,6 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     function setTaxRateForUndeclared(uint256 rate) public governed {
         require(rate <= 10000);
         taxRateForUndeclared = rate;
-    }
-
-    function taxToVisionFarm(address currency, uint256 amount) public governed {
-        require(taxations[currency] >= amount);
-        taxations[currency] = taxations[currency].sub(amount);
-        IERC20(currency).safeApprove(visionFarm, amount);
-        IVisionFarm(visionFarm).plantSeeds(currency, amount);
     }
 
     function getTotalBudgets(uint256 projId) public view returns (uint256) {
@@ -267,14 +258,16 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         require(budget.transferred == false, "Budget is already transferred.");
         require(
             budget.currency == baseCurrency,
-            "use _swapAndApproveBudget instead"
+            "use _swapAndAllocateFund instead"
         );
         // Mark the budget as transferred
         budget.transferred = true;
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        taxations[budget.currency] = taxations[budget.currency].add(visionTax);
+        IERC20(budget.currency).safeApprove(visionFarm, visionTax);
+        IVisionFarm(visionFarm).plantSeeds(budget.currency, visionTax);
+        // allocate fund
         IERC20(baseCurrency).safeTransfer(commitmentFund, fund);
         ICommitmentFund(commitmentFund).allocateFund(projId, fund);
         emit BudgetExecuted(projId, index);
@@ -284,7 +277,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
      * @param projId The hash of the budget to hammer out
      * @param swapData Fetched payload from 1inch API
      */
-    function _swapAndApproveBudget(
+    function _swapAndAllocateFund(
         uint256 projId,
         uint256 index,
         uint256 taxRate,
@@ -299,7 +292,9 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        taxations[budget.currency] = taxations[budget.currency].add(visionTax);
+        IERC20(budget.currency).safeApprove(visionFarm, visionTax);
+        IVisionFarm(visionFarm).plantSeeds(budget.currency, visionTax);
+        // Swap and allocate fund
         _swapOn1Inch(budget, fund, swapData);
         ICommitmentFund(commitmentFund).allocateFund(projId, fund);
         emit BudgetExecuted(projId, index);
