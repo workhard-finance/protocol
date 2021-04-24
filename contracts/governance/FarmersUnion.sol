@@ -387,7 +387,7 @@ contract FarmersUnion is Pausable {
     ) private {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, ) = target.call{value: value}(data);
-        require(success, "TimelockController: underlying transaction reverted");
+        require(success, "FarmersUnion: underlying transaction reverted");
     }
 
     /**
