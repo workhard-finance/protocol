@@ -3,7 +3,8 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { goTo } from "../test/utils/utilities";
+
+import { goTo } from "../../test/utils/utilities";
 
 async function main() {
   await goTo(86400 * 7 + 1);
