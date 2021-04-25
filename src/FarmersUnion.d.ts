@@ -510,7 +510,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "schedule(address,uint256,bytes,bytes32,bytes32)"(
@@ -519,7 +519,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     scheduleBatch(
@@ -528,7 +528,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
@@ -537,7 +537,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setAnarchyPoint(
@@ -816,7 +816,7 @@ export class FarmersUnion extends Contract {
     data: BytesLike,
     predecessor: BytesLike,
     salt: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "schedule(address,uint256,bytes,bytes32,bytes32)"(
@@ -825,7 +825,7 @@ export class FarmersUnion extends Contract {
     data: BytesLike,
     predecessor: BytesLike,
     salt: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   scheduleBatch(
@@ -834,7 +834,7 @@ export class FarmersUnion extends Contract {
     data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
@@ -843,7 +843,7 @@ export class FarmersUnion extends Contract {
     data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
+    overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setAnarchyPoint(
@@ -1444,7 +1444,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "schedule(address,uint256,bytes,bytes32,bytes32)"(
@@ -1453,7 +1453,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     scheduleBatch(
@@ -1462,7 +1462,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
@@ -1471,7 +1471,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setAnarchyPoint(
@@ -1700,7 +1700,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "schedule(address,uint256,bytes,bytes32,bytes32)"(
@@ -1709,7 +1709,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike,
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     scheduleBatch(
@@ -1718,7 +1718,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
@@ -1727,7 +1727,7 @@ export class FarmersUnion extends Contract {
       data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setAnarchyPoint(

@@ -35,4 +35,25 @@ contract TimelockedGovernance is TimelockController {
         nonCancelable[id] = true;
         super.schedule(target, value, data, predecessor, salt, delay);
     }
+
+    function scheduleBatch(
+        address[] calldata target,
+        uint256[] calldata value,
+        bytes[] calldata data,
+        bytes32 predecessor,
+        bytes32 salt,
+        uint256 delay
+    ) public override {
+        super.scheduleBatch(target, value, data, predecessor, salt, delay);
+    }
+
+    function executeBatch(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata datas,
+        bytes32 predecessor,
+        bytes32 salt
+    ) public payable override {
+        super.executeBatch(targets, values, datas, predecessor, salt);
+    }
 }

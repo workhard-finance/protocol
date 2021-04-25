@@ -249,7 +249,7 @@ contract FarmersUnion is Pausable, Governed {
         bytes calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable {
+    ) public {
         bytes32 txHash =
             _timelock().hashOperation(target, value, data, predecessor, salt);
         require(
@@ -272,7 +272,7 @@ contract FarmersUnion is Pausable, Governed {
         bytes[] calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable {
+    ) public {
         bytes32 txHash =
             _timelock().hashOperationBatch(
                 target,

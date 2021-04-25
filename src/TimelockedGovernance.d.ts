@@ -616,9 +616,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<ContractTransaction>;
 
     scheduleBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -626,9 +626,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<ContractTransaction>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -911,9 +911,9 @@ export class TimelockedGovernance extends Contract {
   ): Promise<ContractTransaction>;
 
   scheduleBatch(
-    targets: string[],
-    values: BigNumberish[],
-    datas: BytesLike[],
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
     delay: BigNumberish,
@@ -921,9 +921,9 @@ export class TimelockedGovernance extends Contract {
   ): Promise<ContractTransaction>;
 
   "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
-    targets: string[],
-    values: BigNumberish[],
-    datas: BytesLike[],
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
     delay: BigNumberish,
@@ -1203,9 +1203,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<void>;
 
     scheduleBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1213,9 +1213,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<void>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1588,9 +1588,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<BigNumber>;
 
     scheduleBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1598,9 +1598,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<BigNumber>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1910,9 +1910,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<PopulatedTransaction>;
 
     scheduleBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1920,9 +1920,9 @@ export class TimelockedGovernance extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "scheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
