@@ -13,6 +13,11 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
     console.log(account.address);
   }
 });
+task("snapshot", "Take a snapshot. Please note that snapshot can be used only once.")
+  .setAction(async (_args, hre) => {
+    const result = await hre.ethers.provider.send("evm_snapshot", []);
+    console.log(`Snapshot id: ${result}`);
+  });
 
 task("revert", "Go to snapshot")
   .addParam("id", "Snapshot id")
