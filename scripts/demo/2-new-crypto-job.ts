@@ -9,6 +9,8 @@ import { CryptoJobBoard, CryptoJobBoard__factory } from "../../src";
 import { getDeployed } from "../utils/deployer";
 
 async function main() {
+  const result = await ethers.provider.send("evm_snapshot", []);
+  console.log("2. new crypto job - snapshot id: ", result);
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed();
   if (!deployed[network].CryptoJobBoard) throw Error("no crypto job board");

@@ -15,6 +15,8 @@ import { goTo } from "../../test/utils/utilities";
 import { getDeployed } from "../utils/deployer";
 
 async function main() {
+  const result = await ethers.provider.send("evm_snapshot", []);
+  console.log("3. approve job - snapshot id: ", result);
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed()[network];
   if (!deployed.CryptoJobBoard || !deployed.TimelockedGovernance)

@@ -20,6 +20,9 @@ import {
 } from "../../src";
 
 async function main() {
+  const result = await ethers.provider.send("evm_snapshot", []);
+  console.log("1. set vision token emitter - snapshot id: ", result);
+
   /**
    * settings
    */

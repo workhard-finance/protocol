@@ -14,6 +14,40 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
   }
 });
 
+task("revert", "Go to snapshot")
+  .addParam("id", "Snapshot id")
+  .setAction(async ({ id }, hre) => {
+    const result = await hre.ethers.provider.send("evm_revert", [id]);
+    console.log(`revert to ${id}: ${result}`);
+  });
+
+task("increase-time", "Increase timestamp")
+  .addPositionalParam("seconds", "in seconds")
+  .setAction(async ({ seconds }, hre) => {
+    const newTimestamp =
+      (await hre.ethers.provider.getBlock("latest")).timestamp +
+      parseInt(seconds);
+    await hre.ethers.provider.send("evm_setNextBlockTimestamp", [newTimestamp]);
+    await hre.ethers.provider.send("evm_mine", []);
+    console.log(`New time: ${new Date(newTimestamp * 1000).toLocaleString()}`);
+  });
+
+task("mine")
+  .setDescription(
+    "--start or --stop. If you stop mining 'automine' will run instead."
+  )
+  .addFlag("start")
+  .addFlag("stop")
+  .setAction(async (args, hre) => {
+    if (args.start) {
+      await hre.ethers.provider.send("evm_setAutomine", [false]);
+      await hre.ethers.provider.send("evm_setIntervalMining", [5000]);
+    } else if (args.stop) {
+      await hre.ethers.provider.send("evm_setAutomine", [true]);
+      await hre.ethers.provider.send("evm_setIntervalMining", [0]);
+    }
+  });
+
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
