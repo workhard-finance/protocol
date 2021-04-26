@@ -13,17 +13,24 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
     console.log(account.address);
   }
 });
-task("snapshot", "Take a snapshot. Please note that snapshot can be used only once.")
-  .setAction(async (_args, hre) => {
-    const result = await hre.ethers.provider.send("evm_snapshot", []);
-    console.log(`Snapshot id: ${result}`);
-  });
+task(
+  "snapshot",
+  "Take a snapshot. Please note that snapshot can be used only once."
+).setAction(async (_args, hre) => {
+  const result = await hre.ethers.provider.send("evm_snapshot", []);
+  console.log(`Snapshot id: ${result}`);
+});
 
 task("revert", "Go to snapshot")
   .addParam("id", "Snapshot id")
   .setAction(async ({ id }, hre) => {
     const result = await hre.ethers.provider.send("evm_revert", [id]);
-    console.log(`revert to ${id}: ${result}`);
+    if (result) {
+      const newSnapshot = await hre.ethers.provider.send("evm_snapshot", []);
+      console.log(`Reverted. New snapshot id: ${newSnapshot}`);
+    } else {
+      console.log("Failed to revert");
+    }
   });
 
 task("increase-time", "Increase timestamp")
