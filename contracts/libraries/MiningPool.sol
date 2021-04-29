@@ -94,10 +94,7 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
         // very high values of miningRate in the mined and tokenPerMiner functions;
         // (allocated_amount + leftover) must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balance = token.balanceOf(address(this));
-        require(
-            miningRate <= balance.div(miningPeriod),
-            "mining rate is too high"
-        );
+        require(miningRate <= balance.div(miningPeriod), "not enough balance");
 
         lastUpdateTime = block.timestamp;
         miningEnds = block.timestamp.add(miningPeriod);
