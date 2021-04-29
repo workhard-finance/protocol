@@ -215,6 +215,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "FactoryChanged(address,address)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
     "PriceUpdated(address,uint256)": EventFragment;
+    "ProductLaunched(address,address)": EventFragment;
     "ProfitRateUpdated(address,uint256)": EventFragment;
     "Recovered(address,uint256)": EventFragment;
     "Supply(address,uint256)": EventFragment;
@@ -225,6 +226,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "FactoryChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PriceUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProductLaunched"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProfitRateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Recovered"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Supply"): EventFragment;
@@ -1072,6 +1074,14 @@ export class Marketplace extends Contract {
     ): TypedEventFilter<
       [string, BigNumber],
       { product: string; price: BigNumber }
+    >;
+
+    ProductLaunched(
+      manufacturer: string | null,
+      product: null
+    ): TypedEventFilter<
+      [string, string],
+      { manufacturer: string; product: string }
     >;
 
     ProfitRateUpdated(

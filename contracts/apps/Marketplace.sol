@@ -36,6 +36,8 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
 
     event TaxRateUpdated(uint256 taxRate);
 
+    event ProductLaunched(address indexed manufacturer, address product);
+
     event PriceUpdated(address indexed product, uint256 price);
 
     event ProfitRateUpdated(address indexed product, uint256 profitRate);
@@ -116,6 +118,7 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
         setPrice(prodAddr, price);
         setProfitRate(prodAddr, profitRate);
         addStocks(prodAddr, initialStock);
+        emit ProductLaunched(msg.sender, prodAddr);
     }
 
     function launchNewProductWithMaxSupply(
@@ -139,6 +142,7 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
         setPrice(prodAddr, price);
         setProfitRate(prodAddr, profitRate);
         addStocks(prodAddr, initialStock);
+        emit ProductLaunched(msg.sender, prodAddr);
     }
 
     function setPrice(address product, uint256 price)
