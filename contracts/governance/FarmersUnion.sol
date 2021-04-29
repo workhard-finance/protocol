@@ -2,7 +2,6 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/access/TimelockController.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -10,6 +9,7 @@ import "../interfaces/IVoteCounter.sol";
 import "../libraries/Sqrt.sol";
 import "../mining/VisionFarm.sol";
 import "./Governed.sol";
+import "./TimelockedGovernance.sol";
 
 struct Proposal {
     address proposer;
@@ -256,7 +256,7 @@ contract FarmersUnion is Pausable, Governed {
             getVotingStatus(txHash) == VotingState.Passed,
             "vote is not passed"
         );
-        _timelock().schedule(
+        _timelock().forceSchedule(
             target,
             value,
             data,
@@ -285,7 +285,7 @@ contract FarmersUnion is Pausable, Governed {
             getVotingStatus(txHash) == VotingState.Passed,
             "vote is not passed"
         );
-        _timelock().scheduleBatch(
+        _timelock().forceScheduleBatch(
             target,
             value,
             data,
@@ -386,7 +386,7 @@ contract FarmersUnion is Pausable, Governed {
         );
     }
 
-    function _timelock() internal view returns (TimelockController) {
-        return TimelockController(payable(gov));
+    function _timelock() internal view returns (TimelockedGovernance) {
+        return TimelockedGovernance(payable(gov));
     }
 }

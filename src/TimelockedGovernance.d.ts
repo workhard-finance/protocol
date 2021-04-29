@@ -30,6 +30,7 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
     "execute(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
     "forceSchedule(address,uint256,bytes,bytes32,bytes32,uint256)": FunctionFragment;
+    "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)": FunctionFragment;
     "getMinDelay()": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getRoleMember(bytes32,uint256)": FunctionFragment;
@@ -82,6 +83,17 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
       string,
       BigNumberish,
       BytesLike,
+      BytesLike,
+      BytesLike,
+      BigNumberish
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forceScheduleBatch",
+    values: [
+      string[],
+      BigNumberish[],
+      BytesLike[],
       BytesLike,
       BytesLike,
       BigNumberish
@@ -202,6 +214,10 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "forceSchedule",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceScheduleBatch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -377,18 +393,18 @@ export class TimelockedGovernance extends Contract {
     ): Promise<ContractTransaction>;
 
     executeBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -408,6 +424,26 @@ export class TimelockedGovernance extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    forceScheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -691,18 +727,18 @@ export class TimelockedGovernance extends Contract {
   ): Promise<ContractTransaction>;
 
   executeBatch(
-    targets: string[],
-    values: BigNumberish[],
-    datas: BytesLike[],
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
-    targets: string[],
-    values: BigNumberish[],
-    datas: BytesLike[],
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -722,6 +758,26 @@ export class TimelockedGovernance extends Contract {
     target: string,
     value: BigNumberish,
     data: BytesLike,
+    predecessor: BytesLike,
+    salt: BytesLike,
+    delay: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  forceScheduleBatch(
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
+    predecessor: BytesLike,
+    salt: BytesLike,
+    delay: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
+    target: string[],
+    value: BigNumberish[],
+    data: BytesLike[],
     predecessor: BytesLike,
     salt: BytesLike,
     delay: BigNumberish,
@@ -980,18 +1036,18 @@ export class TimelockedGovernance extends Contract {
     ): Promise<void>;
 
     executeBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: CallOverrides
@@ -1011,6 +1067,26 @@ export class TimelockedGovernance extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    forceScheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1356,18 +1432,18 @@ export class TimelockedGovernance extends Contract {
     ): Promise<BigNumber>;
 
     executeBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -1387,6 +1463,26 @@ export class TimelockedGovernance extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    forceScheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,
@@ -1672,18 +1768,18 @@ export class TimelockedGovernance extends Contract {
     ): Promise<PopulatedTransaction>;
 
     executeBatch(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)"(
-      targets: string[],
-      values: BigNumberish[],
-      datas: BytesLike[],
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
@@ -1703,6 +1799,26 @@ export class TimelockedGovernance extends Contract {
       target: string,
       value: BigNumberish,
       data: BytesLike,
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    forceScheduleBatch(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
+      predecessor: BytesLike,
+      salt: BytesLike,
+      delay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "forceScheduleBatch(address[],uint256[],bytes[],bytes32,bytes32,uint256)"(
+      target: string[],
+      value: BigNumberish[],
+      data: BytesLike[],
       predecessor: BytesLike,
       salt: BytesLike,
       delay: BigNumberish,

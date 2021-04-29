@@ -36,6 +36,19 @@ contract TimelockedGovernance is TimelockController {
         super.schedule(target, value, data, predecessor, salt, delay);
     }
 
+    function forceScheduleBatch(
+        address[] calldata target,
+        uint256[] calldata value,
+        bytes[] calldata data,
+        bytes32 predecessor,
+        bytes32 salt,
+        uint256 delay
+    ) public {
+        bytes32 id = hashOperationBatch(target, value, data, predecessor, salt);
+        nonCancelable[id] = true;
+        super.scheduleBatch(target, value, data, predecessor, salt, delay);
+    }
+
     function scheduleBatch(
         address[] calldata target,
         uint256[] calldata value,
@@ -48,12 +61,12 @@ contract TimelockedGovernance is TimelockController {
     }
 
     function executeBatch(
-        address[] calldata targets,
-        uint256[] calldata values,
-        bytes[] calldata datas,
+        address[] calldata target,
+        uint256[] calldata value,
+        bytes[] calldata data,
         bytes32 predecessor,
         bytes32 salt
     ) public payable override {
-        super.executeBatch(targets, values, datas, predecessor, salt);
+        super.executeBatch(target, value, data, predecessor, salt);
     }
 }
