@@ -218,11 +218,11 @@ describe("VisionTokenEmitter.sol", function () {
         });
         let totalSupply = INITIAL_EMISSION_AMOUNT;
         for (let weekNum = 1; weekNum < 52; weekNum++) {
-          const halvenedEmission = INITIAL_EMISSION_AMOUNT.div(2 ** weekNum);
+          const cutEmission = Array(weekNum)
+            .fill(0)
+            .reduce((acc, _) => acc.mul(70).div(100), INITIAL_EMISSION_AMOUNT);
           const minimum = totalSupply.mul(60).div(10000);
-          const emission = halvenedEmission.gt(minimum)
-            ? halvenedEmission
-            : minimum;
+          const emission = cutEmission.gt(minimum) ? cutEmission : minimum;
           totalSupply = totalSupply.add(emission);
           weeklyStat.push({
             weekNum,

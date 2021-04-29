@@ -15,11 +15,14 @@ contract VisionTokenEmitter is Governed {
     uint256 public constant INITIAL_EMISSION = 24000000 ether; // 1e24
     uint256 public constant DENOMINATOR = 10000;
     uint256 public minEmissionRatePerWeek = 60; // 0.006 per week ~= 36% yearly inflation
+    uint256 public emissionCutRate = 3000; // 30%
 
     VisionToken public visionToken;
 
     IMiningPoolFactory public burnMiningPoolFactory;
     IMiningPoolFactory public stakeMiningPoolFactory;
+
+    uint256 public emission = INITIAL_EMISSION;
 
     address public dev;
 
@@ -53,6 +56,7 @@ contract VisionTokenEmitter is Governed {
 
     event Start();
     event TokenEmission(uint256 amount);
+    event EmissionCutRateUpdated(uint256 rate);
     event EmissionRateUpdated(uint256 rate);
     event EmissionPeriodUpdated(uint256 newPeriod);
     event EmissionWeightUpdated(uint256 numberOfPools);
@@ -153,6 +157,15 @@ contract VisionTokenEmitter is Governed {
         emit Start();
     }
 
+    function setEmissionCutRate(uint256 rate) public governed {
+        require(
+            1000 <= rate && rate <= 9000,
+            "Emission cut should be greater than 10% and less than 90%"
+        );
+        emissionCutRate = rate;
+        emit EmissionCutRateUpdated(rate);
+    }
+
     function setMinimumRate(uint256 rate) public governed {
         require(
             rate <= 134,
@@ -179,7 +192,6 @@ contract VisionTokenEmitter is Governed {
         );
         // update emission week num
         emissionWeekNum = weekNum;
-        uint256 emission = getEmission();
         // allocate to mining pools
         uint256 weightSum = emissionWeight.sum;
         uint256 prevSupply = visionToken.totalSupply();
@@ -206,21 +218,7 @@ contract VisionTokenEmitter is Governed {
             emission - (visionToken.totalSupply() - prevSupply)
         );
         emit TokenEmission(emission);
-    }
-
-    function getEmission() public view returns (uint256) {
-        if (emissionWeekNum == 0) return 0;
-        // Minimum emission 0.05% per week will make 2.63% of inflation per year
-        uint256 minEmission =
-            visionToken.totalSupply().mul(minEmissionRatePerWeek).div(
-                DENOMINATOR
-            );
-        // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
-
-        uint256 halvedEmission =
-            INITIAL_EMISSION.div(1 << (emissionWeekNum - 1));
-        uint256 emission = Math.max(halvedEmission, minEmission);
-        return emission;
+        _updateEmission();
     }
 
     function getNumberOfPools() public view returns (uint256) {
@@ -236,5 +234,21 @@ contract VisionTokenEmitter is Governed {
     {
         visionToken.mint(address(_miningPool), _amount);
         _miningPool.allocate(_amount);
+    }
+
+    function _updateEmission() private returns (uint256) {
+        if (emissionWeekNum == 0) return 0;
+        // Minimum emission 0.05% per week will make 2.63% of inflation per year
+        uint256 minEmission =
+            visionToken.totalSupply().mul(minEmissionRatePerWeek).div(
+                DENOMINATOR
+            );
+        // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
+        uint256 cutEmission =
+            emission.mul(DENOMINATOR - emissionCutRate).div(DENOMINATOR);
+        // uint256 halvedEmission =
+        //     INITIAL_EMISSION.div(1 << (emissionWeekNum - 1));
+        emission = Math.max(cutEmission, minEmission);
+        return emission;
     }
 }

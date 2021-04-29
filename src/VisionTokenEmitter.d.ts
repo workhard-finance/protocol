@@ -29,13 +29,14 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     "burnMiningPools(address)": FunctionFragment;
     "dev()": FunctionFragment;
     "distribute()": FunctionFragment;
+    "emission()": FunctionFragment;
+    "emissionCutRate()": FunctionFragment;
     "emissionPeriod()": FunctionFragment;
     "emissionStarted()": FunctionFragment;
     "emissionWeekNum()": FunctionFragment;
     "emissionWeight()": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
-    "getEmission()": FunctionFragment;
     "getNumberOfPools()": FunctionFragment;
     "getPoolWeight(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
@@ -46,6 +47,7 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     "protocolFund()": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setEmission(address[],uint256[],uint256,uint256)": FunctionFragment;
+    "setEmissionCutRate(uint256)": FunctionFragment;
     "setEmissionPeriod(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setMinimumRate(uint256)": FunctionFragment;
@@ -82,6 +84,11 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     functionFragment: "distribute",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "emission", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "emissionCutRate",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "emissionPeriod",
     values?: undefined
@@ -104,10 +111,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "forceAnarchizeAt",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getEmission",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -143,6 +146,10 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setEmission",
     values: [string[], BigNumberish[], BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setEmissionCutRate",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setEmissionPeriod",
@@ -197,6 +204,11 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "dev", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "emission", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "emissionCutRate",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "emissionPeriod",
     data: BytesLike
@@ -219,10 +231,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchizeAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getEmission",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -260,6 +268,10 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setEmissionCutRate",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setEmissionPeriod",
     data: BytesLike
   ): Result;
@@ -291,6 +303,7 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
 
   events: {
     "Anarchized()": EventFragment;
+    "EmissionCutRateUpdated(uint256)": EventFragment;
     "EmissionPeriodUpdated(uint256)": EventFragment;
     "EmissionRateUpdated(uint256)": EventFragment;
     "EmissionWeightUpdated(uint256)": EventFragment;
@@ -302,6 +315,7 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "EmissionCutRateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionPeriodUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionRateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionWeightUpdated"): EventFragment;
@@ -399,6 +413,14 @@ export class VisionTokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    emission(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "emission()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    emissionCutRate(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "emissionCutRate()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     emissionPeriod(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -444,10 +466,6 @@ export class VisionTokenEmitter extends Contract {
     forceAnarchizeAt(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getEmission(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "getEmission()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     getNumberOfPools(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -525,6 +543,16 @@ export class VisionTokenEmitter extends Contract {
       _weights: BigNumberish[],
       _protocolFund: BigNumberish,
       _caller: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setEmissionCutRate(
+      rate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setEmissionCutRate(uint256)"(
+      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -638,6 +666,14 @@ export class VisionTokenEmitter extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  emission(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "emission()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  emissionCutRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "emissionCutRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   emissionPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
   "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -683,10 +719,6 @@ export class VisionTokenEmitter extends Contract {
   forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
 
   "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getEmission(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   getNumberOfPools(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -764,6 +796,16 @@ export class VisionTokenEmitter extends Contract {
     _weights: BigNumberish[],
     _protocolFund: BigNumberish,
     _caller: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setEmissionCutRate(
+    rate: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setEmissionCutRate(uint256)"(
+    rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -866,6 +908,14 @@ export class VisionTokenEmitter extends Contract {
 
     "distribute()"(overrides?: CallOverrides): Promise<void>;
 
+    emission(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "emission()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    emissionCutRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "emissionCutRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     emissionPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -907,10 +957,6 @@ export class VisionTokenEmitter extends Contract {
     forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getEmission(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getNumberOfPools(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -991,6 +1037,16 @@ export class VisionTokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setEmissionCutRate(
+      rate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setEmissionCutRate(uint256)"(
+      rate: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setEmissionPeriod(
       period: BigNumberish,
       overrides?: CallOverrides
@@ -1047,6 +1103,10 @@ export class VisionTokenEmitter extends Contract {
 
   filters: {
     Anarchized(): TypedEventFilter<[], {}>;
+
+    EmissionCutRateUpdated(
+      rate: null
+    ): TypedEventFilter<[BigNumber], { rate: BigNumber }>;
 
     EmissionPeriodUpdated(
       newPeriod: null
@@ -1132,6 +1192,14 @@ export class VisionTokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    emission(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "emission()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    emissionCutRate(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "emissionCutRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     emissionPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1159,10 +1227,6 @@ export class VisionTokenEmitter extends Contract {
     forceAnarchizeAt(overrides?: CallOverrides): Promise<BigNumber>;
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getEmission(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getEmission()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getNumberOfPools(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1240,6 +1304,16 @@ export class VisionTokenEmitter extends Contract {
       _weights: BigNumberish[],
       _protocolFund: BigNumberish,
       _caller: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setEmissionCutRate(
+      rate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setEmissionCutRate(uint256)"(
+      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1363,6 +1437,16 @@ export class VisionTokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    emission(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "emission()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    emissionCutRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "emissionCutRate()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     emissionPeriod(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "emissionPeriod()"(
@@ -1400,10 +1484,6 @@ export class VisionTokenEmitter extends Contract {
     "forceAnarchizeAt()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    getEmission(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "getEmission()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     getNumberOfPools(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1490,6 +1570,16 @@ export class VisionTokenEmitter extends Contract {
       _weights: BigNumberish[],
       _protocolFund: BigNumberish,
       _caller: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setEmissionCutRate(
+      rate: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setEmissionCutRate(uint256)"(
+      rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
