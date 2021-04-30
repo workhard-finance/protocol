@@ -120,8 +120,8 @@ contract FarmersUnion is Pausable, Governed {
         require(minimumVotingPeriod <= maximumVotingPeriod, "invalid arg");
         require(minimumVotingPeriod >= 1 days, "too short");
         require(minimumPendingPeriod >= 1 days, "too short");
-        require(minimumVotingPeriod <= 30 days, "too long");
-        require(minimumPendingPeriod <= 30 days, "too long");
+        require(maximumVotingPeriod <= 30 days, "too long");
+        require(maximumPendingPeriod <= 30 days, "too long");
         require(minimumVotesForProposing <= c.div(100), "too large number");
         require(minimumVotes <= c.div(10), "too large number");
         require(address(voteCounter) != address(0), "null address");
