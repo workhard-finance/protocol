@@ -285,15 +285,16 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    create(
+    "create(string,string)"(
       title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string,string)"(
+    "create(string,string,string)"(
       title: string,
       description: string,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -519,15 +520,16 @@ export class Project extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  create(
+  "create(string,string)"(
     title: string,
     description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string,string)"(
+  "create(string,string,string)"(
     title: string,
     description: string,
+    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -741,15 +743,16 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    create(
+    "create(string,string)"(
       title: string,
       description: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "create(string,string)"(
+    "create(string,string,string)"(
       title: string,
       description: string,
+      URI: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1003,15 +1006,16 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    create(
+    "create(string,string)"(
       title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string,string)"(
+    "create(string,string,string)"(
       title: string,
       description: string,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1241,15 +1245,16 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    create(
+    "create(string,string)"(
       title: string,
       description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string,string)"(
+    "create(string,string,string)"(
       title: string,
       description: string,
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

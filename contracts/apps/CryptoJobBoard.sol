@@ -103,8 +103,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         string memory description,
         string memory URI
     ) public {
-        uint256 projId = project.create(title, description);
-        project.setTokenURI(projId, URI);
+        uint256 projId = project.create(title, description, URI);
         project.safeTransferFrom(address(this), msg.sender, projId);
         emit ProjectPosted(projId);
     }
@@ -133,7 +132,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         emit ProjectClosed(projId);
     }
 
-    function forceApproveBudget(uint256 projId, uint256 index)
+    function forceExecuteBudget(uint256 projId, uint256 index)
         public
         onlyProjectOwner(projId)
     {

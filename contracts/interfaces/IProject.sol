@@ -8,6 +8,12 @@ interface IProject is IERC721 {
         external
         returns (uint256);
 
+    function create(
+        string memory title,
+        string memory description,
+        string memory URI
+    ) external returns (uint256);
+
     function setTokenURI(uint256 projId, string memory URI) external;
 
     function modifyJobDescription(uint256 projId, string memory description)

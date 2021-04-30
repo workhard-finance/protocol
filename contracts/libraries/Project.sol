@@ -29,6 +29,20 @@ contract Project is ERC721Burnable {
         return id;
     }
 
+    function create(
+        string memory title,
+        string memory description,
+        string memory URI
+    ) public returns (uint256) {
+        uint256 id = totalSupply();
+        _mint(msg.sender, id);
+        _setJobDescription(id, description);
+        _setTitle(id, title);
+        _setTokenURI(id, URI);
+        emit NewProject(id, title);
+        return id;
+    }
+
     function setTokenURI(uint256 projId, string memory _tokenURI) public {
         require(!perpetuated[projId], "Cannot modify.");
         require(ownerOf(projId) == msg.sender, "Not an owner");
