@@ -124,8 +124,8 @@ contract VisionTokenEmitter is Governed {
             IMiningPool pool = IMiningPool(_miningPools[i]);
             address _baseToken = pool.baseToken();
             require(
-                stakeMiningPools[_baseToken] != address(pool) ||
-                    burnMiningPools[_baseToken] != address(pool),
+                stakeMiningPools[_baseToken] == address(pool) ||
+                    burnMiningPools[_baseToken] == address(pool),
                 "The mining pool should be created via newBurnMiningPool or newStakeMiningPool"
             );
             require(_weights[i] < 1e4, "prevent overflow");
