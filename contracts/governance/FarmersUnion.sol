@@ -308,7 +308,7 @@ contract FarmersUnion is Pausable, Governed {
             getVotingStatus(txHash) == VotingState.Passed,
             "vote is not passed"
         );
-        _timelock().execute{value: msg.value}(
+        _timelock().execute{value: value}(
             target,
             value,
             data,
@@ -338,7 +338,11 @@ contract FarmersUnion is Pausable, Governed {
             getVotingStatus(txHash) == VotingState.Passed,
             "vote is not passed"
         );
-        _timelock().executeBatch{value: msg.value}(
+        uint256 valueSum = 0;
+        for (uint256 i = 0; i < value.length; i++) {
+            valueSum += value[i];
+        }
+        _timelock().executeBatch{value: valueSum}(
             target,
             value,
             data,
