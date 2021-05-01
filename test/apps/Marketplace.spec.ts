@@ -62,6 +62,7 @@ describe("Marketplace.sol", function () {
     const PROFIT_FOR_MANUFACTURER = 1000;
     const INITIAL_STOCK = 10;
     const BASE_URI = "https://storage.workhard.finance/";
+    const DESCRIPTION = "some plain text";
     let product: Contract;
     beforeEach("should create a new NFT contract", async () => {
       const receipt = await marketplace
@@ -70,6 +71,7 @@ describe("Marketplace.sol", function () {
           PRODUCT_NAME,
           PRODUCT_SYMBOL,
           BASE_URI,
+          DESCRIPTION,
           PROFIT_FOR_MANUFACTURER,
           PRICE_IN_COMMITMENT_TOKEN,
           INITIAL_STOCK

@@ -209,7 +209,7 @@ describe("CryptoJobBoard.sol", function () {
       expect(result.amounts).to.deep.eq([parseEther("20")]);
     });
   });
-  describe("forceApproveBudget()", async () => {
+  describe("forceExecuteBudget()", async () => {
     beforeEach(async () => {
       await cryptoJobBoard
         .connect(projOwner)
@@ -220,14 +220,14 @@ describe("CryptoJobBoard.sol", function () {
     });
     it("should be run after the project is approved by the governance", async () => {
       await expect(
-        cryptoJobBoard.connect(projOwner).forceApproveBudget(project.id, 0)
+        cryptoJobBoard.connect(projOwner).forceExecuteBudget(project.id, 0)
       ).to.be.revertedWith("Not an approved project.");
       await runTimelockTx(
         timelock,
         cryptoJobBoard.populateTransaction.approveProject(project.id)
       );
       await expect(
-        cryptoJobBoard.connect(projOwner).forceApproveBudget(project.id, 0)
+        cryptoJobBoard.connect(projOwner).forceExecuteBudget(project.id, 0)
       ).not.to.be.reverted;
     });
     it("should be run only by the project owner", async () => {
@@ -236,10 +236,10 @@ describe("CryptoJobBoard.sol", function () {
         cryptoJobBoard.populateTransaction.approveProject(project.id)
       );
       await expect(
-        cryptoJobBoard.connect(manager).forceApproveBudget(project.id, 0)
+        cryptoJobBoard.connect(manager).forceExecuteBudget(project.id, 0)
       ).to.be.revertedWith("Not authorized");
       await expect(
-        cryptoJobBoard.connect(projOwner).forceApproveBudget(project.id, 0)
+        cryptoJobBoard.connect(projOwner).forceExecuteBudget(project.id, 0)
       ).not.to.be.reverted;
     });
     it("should emit BudgetExecuted()", async () => {
@@ -248,7 +248,7 @@ describe("CryptoJobBoard.sol", function () {
         cryptoJobBoard.populateTransaction.approveProject(project.id)
       );
       await expect(
-        cryptoJobBoard.connect(projOwner).forceApproveBudget(project.id, 0)
+        cryptoJobBoard.connect(projOwner).forceExecuteBudget(project.id, 0)
       )
         .to.emit(cryptoJobBoard, "BudgetExecuted")
         .withArgs(project.id, 0);
@@ -261,7 +261,7 @@ describe("CryptoJobBoard.sol", function () {
       const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       await cryptoJobBoard
         .connect(projOwner)
-        .forceApproveBudget(project.id, 0, []);
+        .forceExecuteBudget(project.id, 0, []);
       const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
       expect(
         await baseCurrency.callStatic.balanceOf(commitmentFund.address)
