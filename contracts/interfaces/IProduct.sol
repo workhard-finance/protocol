@@ -13,4 +13,6 @@ interface IProduct is IERC721 {
         returns (bool);
 
     function manufacturer() external view returns (address);
+
+    function description() external view returns (string memory);
 }

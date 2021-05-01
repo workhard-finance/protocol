@@ -8,6 +8,7 @@ interface IProductFactory {
         uint256 _maxSupply,
         string memory _name,
         string memory _symbol,
-        string memory _baseURI
+        string memory _baseURI,
+        string memory _description
     ) external returns (address product);
 }

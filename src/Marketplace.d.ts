@@ -33,8 +33,8 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
-    "launchNewProduct(string,string,string,uint256,uint256,uint256)": FunctionFragment;
-    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)": FunctionFragment;
+    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)": FunctionFragment;
     "nonRecoverable(address)": FunctionFragment;
     "permanentlyNonRecoverable(address)": FunctionFragment;
     "products(address)": FunctionFragment;
@@ -85,11 +85,20 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "launchNewProduct",
-    values: [string, string, string, BigNumberish, BigNumberish, BigNumberish]
+    values: [
+      string,
+      string,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "launchNewProductWithMaxSupply",
     values: [
+      string,
       string,
       string,
       string,
@@ -371,16 +380,18 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "launchNewProduct(string,string,string,uint256,uint256,uint256)"(
+    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -391,6 +402,7 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -398,10 +410,11 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -637,16 +650,18 @@ export class Marketplace extends Contract {
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     profitRate: BigNumberish,
     price: BigNumberish,
     initialStock: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "launchNewProduct(string,string,string,uint256,uint256,uint256)"(
+  "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     profitRate: BigNumberish,
     price: BigNumberish,
     initialStock: BigNumberish,
@@ -657,6 +672,7 @@ export class Marketplace extends Contract {
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     profitRate: BigNumberish,
     price: BigNumberish,
     initialStock: BigNumberish,
@@ -664,10 +680,11 @@ export class Marketplace extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+  "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     profitRate: BigNumberish,
     price: BigNumberish,
     initialStock: BigNumberish,
@@ -889,16 +906,18 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "launchNewProduct(string,string,string,uint256,uint256,uint256)"(
+    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -909,6 +928,7 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -916,10 +936,11 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1208,16 +1229,18 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "launchNewProduct(string,string,string,uint256,uint256,uint256)"(
+    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1228,6 +1251,7 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1235,10 +1259,11 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1464,16 +1489,18 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "launchNewProduct(string,string,string,uint256,uint256,uint256)"(
+    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1484,6 +1511,7 @@ export class Marketplace extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,
@@ -1491,10 +1519,11 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "launchNewProductWithMaxSupply(string,string,string,uint256,uint256,uint256,uint256)"(
+    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       profitRate: BigNumberish,
       price: BigNumberish,
       initialStock: BigNumberish,

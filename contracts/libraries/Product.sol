@@ -13,6 +13,7 @@ contract Product is ERC721Burnable {
     mapping(uint256 => string) engravings;
 
     uint256 public maxSupply; // 0: means no limit
+    string public description; // IPFS cid or plain text
 
     constructor(
         address _manufacturer,
@@ -20,12 +21,14 @@ contract Product is ERC721Burnable {
         uint256 _maxSupply, // default: 0
         string memory _name,
         string memory _symbol,
-        string memory _baseURI
+        string memory _baseURI,
+        string memory _description
     ) ERC721(_name, _symbol) {
         manufacturer = _manufacturer;
         marketplace = _marketplace;
         maxSupply = _maxSupply;
         _setBaseURI(_baseURI);
+        description = _description;
     }
 
     modifier onlyManufacturer() {

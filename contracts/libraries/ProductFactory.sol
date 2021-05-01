@@ -18,7 +18,8 @@ contract ProductFactory {
         uint256 _maxSupply,
         string memory _name,
         string memory _symbol,
-        string memory _baseURI
+        string memory _baseURI,
+        string memory _description
     ) public returns (address product) {
         Product prod =
             new Product(
@@ -27,7 +28,8 @@ contract ProductFactory {
                 _maxSupply,
                 _name,
                 _symbol,
-                _baseURI
+                _baseURI,
+                _description
             );
         emit ProductLaunched(
             _manufacturer,

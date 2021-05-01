@@ -49,6 +49,11 @@ const _abi = [
         name: "_baseURI",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "_description",
+        type: "string",
+      },
     ],
     name: "create",
     outputs: [

@@ -154,6 +154,19 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "description",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",

@@ -102,6 +102,7 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
         string memory _name,
         string memory _symbol,
         string memory _baseURI,
+        string memory _description,
         uint256 profitRate,
         uint256 price,
         uint256 initialStock
@@ -113,7 +114,8 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
                 0,
                 _name,
                 _symbol,
-                _baseURI
+                _baseURI,
+                _description
             );
         setPrice(prodAddr, price);
         setProfitRate(prodAddr, profitRate);
@@ -125,6 +127,7 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
         string memory _name,
         string memory _symbol,
         string memory _baseURI,
+        string memory _description,
         uint256 profitRate,
         uint256 price,
         uint256 initialStock,
@@ -137,7 +140,8 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
                 maxSupply,
                 _name,
                 _symbol,
-                _baseURI
+                _baseURI,
+                _description
             );
         setPrice(prodAddr, price);
         setProfitRate(prodAddr, profitRate);

@@ -21,12 +21,12 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ProductFactoryInterface extends ethers.utils.Interface {
   functions: {
-    "create(address,address,uint256,string,string,string)": FunctionFragment;
+    "create(address,address,uint256,string,string,string,string)": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "create",
-    values: [string, string, BigNumberish, string, string, string]
+    values: [string, string, BigNumberish, string, string, string, string]
   ): string;
 
   decodeFunctionResult(functionFragment: "create", data: BytesLike): Result;
@@ -89,16 +89,18 @@ export class ProductFactory extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(address,address,uint256,string,string,string)"(
+    "create(address,address,uint256,string,string,string,string)"(
       _manufacturer: string,
       _marketplace: string,
       _maxSupply: BigNumberish,
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -110,16 +112,18 @@ export class ProductFactory extends Contract {
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(address,address,uint256,string,string,string)"(
+  "create(address,address,uint256,string,string,string,string)"(
     _manufacturer: string,
     _marketplace: string,
     _maxSupply: BigNumberish,
     _name: string,
     _symbol: string,
     _baseURI: string,
+    _description: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -131,16 +135,18 @@ export class ProductFactory extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "create(address,address,uint256,string,string,string)"(
+    "create(address,address,uint256,string,string,string,string)"(
       _manufacturer: string,
       _marketplace: string,
       _maxSupply: BigNumberish,
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -172,16 +178,18 @@ export class ProductFactory extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(address,address,uint256,string,string,string)"(
+    "create(address,address,uint256,string,string,string,string)"(
       _manufacturer: string,
       _marketplace: string,
       _maxSupply: BigNumberish,
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -194,16 +202,18 @@ export class ProductFactory extends Contract {
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(address,address,uint256,string,string,string)"(
+    "create(address,address,uint256,string,string,string,string)"(
       _manufacturer: string,
       _marketplace: string,
       _maxSupply: BigNumberish,
       _name: string,
       _symbol: string,
       _baseURI: string,
+      _description: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };
