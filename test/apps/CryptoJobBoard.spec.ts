@@ -78,20 +78,14 @@ describe("CryptoJobBoard.sol", function () {
   describe("createProject()", async () => {
     it("should emit ProjectPosted() event", async () => {
       const expectedId = 0;
-      await expect(
-        cryptoJobBoard
-          .connect(projOwner)
-          .createProject(project.title, project.description, project.uri)
-      )
+      await expect(cryptoJobBoard.connect(projOwner).createProject(project.uri))
         .to.emit(cryptoJobBoard, "ProjectPosted")
         .withArgs(expectedId);
     });
   });
   describe("addBudget()", async () => {
     it("should transfer the fund from the proposer to the contract", async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
+      await cryptoJobBoard.connect(projOwner).createProject(project.uri);
       expect(await baseCurrency.callStatic.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
@@ -111,9 +105,7 @@ describe("CryptoJobBoard.sol", function () {
   });
   describe("closeProject() & disapproveProject()", async () => {
     beforeEach(async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
+      await cryptoJobBoard.connect(projOwner).createProject(project.uri);
       await cryptoJobBoard
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -152,9 +144,7 @@ describe("CryptoJobBoard.sol", function () {
   });
   describe("executeBudget()", async () => {
     beforeEach(async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
+      await cryptoJobBoard.connect(projOwner).createProject(project.uri);
       await cryptoJobBoard
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -211,9 +201,7 @@ describe("CryptoJobBoard.sol", function () {
   });
   describe("forceExecuteBudget()", async () => {
     beforeEach(async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
+      await cryptoJobBoard.connect(projOwner).createProject(project.uri);
       await cryptoJobBoard
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);
@@ -277,9 +265,7 @@ describe("CryptoJobBoard.sol", function () {
   });
   describe("addBudget(): should allow project owners add new budgets and manager can approve them without governance approval", async () => {
     beforeEach(async () => {
-      await cryptoJobBoard
-        .connect(projOwner)
-        .createProject(project.title, project.description, project.uri);
+      await cryptoJobBoard.connect(projOwner).createProject(project.uri);
       await cryptoJobBoard
         .connect(projOwner)
         .addBudget(project.id, budget.currency, budget.amount);

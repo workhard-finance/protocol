@@ -23,14 +23,12 @@ interface IProjectInterface extends ethers.utils.Interface {
   functions: {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "create(string,string)": FunctionFragment;
+    "create(string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "modifyJobDescription(uint256,string)": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
-    "setTokenURI(uint256,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
   };
@@ -40,10 +38,7 @@ interface IProjectInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "create",
-    values: [string, string]
-  ): string;
+  encodeFunctionData(functionFragment: "create", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -51,10 +46,6 @@ interface IProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "modifyJobDescription",
-    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
@@ -67,10 +58,6 @@ interface IProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
     values: [string, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setTokenURI",
-    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -92,10 +79,6 @@ interface IProjectInterface extends ethers.utils.Interface {
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "modifyJobDescription",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom",
@@ -103,10 +86,6 @@ interface IProjectInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setTokenURI",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -195,15 +174,12 @@ export class IProject extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -229,18 +205,6 @@ export class IProject extends Contract {
       operator: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     ownerOf(
       tokenId: BigNumberish,
@@ -276,18 +240,6 @@ export class IProject extends Contract {
     "setApprovalForAll(address,bool)"(
       operator: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setTokenURI(
-      projId: BigNumberish,
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -335,15 +287,12 @@ export class IProject extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "create(string,string)"(
-    title: string,
-    description: string,
+  create(
+    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string,string,string)"(
-    title: string,
-    description: string,
+  "create(string)"(
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -369,18 +318,6 @@ export class IProject extends Contract {
     operator: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
-
-  modifyJobDescription(
-    projId: BigNumberish,
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "modifyJobDescription(uint256,string)"(
-    projId: BigNumberish,
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -413,18 +350,6 @@ export class IProject extends Contract {
   "setApprovalForAll(address,bool)"(
     operator: string,
     _approved: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setTokenURI(
-    projId: BigNumberish,
-    URI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setTokenURI(uint256,string)"(
-    projId: BigNumberish,
-    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -472,15 +397,9 @@ export class IProject extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    create(URI: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -506,18 +425,6 @@ export class IProject extends Contract {
       operator: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -550,18 +457,6 @@ export class IProject extends Contract {
     "setApprovalForAll(address,bool)"(
       operator: string,
       _approved: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setTokenURI(
-      projId: BigNumberish,
-      URI: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      URI: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -639,15 +534,12 @@ export class IProject extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -672,18 +564,6 @@ export class IProject extends Contract {
       owner: string,
       operator: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     ownerOf(
@@ -720,18 +600,6 @@ export class IProject extends Contract {
     "setApprovalForAll(address,bool)"(
       operator: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setTokenURI(
-      projId: BigNumberish,
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -783,15 +651,12 @@ export class IProject extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -816,18 +681,6 @@ export class IProject extends Contract {
       owner: string,
       operator: string,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     ownerOf(
@@ -864,18 +717,6 @@ export class IProject extends Contract {
     "setApprovalForAll(address,bool)"(
       operator: string,
       _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setTokenURI(
-      projId: BigNumberish,
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

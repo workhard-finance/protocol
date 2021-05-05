@@ -98,12 +98,8 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     }
 
     // 3rd party functions
-    function createProject(
-        string memory title,
-        string memory description,
-        string memory URI
-    ) public {
-        uint256 projId = project.create(title, description, URI);
+    function createProject(string memory URI) public {
+        uint256 projId = project.create(URI);
         project.safeTransferFrom(address(this), msg.sender, projId);
         emit ProjectPosted(projId);
     }

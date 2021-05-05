@@ -32,7 +32,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "baseCurrency()": FunctionFragment;
     "closeProject(uint256)": FunctionFragment;
     "commitmentFund()": FunctionFragment;
-    "createProject(string,string,string)": FunctionFragment;
+    "createProject(string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
     "executeBudget(uint256,uint256,bytes)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
@@ -98,7 +98,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "createProject",
-    values: [string, string, string]
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "disapproveProject",
@@ -451,15 +451,11 @@ export class CryptoJobBoard extends Contract {
     "commitmentFund()"(overrides?: CallOverrides): Promise<[string]>;
 
     createProject(
-      title: string,
-      description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createProject(string,string,string)"(
-      title: string,
-      description: string,
+    "createProject(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -767,15 +763,11 @@ export class CryptoJobBoard extends Contract {
   "commitmentFund()"(overrides?: CallOverrides): Promise<string>;
 
   createProject(
-    title: string,
-    description: string,
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createProject(string,string,string)"(
-    title: string,
-    description: string,
+  "createProject(string)"(
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1072,16 +1064,9 @@ export class CryptoJobBoard extends Contract {
 
     "commitmentFund()"(overrides?: CallOverrides): Promise<string>;
 
-    createProject(
-      title: string,
-      description: string,
-      URI: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    createProject(URI: string, overrides?: CallOverrides): Promise<void>;
 
-    "createProject(string,string,string)"(
-      title: string,
-      description: string,
+    "createProject(string)"(
       URI: string,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1439,15 +1424,11 @@ export class CryptoJobBoard extends Contract {
     "commitmentFund()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     createProject(
-      title: string,
-      description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createProject(string,string,string)"(
-      title: string,
-      description: string,
+    "createProject(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1749,15 +1730,11 @@ export class CryptoJobBoard extends Contract {
     ): Promise<PopulatedTransaction>;
 
     createProject(
-      title: string,
-      description: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createProject(string,string,string)"(
-      title: string,
-      description: string,
+    "createProject(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

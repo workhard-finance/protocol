@@ -25,21 +25,15 @@ interface ProjectInterface extends ethers.utils.Interface {
     "balanceOf(address)": FunctionFragment;
     "baseURI()": FunctionFragment;
     "burn(uint256)": FunctionFragment;
-    "create(string,string)": FunctionFragment;
+    "create(string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "jobDescription(uint256)": FunctionFragment;
-    "modifyJobDescription(uint256,string)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
-    "perpetuate(uint256)": FunctionFragment;
-    "perpetuated(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
-    "setTokenURI(uint256,string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
-    "titles(uint256)": FunctionFragment;
     "tokenByIndex(uint256)": FunctionFragment;
     "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
@@ -54,10 +48,7 @@ interface ProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "create",
-    values: [string, string]
-  ): string;
+  encodeFunctionData(functionFragment: "create", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -66,25 +57,9 @@ interface ProjectInterface extends ethers.utils.Interface {
     functionFragment: "isApprovedForAll",
     values: [string, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "jobDescription",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "modifyJobDescription",
-    values: [BigNumberish, string]
-  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "perpetuate",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "perpetuated",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -96,18 +71,10 @@ interface ProjectInterface extends ethers.utils.Interface {
     values: [string, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setTokenURI",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "titles",
-    values: [BigNumberish]
-  ): string;
   encodeFunctionData(
     functionFragment: "tokenByIndex",
     values: [BigNumberish]
@@ -142,21 +109,8 @@ interface ProjectInterface extends ethers.utils.Interface {
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "jobDescription",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "modifyJobDescription",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "perpetuate", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "perpetuated",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom",
     data: BytesLike
@@ -166,15 +120,10 @@ interface ProjectInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setTokenURI",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "titles", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "tokenByIndex",
     data: BytesLike
@@ -196,15 +145,13 @@ interface ProjectInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "NewProject(uint256,string)": EventFragment;
-    "Perpetuated(uint256)": EventFragment;
+    "NewProject(uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewProject"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Perpetuated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -285,15 +232,12 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -320,28 +264,6 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    jobDescription(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "jobDescription(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     name(overrides?: CallOverrides): Promise<[string]>;
 
     "name()"(overrides?: CallOverrides): Promise<[string]>;
@@ -355,26 +277,6 @@ export class Project extends Contract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    perpetuate(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "perpetuate(uint256)"(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    perpetuated(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "perpetuated(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: string,
@@ -403,18 +305,6 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setTokenURI(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -428,13 +318,6 @@ export class Project extends Contract {
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
     "symbol()"(overrides?: CallOverrides): Promise<[string]>;
-
-    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
-
-    "titles(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
 
     tokenByIndex(
       index: BigNumberish,
@@ -520,15 +403,12 @@ export class Project extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string,string)"(
-    title: string,
-    description: string,
+  create(
+    URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string,string,string)"(
-    title: string,
-    description: string,
+  "create(string)"(
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -555,28 +435,6 @@ export class Project extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  jobDescription(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "jobDescription(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  modifyJobDescription(
-    projId: BigNumberish,
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "modifyJobDescription(uint256,string)"(
-    projId: BigNumberish,
-    description: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   name(overrides?: CallOverrides): Promise<string>;
 
   "name()"(overrides?: CallOverrides): Promise<string>;
@@ -587,23 +445,6 @@ export class Project extends Contract {
     tokenId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
-
-  perpetuate(
-    projId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "perpetuate(uint256)"(
-    projId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  perpetuated(arg0: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
-
-  "perpetuated(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   "safeTransferFrom(address,address,uint256)"(
     from: string,
@@ -632,18 +473,6 @@ export class Project extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setTokenURI(
-    projId: BigNumberish,
-    _tokenURI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setTokenURI(uint256,string)"(
-    projId: BigNumberish,
-    _tokenURI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
@@ -657,13 +486,6 @@ export class Project extends Contract {
   symbol(overrides?: CallOverrides): Promise<string>;
 
   "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-  titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  "titles(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
 
   tokenByIndex(
     index: BigNumberish,
@@ -743,15 +565,9 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    create(URI: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -778,28 +594,6 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    jobDescription(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "jobDescription(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     name(overrides?: CallOverrides): Promise<string>;
 
     "name()"(overrides?: CallOverrides): Promise<string>;
@@ -810,23 +604,6 @@ export class Project extends Contract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    perpetuate(projId: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "perpetuate(uint256)"(
-      projId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    perpetuated(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "perpetuated(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
 
     "safeTransferFrom(address,address,uint256)"(
       from: string,
@@ -855,18 +632,6 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setTokenURI(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -880,13 +645,6 @@ export class Project extends Contract {
     symbol(overrides?: CallOverrides): Promise<string>;
 
     "symbol()"(overrides?: CallOverrides): Promise<string>;
-
-    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    "titles(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
 
     tokenByIndex(
       index: BigNumberish,
@@ -955,12 +713,7 @@ export class Project extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
-    NewProject(
-      id: null,
-      title: null
-    ): TypedEventFilter<[BigNumber, string], { id: BigNumber; title: string }>;
-
-    Perpetuated(id: null): TypedEventFilter<[BigNumber], { id: BigNumber }>;
+    NewProject(id: null): TypedEventFilter<[BigNumber], { id: BigNumber }>;
 
     Transfer(
       from: string | null,
@@ -1006,15 +759,12 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1041,28 +791,6 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    jobDescription(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "jobDescription(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     "name()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1074,26 +802,6 @@ export class Project extends Contract {
 
     "ownerOf(uint256)"(
       tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    perpetuate(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "perpetuate(uint256)"(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    perpetuated(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "perpetuated(uint256)"(
-      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1124,18 +832,6 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setTokenURI(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -1149,13 +845,6 @@ export class Project extends Contract {
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
     "symbol()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    titles(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "titles(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     tokenByIndex(
       index: BigNumberish,
@@ -1245,15 +934,12 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string,string)"(
-      title: string,
-      description: string,
+    create(
+      URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string,string,string)"(
-      title: string,
-      description: string,
+    "create(string)"(
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1280,28 +966,6 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    jobDescription(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "jobDescription(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    modifyJobDescription(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "modifyJobDescription(uint256,string)"(
-      projId: BigNumberish,
-      description: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "name()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1313,26 +977,6 @@ export class Project extends Contract {
 
     "ownerOf(uint256)"(
       tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    perpetuate(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "perpetuate(uint256)"(
-      projId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    perpetuated(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "perpetuated(uint256)"(
-      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1363,18 +1007,6 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setTokenURI(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setTokenURI(uint256,string)"(
-      projId: BigNumberish,
-      _tokenURI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -1388,16 +1020,6 @@ export class Project extends Contract {
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "symbol()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    titles(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "titles(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     tokenByIndex(
       index: BigNumberish,

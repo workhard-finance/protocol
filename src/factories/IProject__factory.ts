@@ -133,40 +133,6 @@ const _abi = [
     inputs: [
       {
         internalType: "string",
-        name: "title",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "description",
-        type: "string",
-      },
-    ],
-    name: "create",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "title",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "description",
-        type: "string",
-      },
-      {
-        internalType: "string",
         name: "URI",
         type: "string",
       },
@@ -223,24 +189,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "projId",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "description",
-        type: "string",
-      },
-    ],
-    name: "modifyJobDescription",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -327,24 +275,6 @@ const _abi = [
       },
     ],
     name: "setApprovalForAll",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "projId",
-        type: "uint256",
-      },
-      {
-        internalType: "string",
-        name: "URI",
-        type: "string",
-      },
-    ],
-    name: "setTokenURI",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

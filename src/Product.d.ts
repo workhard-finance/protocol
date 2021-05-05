@@ -27,6 +27,7 @@ interface ProductInterface extends ethers.utils.Interface {
     "burn(uint256)": FunctionFragment;
     "deliver(address,uint256)": FunctionFragment;
     "description()": FunctionFragment;
+    "engrave(uint256,string)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "manufacturer()": FunctionFragment;
@@ -60,6 +61,10 @@ interface ProductInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "description",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "engrave",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -130,6 +135,7 @@ interface ProductInterface extends ethers.utils.Interface {
     functionFragment: "description",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "engrave", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -289,6 +295,18 @@ export class Product extends Contract {
     description(overrides?: CallOverrides): Promise<[string]>;
 
     "description()"(overrides?: CallOverrides): Promise<[string]>;
+
+    engrave(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "engrave(uint256,string)"(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getApproved(
       tokenId: BigNumberish,
@@ -489,6 +507,18 @@ export class Product extends Contract {
 
   "description()"(overrides?: CallOverrides): Promise<string>;
 
+  engrave(
+    tokenId: BigNumberish,
+    perpetualURI: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "engrave(uint256,string)"(
+    tokenId: BigNumberish,
+    perpetualURI: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getApproved(
     tokenId: BigNumberish,
     overrides?: CallOverrides
@@ -678,6 +708,18 @@ export class Product extends Contract {
     description(overrides?: CallOverrides): Promise<string>;
 
     "description()"(overrides?: CallOverrides): Promise<string>;
+
+    engrave(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "engrave(uint256,string)"(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     getApproved(
       tokenId: BigNumberish,
@@ -906,6 +948,18 @@ export class Product extends Contract {
 
     "description()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    engrave(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "engrave(uint256,string)"(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -1108,6 +1162,18 @@ export class Product extends Contract {
     description(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "description()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    engrave(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "engrave(uint256,string)"(
+      tokenId: BigNumberish,
+      perpetualURI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     getApproved(
       tokenId: BigNumberish,

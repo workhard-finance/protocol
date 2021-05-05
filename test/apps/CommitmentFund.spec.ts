@@ -80,9 +80,7 @@ describe("CommitmentFund.sol", function () {
       uri: "ipfs://MY_PROJECT_URL",
     };
     budget = { currency: baseCurrency.address, amount: parseEther("100") };
-    await cryptoJobBoard
-      .connect(projOwner)
-      .createProject(project.title, project.description, project.uri);
+    await cryptoJobBoard.connect(projOwner).createProject(project.uri);
     await cryptoJobBoard
       .connect(projOwner)
       .addBudget(project.id, budget.currency, budget.amount);
