@@ -18,6 +18,7 @@ struct Farm {
 struct Staking {
     uint256 amount; // amount of staked vision token
     uint256 locked; // in epoch unit
+    address withdrawTo; // withdrawTo in case of your private key is exposed
 }
 
 /** @title Vision Farm */
@@ -162,7 +163,9 @@ contract VisionFarm is Governed, HasInitializer {
         require(staking.locked < getCurrentEpoch(), "Staking is locked");
         require(staking.amount >= amount, "Not enough balance");
         staking.amount = staking.amount.sub(amount);
-        IERC20(visionToken).safeTransfer(msg.sender, amount);
+        address withdrawTo =
+            staking.withdrawTo != address(0) ? staking.withdrawTo : msg.sender;
+        IERC20(visionToken).safeTransfer(withdrawTo, amount);
     }
 
     /**
@@ -173,6 +176,14 @@ contract VisionFarm is Governed, HasInitializer {
     function stakeAndLock(uint256 amount, uint256 epochs) public {
         stake(amount);
         lock(epochs);
+    }
+
+    function setWithdrawTo(address staker, address withdrawTo) public {
+        Staking storage staking = stakings[msg.sender];
+        address currentOwner =
+            staking.withdrawTo != address(0) ? staking.withdrawTo : staker;
+        require(currentOwner == msg.sender, "Not authorized");
+        staking.withdrawTo = withdrawTo;
     }
 
     /**

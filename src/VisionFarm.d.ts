@@ -56,6 +56,7 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     "removePlanter(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
+    "setWithdrawTo(address,address)": FunctionFragment;
     "stake(uint256)": FunctionFragment;
     "stakeAndLock(uint256,uint256)": FunctionFragment;
     "stakings(address)": FunctionFragment;
@@ -178,6 +179,10 @@ interface VisionFarmInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     values: [string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "setWithdrawTo",
+    values: [string, string]
+  ): string;
   encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "stakeAndLock",
@@ -297,6 +302,10 @@ interface VisionFarmInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setGovernance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setWithdrawTo",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
@@ -683,6 +692,18 @@ export class VisionFarm extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setWithdrawTo(
+      staker: string,
+      withdrawTo: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setWithdrawTo(address,address)"(
+      staker: string,
+      withdrawTo: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     stake(
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -709,14 +730,22 @@ export class VisionFarm extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }
+      [BigNumber, BigNumber, string] & {
+        amount: BigNumber;
+        locked: BigNumber;
+        withdrawTo: string;
+      }
     >;
 
     "stakings(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }
+      [BigNumber, BigNumber, string] & {
+        amount: BigNumber;
+        locked: BigNumber;
+        withdrawTo: string;
+      }
     >;
 
     unstake(
@@ -1054,6 +1083,18 @@ export class VisionFarm extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setWithdrawTo(
+    staker: string,
+    withdrawTo: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setWithdrawTo(address,address)"(
+    staker: string,
+    withdrawTo: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   stake(
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1079,12 +1120,24 @@ export class VisionFarm extends Contract {
   stakings(
     arg0: string,
     overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }>;
+  ): Promise<
+    [BigNumber, BigNumber, string] & {
+      amount: BigNumber;
+      locked: BigNumber;
+      withdrawTo: string;
+    }
+  >;
 
   "stakings(address)"(
     arg0: string,
     overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }>;
+  ): Promise<
+    [BigNumber, BigNumber, string] & {
+      amount: BigNumber;
+      locked: BigNumber;
+      withdrawTo: string;
+    }
+  >;
 
   unstake(
     amount: BigNumberish,
@@ -1403,6 +1456,18 @@ export class VisionFarm extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setWithdrawTo(
+      staker: string,
+      withdrawTo: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setWithdrawTo(address,address)"(
+      staker: string,
+      withdrawTo: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     stake(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     "stake(uint256)"(
@@ -1426,14 +1491,22 @@ export class VisionFarm extends Contract {
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }
+      [BigNumber, BigNumber, string] & {
+        amount: BigNumber;
+        locked: BigNumber;
+        withdrawTo: string;
+      }
     >;
 
     "stakings(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber] & { amount: BigNumber; locked: BigNumber }
+      [BigNumber, BigNumber, string] & {
+        amount: BigNumber;
+        locked: BigNumber;
+        withdrawTo: string;
+      }
     >;
 
     unstake(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
@@ -1768,6 +1841,18 @@ export class VisionFarm extends Contract {
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setWithdrawTo(
+      staker: string,
+      withdrawTo: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setWithdrawTo(address,address)"(
+      staker: string,
+      withdrawTo: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2143,6 +2228,18 @@ export class VisionFarm extends Contract {
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setWithdrawTo(
+      staker: string,
+      withdrawTo: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setWithdrawTo(address,address)"(
+      staker: string,
+      withdrawTo: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
