@@ -15,7 +15,7 @@ export type DeployableContracts =
   | "StakeMining"
   | "CommitmentMining"
   | "LiquidityMining"
-  | "CommitmentFund"
+  | "StableReserves"
   | "Marketplace"
   | "ProductFactory"
   | "CryptoJobBoard"

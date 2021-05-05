@@ -11,7 +11,6 @@ import {
   PopulatedTransaction,
   Contract,
   ContractTransaction,
-  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -19,25 +18,34 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface ICommitmentFundInterface extends ethers.utils.Interface {
+interface CommitmentMinterInterface extends ethers.utils.Interface {
   functions: {
-    "allocateFund(uint256,uint256)": FunctionFragment;
+    "commitmentToken()": FunctionFragment;
+    "stableReserves()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "allocateFund",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "commitmentToken",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "stableReserves",
+    values?: undefined
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "allocateFund",
+    functionFragment: "commitmentToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "stableReserves",
     data: BytesLike
   ): Result;
 
   events: {};
 }
 
-export class ICommitmentFund extends Contract {
+export class CommitmentMinter extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -78,75 +86,59 @@ export class ICommitmentFund extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ICommitmentFundInterface;
+  interface: CommitmentMinterInterface;
 
   functions: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    stableReserves(overrides?: CallOverrides): Promise<[string]>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  allocateFund(
-    projId: BigNumberish,
-    budget: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-  "allocateFund(uint256,uint256)"(
-    projId: BigNumberish,
-    budget: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+
+  stableReserves(overrides?: CallOverrides): Promise<string>;
+
+  "stableReserves()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+
+    stableReserves(overrides?: CallOverrides): Promise<string>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    stableReserves(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "commitmentToken()"(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    stableReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "stableReserves()"(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
 }

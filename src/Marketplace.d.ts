@@ -48,6 +48,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "setRecoverer(address)": FunctionFragment;
     "setTaxRate(uint256)": FunctionFragment;
     "taxRate()": FunctionFragment;
+    "visionFarm()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -148,6 +149,10 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "taxRate", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "visionFarm",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "RATE_DENOMINATOR",
@@ -218,6 +223,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "setTaxRate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "taxRate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -554,6 +560,10 @@ export class Marketplace extends Contract {
     taxRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    visionFarm(overrides?: CallOverrides): Promise<[string]>;
+
+    "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -825,6 +835,10 @@ export class Marketplace extends Contract {
 
   "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  visionFarm(overrides?: CallOverrides): Promise<string>;
+
+  "visionFarm()"(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1068,6 +1082,10 @@ export class Marketplace extends Contract {
     taxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    visionFarm(overrides?: CallOverrides): Promise<string>;
+
+    "visionFarm()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1388,6 +1406,10 @@ export class Marketplace extends Contract {
     taxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1654,5 +1676,9 @@ export class Marketplace extends Contract {
     taxRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

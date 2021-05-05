@@ -30,30 +30,32 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "approveProject(uint256)": FunctionFragment;
     "approvedProjects(uint256)": FunctionFragment;
     "baseCurrency()": FunctionFragment;
+    "claim(uint256,address,uint256,bytes32,bytes)": FunctionFragment;
+    "claimed(bytes32)": FunctionFragment;
     "closeProject(uint256)": FunctionFragment;
-    "commitmentFund()": FunctionFragment;
+    "commitmentToken()": FunctionFragment;
+    "compensate(uint256,address,uint256)": FunctionFragment;
     "createProject(string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
     "executeBudget(uint256,uint256,bytes)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "forceExecuteBudget(uint256,uint256)": FunctionFragment;
-    "funds(address)": FunctionFragment;
     "getTotalBudgets(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
-    "grant(uint256,uint256)": FunctionFragment;
-    "managers(address)": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
     "oneInch()": FunctionFragment;
     "project()": FunctionFragment;
     "projectBudgets(uint256,uint256)": FunctionFragment;
+    "projectFund(uint256)": FunctionFragment;
+    "receiveGrant(address,uint256,bytes)": FunctionFragment;
     "removeCurrency(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setExchange(address)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
-    "setManager(address,bool)": FunctionFragment;
     "setTaxRate(uint256)": FunctionFragment;
     "setTaxRateForUndeclared(uint256)": FunctionFragment;
+    "stableReserves()": FunctionFragment;
     "taxRateForUndeclared()": FunctionFragment;
     "visionFarm()": FunctionFragment;
   };
@@ -89,12 +91,21 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "claim",
+    values: [BigNumberish, string, BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(functionFragment: "claimed", values: [BytesLike]): string;
+  encodeFunctionData(
     functionFragment: "closeProject",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "commitmentFund",
+    functionFragment: "commitmentToken",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "compensate",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "createProject",
@@ -120,17 +131,11 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "forceExecuteBudget",
     values: [BigNumberish, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "funds", values: [string]): string;
   encodeFunctionData(
     functionFragment: "getTotalBudgets",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "grant",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "managers", values: [string]): string;
   encodeFunctionData(
     functionFragment: "normalTaxRate",
     values?: undefined
@@ -140,6 +145,14 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "projectBudgets",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "projectFund",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "receiveGrant",
+    values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "removeCurrency",
@@ -155,16 +168,16 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "setManager",
-    values: [string, boolean]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setTaxRate",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setTaxRateForUndeclared",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "stableReserves",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "taxRateForUndeclared",
@@ -205,14 +218,17 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "baseCurrency",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "closeProject",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "commitmentFund",
+    functionFragment: "commitmentToken",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "createProject",
     data: BytesLike
@@ -237,14 +253,11 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "forceExecuteBudget",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "funds", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getTotalBudgets",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "grant", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "managers", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "normalTaxRate",
     data: BytesLike
@@ -253,6 +266,14 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "project", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "projectBudgets",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "projectFund",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "receiveGrant",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -271,10 +292,13 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setManager", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "setTaxRate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setTaxRateForUndeclared",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "stableReserves",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -291,6 +315,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
     "Grant(uint256,uint256)": EventFragment;
     "ManagerUpdated(address,bool)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
+    "Payed(uint256,address,uint256)": EventFragment;
     "ProjectClosed(uint256)": EventFragment;
     "ProjectPosted(uint256)": EventFragment;
   };
@@ -302,6 +327,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Grant"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ManagerUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Payed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProjectClosed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProjectPosted"): EventFragment;
 }
@@ -436,6 +462,31 @@ export class CryptoJobBoard extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<[string]>;
 
+    claim(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "claim(uint256,address,uint256,bytes32,bytes)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
+
+    "claimed(bytes32)"(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     closeProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -446,9 +497,23 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    commitmentFund(overrides?: CallOverrides): Promise<[string]>;
+    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "commitmentFund()"(overrides?: CallOverrides): Promise<[string]>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    compensate(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "compensate(uint256,address,uint256)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     createProject(
       URI: string,
@@ -508,13 +573,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    funds(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "funds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     getTotalBudgets(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -528,25 +586,6 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
-
-    grant(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "grant(uint256,uint256)"(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    managers(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
-
-    "managers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -583,6 +622,30 @@ export class CryptoJobBoard extends Contract {
         transferred: boolean;
       }
     >;
+
+    projectFund(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "projectFund(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    receiveGrant(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "receiveGrant(address,uint256,bytes)"(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     removeCurrency(
       currency: string,
@@ -624,18 +687,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setManager(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setManager(address,bool)"(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setTaxRate(
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -655,6 +706,10 @@ export class CryptoJobBoard extends Contract {
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    stableReserves(overrides?: CallOverrides): Promise<[string]>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<[string]>;
 
     taxRateForUndeclared(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -748,6 +803,31 @@ export class CryptoJobBoard extends Contract {
 
   "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
+  claim(
+    projectId: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    salt: BytesLike,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "claim(uint256,address,uint256,bytes32,bytes)"(
+    projectId: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    salt: BytesLike,
+    sig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+  "claimed(bytes32)"(
+    arg0: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   closeProject(
     projId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -758,9 +838,23 @@ export class CryptoJobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  commitmentFund(overrides?: CallOverrides): Promise<string>;
+  commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-  "commitmentFund()"(overrides?: CallOverrides): Promise<string>;
+  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+
+  compensate(
+    projectId: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "compensate(uint256,address,uint256)"(
+    projectId: BigNumberish,
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   createProject(
     URI: string,
@@ -820,10 +914,6 @@ export class CryptoJobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  funds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "funds(address)"(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
   getTotalBudgets(
     projId: BigNumberish,
     overrides?: CallOverrides
@@ -837,25 +927,6 @@ export class CryptoJobBoard extends Contract {
   gov(overrides?: CallOverrides): Promise<string>;
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
-
-  grant(
-    projId: BigNumberish,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "grant(uint256,uint256)"(
-    projId: BigNumberish,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "managers(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -892,6 +963,30 @@ export class CryptoJobBoard extends Contract {
       transferred: boolean;
     }
   >;
+
+  projectFund(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "projectFund(uint256)"(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  receiveGrant(
+    currency: string,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "receiveGrant(address,uint256,bytes)"(
+    currency: string,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   removeCurrency(
     currency: string,
@@ -933,18 +1028,6 @@ export class CryptoJobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setManager(
-    manager: string,
-    active: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setManager(address,bool)"(
-    manager: string,
-    active: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setTaxRate(
     rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -964,6 +1047,10 @@ export class CryptoJobBoard extends Contract {
     rate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  stableReserves(overrides?: CallOverrides): Promise<string>;
+
+  "stableReserves()"(overrides?: CallOverrides): Promise<string>;
 
   taxRateForUndeclared(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1050,6 +1137,31 @@ export class CryptoJobBoard extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
+    claim(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "claim(uint256,address,uint256,bytes32,bytes)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+
+    "claimed(bytes32)"(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     closeProject(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -1060,9 +1172,23 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    commitmentFund(overrides?: CallOverrides): Promise<string>;
+    commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-    "commitmentFund()"(overrides?: CallOverrides): Promise<string>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+
+    compensate(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "compensate(uint256,address,uint256)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     createProject(URI: string, overrides?: CallOverrides): Promise<void>;
 
@@ -1115,13 +1241,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    funds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "funds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getTotalBudgets(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -1135,25 +1254,6 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
-
-    grant(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "grant(uint256,uint256)"(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    managers(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-    "managers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1191,6 +1291,30 @@ export class CryptoJobBoard extends Contract {
       }
     >;
 
+    projectFund(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "projectFund(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    receiveGrant(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "receiveGrant(address,uint256,bytes)"(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     removeCurrency(currency: string, overrides?: CallOverrides): Promise<void>;
 
     "removeCurrency(address)"(
@@ -1222,18 +1346,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setManager(
-      manager: string,
-      active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setManager(address,bool)"(
-      manager: string,
-      active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setTaxRate(rate: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     "setTaxRate(uint256)"(
@@ -1250,6 +1362,10 @@ export class CryptoJobBoard extends Contract {
       rate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    stableReserves(overrides?: CallOverrides): Promise<string>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<string>;
 
     taxRateForUndeclared(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1311,6 +1427,15 @@ export class CryptoJobBoard extends Contract {
     ): TypedEventFilter<
       [string, string],
       { _prevGovernance: string; _newGovernance: string }
+    >;
+
+    Payed(
+      projId: null,
+      to: null,
+      amount: null
+    ): TypedEventFilter<
+      [BigNumber, string, BigNumber],
+      { projId: BigNumber; to: string; amount: BigNumber }
     >;
 
     ProjectClosed(
@@ -1409,6 +1534,31 @@ export class CryptoJobBoard extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    claim(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "claim(uint256,address,uint256,bytes32,bytes)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "claimed(bytes32)"(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     closeProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1419,9 +1569,23 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    commitmentFund(overrides?: CallOverrides): Promise<BigNumber>;
+    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "commitmentFund()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    compensate(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "compensate(uint256,address,uint256)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     createProject(
       URI: string,
@@ -1481,13 +1645,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    funds(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "funds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getTotalBudgets(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -1501,25 +1658,6 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    grant(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "grant(uint256,uint256)"(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    managers(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "managers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1543,6 +1681,30 @@ export class CryptoJobBoard extends Contract {
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    projectFund(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "projectFund(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    receiveGrant(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "receiveGrant(address,uint256,bytes)"(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     removeCurrency(
@@ -1585,18 +1747,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setManager(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setManager(address,bool)"(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setTaxRate(
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1616,6 +1766,10 @@ export class CryptoJobBoard extends Contract {
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    stableReserves(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "stableReserves()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     taxRateForUndeclared(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1713,6 +1867,34 @@ export class CryptoJobBoard extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    claim(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "claim(uint256,address,uint256,bytes32,bytes)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      salt: BytesLike,
+      sig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claimed(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "claimed(bytes32)"(
+      arg0: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     closeProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1723,10 +1905,24 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    commitmentFund(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "commitmentFund()"(
+    "commitmentToken()"(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    compensate(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "compensate(uint256,address,uint256)"(
+      projectId: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     createProject(
@@ -1789,16 +1985,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    funds(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "funds(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getTotalBudgets(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -1812,28 +1998,6 @@ export class CryptoJobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    grant(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "grant(uint256,uint256)"(
-      projId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    managers(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "managers(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1857,6 +2021,30 @@ export class CryptoJobBoard extends Contract {
       arg0: BigNumberish,
       arg1: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    projectFund(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "projectFund(uint256)"(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    receiveGrant(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "receiveGrant(address,uint256,bytes)"(
+      currency: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     removeCurrency(
@@ -1899,18 +2087,6 @@ export class CryptoJobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setManager(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setManager(address,bool)"(
-      manager: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     setTaxRate(
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1929,6 +2105,12 @@ export class CryptoJobBoard extends Contract {
     "setTaxRateForUndeclared(uint256)"(
       rate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    stableReserves(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "stableReserves()"(
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     taxRateForUndeclared(

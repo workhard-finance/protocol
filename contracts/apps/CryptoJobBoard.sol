@@ -6,11 +6,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "../libraries/ExchangeLib.sol";
-import "../interfaces/ICommitmentFund.sol";
+import "../libraries/GrantReceiver.sol";
+import "../interfaces/IStableReserves.sol";
 import "../interfaces/IVisionFarm.sol";
 import "../interfaces/IProject.sol";
 import "../governance/Governed.sol";
+import "../libraries/Planter.sol";
+import "../libraries/CommitmentMinter.sol";
 
 struct Budget {
     address currency;
@@ -18,13 +22,16 @@ struct Budget {
     bool transferred;
 }
 
-contract CryptoJobBoard is Governed, ReentrancyGuard {
+contract CryptoJobBoard is
+    CommitmentMinter,
+    GrantReceiver,
+    Planter,
+    Governed,
+    ReentrancyGuard
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
-
-    address public immutable visionFarm;
-
-    address public immutable commitmentFund;
+    using ECDSA for bytes32;
 
     address public immutable baseCurrency;
 
@@ -36,11 +43,11 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
 
     uint256 public taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
 
-    mapping(address => uint256) public funds;
-
-    mapping(address => bool) public managers;
-
     mapping(address => bool) public accpetableTokens;
+
+    mapping(uint256 => uint256) public projectFund;
+
+    mapping(bytes32 => bool) public claimed;
 
     mapping(uint256 => Budget[]) public projectBudgets;
 
@@ -53,6 +60,8 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     event ProjectClosed(uint256 projId);
 
     event Grant(uint256 projId, uint256 amount);
+
+    event Payed(uint256 projId, address to, uint256 amount);
 
     event BudgetAdded(
         uint256 indexed projId,
@@ -69,12 +78,10 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         address _gov,
         address _project,
         address _visionFarm,
-        address _commitmentFund,
+        address _stableReserves,
         address _baseCurrency,
         address _oneInchExchange
-    ) Governed() {
-        visionFarm = _visionFarm;
-        commitmentFund = _commitmentFund;
+    ) Governed() CommitmentMinter(_stableReserves) Planter(_visionFarm) {
         baseCurrency = _baseCurrency;
         oneInch = _oneInchExchange;
         project = IProject(_project);
@@ -82,8 +89,11 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         Governed.setGovernance(_gov);
     }
 
-    modifier onlyManager() {
-        require(managers[msg.sender], "Not an authorized manager");
+    modifier onlyStableReserves() {
+        require(
+            address(stableReserves) == msg.sender,
+            "Only the stable reserves can call this function"
+        );
         _;
     }
 
@@ -134,7 +144,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     {
         // force approve does not allow swap and approve func to prevent
         // exploitation using flash loan attack
-        _allocateFund(projId, index, taxRateForUndeclared);
+        _convertStableToCommitment(projId, index, taxRateForUndeclared);
     }
 
     // Operator functions
@@ -145,18 +155,59 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
     ) public onlyApprovedProject(projId) {
         address currency = projectBudgets[projId][index].currency;
         if (currency == baseCurrency) {
-            _allocateFund(projId, index, normalTaxRate);
+            _convertStableToCommitment(projId, index, normalTaxRate);
         } else {
             _swapAndAllocateFund(projId, index, normalTaxRate, swapData);
         }
     }
 
-    // Governed functions
-
-    function grant(uint256 projId, uint256 amount) public governed {
-        ICommitmentFund(commitmentFund).allocateFund(projId, amount);
+    function receiveGrant(
+        address currency,
+        uint256 amount,
+        bytes calldata data
+    ) external override onlyStableReserves returns (bool result) {
+        require(
+            currency == commitmentToken,
+            "Only can get $COMMITMENT token for its grant"
+        );
+        uint256 projId = abi.decode(data, (uint256));
+        require(project.ownerOf(projId) != address(0), "No budget owner");
+        projectFund[projId] = projectFund[projId].add(amount);
         emit Grant(projId, amount);
+        return true;
     }
+
+    function compensate(
+        uint256 projectId,
+        address to,
+        uint256 amount
+    ) public onlyProjectOwner(projectId) {
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        IERC20(commitmentToken).safeTransfer(to, amount);
+        emit Payed(projectId, to, amount);
+    }
+
+    function claim(
+        uint256 projectId,
+        address to,
+        uint256 amount,
+        bytes32 salt,
+        bytes memory sig
+    ) public {
+        bytes32 claimHash =
+            keccak256(abi.encodePacked(projectId, to, amount, salt));
+        require(!claimed[claimHash], "Already claimed");
+        claimed[claimHash] = true;
+        address signer = claimHash.recover(sig);
+        require(project.ownerOf(projectId) == signer, "Invalid signer");
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        IERC20(commitmentToken).safeTransfer(to, amount);
+        emit Payed(projectId, to, amount);
+    }
+
+    // Governed functions
 
     function addCurrency(address currency) public governed {
         accpetableTokens[currency] = true;
@@ -164,13 +215,6 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
 
     function removeCurrency(address currency) public governed {
         accpetableTokens[currency] = false;
-    }
-
-    function setManager(address manager, bool active) public governed {
-        if (managers[manager] != active) {
-            emit ManagerUpdated(manager, active);
-        }
-        managers[manager] = active;
     }
 
     function approveProject(uint256 projId) public governed {
@@ -243,13 +287,12 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
      * @param projId The project NFT id for this budget.
      * @param taxRate The tax rate to approve the budget.
      */
-    function _allocateFund(
+    function _convertStableToCommitment(
         uint256 projId,
         uint256 index,
         uint256 taxRate
     ) internal {
         Budget storage budget = projectBudgets[projId][index];
-        require(approvedProjects[projId], "Not an approved project.");
         require(budget.transferred == false, "Budget is already transferred.");
         require(
             budget.currency == baseCurrency,
@@ -260,11 +303,10 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        IERC20(budget.currency).safeApprove(visionFarm, visionTax);
-        IVisionFarm(visionFarm).plantSeeds(budget.currency, visionTax);
-        // allocate fund
-        IERC20(baseCurrency).safeTransfer(commitmentFund, fund);
-        ICommitmentFund(commitmentFund).allocateFund(projId, fund);
+        _plant(budget.currency, visionTax);
+        // Mint commitment fund
+        _mintCommitment(fund);
+        projectFund[projId] = projectFund[projId].add(fund);
         emit BudgetExecuted(projId, index);
     }
 
@@ -281,17 +323,20 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         Budget storage budget = projectBudgets[projId][index];
         require(approvedProjects[projId], "Not an approved project.");
         require(budget.transferred == false, "Budget is already transferred.");
-        require(budget.currency != baseCurrency, "use _allocateFund instead");
+        require(
+            budget.currency != baseCurrency,
+            "use _convertStableToCommitment instead"
+        );
         // Mark the budget as transferred
         budget.transferred = true;
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        IERC20(budget.currency).safeApprove(visionFarm, visionTax);
-        IVisionFarm(visionFarm).plantSeeds(budget.currency, visionTax);
+        _plant(budget.currency, visionTax);
         // Swap and allocate fund
         _swapOn1Inch(budget, fund, swapData);
-        ICommitmentFund(commitmentFund).allocateFund(projId, fund);
+        _mintCommitment(fund);
+        projectFund[projId] = projectFund[projId].add(fund);
         emit BudgetExecuted(projId, index);
     }
 
@@ -317,10 +362,10 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         );
         require(amount == fund, "Input amount is not valid");
         require(
-            dstReceiver == commitmentFund,
-            "Swapped stable coins should go to the labor market"
+            dstReceiver == address(this),
+            "Swapped stable coins should go to this contract"
         );
-        uint256 prevBal = IERC20(baseCurrency).balanceOf(commitmentFund);
+        uint256 prevBal = IERC20(baseCurrency).balanceOf(stableReserves);
         (bool success, bytes memory result) = oneInch.call(swapData);
         require(success, "failed to swap tokens");
         uint256 swappedStables;
@@ -329,7 +374,7 @@ contract CryptoJobBoard is Governed, ReentrancyGuard {
         }
         require(
             swappedStables ==
-                IERC20(baseCurrency).balanceOf(commitmentFund).sub(prevBal),
+                IERC20(baseCurrency).balanceOf(stableReserves).sub(prevBal),
             "Swapped amount is different with the real swapped amount"
         );
     }

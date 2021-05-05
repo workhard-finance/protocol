@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../libraries/Product.sol";
 import "../libraries/ERC20Recoverer.sol";
+import "../libraries/Planter.sol";
 import "../interfaces/IVisionFarm.sol";
 import "../interfaces/IProduct.sol";
 import "../interfaces/IProductFactory.sol";
@@ -18,15 +19,14 @@ struct ProductInfo {
     uint256 stock; // amount of remaining stocks
 }
 
-contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
+contract Marketplace is Planter, ERC20Recoverer, Governed, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using SafeERC20 for ICommitmentToken;
     using SafeMath for uint256;
 
     ICommitmentToken immutable commitmentToken;
 
     IProductFactory public factory;
-
-    IVisionFarm immutable visionFarm;
 
     uint256 public taxRate = 2000; // denominator is 10,000
 
@@ -51,13 +51,11 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
         address _factory,
         address _commitmentToken,
         address _visionFarm
-    ) ERC20Recoverer() Governed() {
+    ) ERC20Recoverer() Governed() Planter(_visionFarm) {
         commitmentToken = ICommitmentToken(_commitmentToken);
         factory = IProductFactory(_factory);
-        visionFarm = IVisionFarm(_visionFarm);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
-        ICommitmentToken(_commitmentToken).approve(_visionFarm, uint256(0) - 1);
     }
 
     modifier onlyManufacturer(address product) {
@@ -87,10 +85,14 @@ contract Marketplace is ERC20Recoverer, Governed, ReentrancyGuard {
             postTax.mul(prod.profitRate).div(RATE_DENOMINATOR);
         uint256 amountToBurn = postTax.sub(forManufacturer);
         address manufacturer = IProduct(product).manufacturer();
-        commitmentToken.transferFrom(msg.sender, address(this), visionTax);
-        commitmentToken.transferFrom(msg.sender, manufacturer, forManufacturer);
+        commitmentToken.safeTransferFrom(msg.sender, address(this), visionTax);
+        commitmentToken.safeTransferFrom(
+            msg.sender,
+            manufacturer,
+            forManufacturer
+        );
         commitmentToken.burnFrom(msg.sender, amountToBurn);
-        IVisionFarm(visionFarm).plantSeeds(address(commitmentToken), visionTax);
+        _plant(address(commitmentToken), visionTax);
         // mint & give
         tokenIds = IProduct(product).deliver(msg.sender, amount);
         // decrease stock

@@ -19,58 +19,48 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface CommitmentFundInterface extends ethers.utils.Interface {
+interface StableReservesInterface extends ethers.utils.Interface {
   functions: {
-    "allocateFund(uint256,uint256)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "claim(uint256,address,uint256,bytes32,bytes)": FunctionFragment;
-    "claimed(bytes32)": FunctionFragment;
-    "compensate(uint256,address,uint256)": FunctionFragment;
-    "cryptoJobBoards(address)": FunctionFragment;
+    "baseCurrency()": FunctionFragment;
+    "commitmentToken()": FunctionFragment;
     "disable(address)": FunctionFragment;
     "disablePermanently(address)": FunctionFragment;
     "enable(address)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
+    "grant(address,uint256,bytes)": FunctionFragment;
     "init(address)": FunctionFragment;
+    "mintable()": FunctionFragment;
+    "minters(address)": FunctionFragment;
     "nonRecoverable(address)": FunctionFragment;
     "payInsteadOfWorking(uint256)": FunctionFragment;
     "permanentlyNonRecoverable(address)": FunctionFragment;
     "priceOfCommitmentToken()": FunctionFragment;
-    "projectFund(uint256)": FunctionFragment;
     "recoverERC20(address,uint256)": FunctionFragment;
     "recoverer()": FunctionFragment;
     "redeem(uint256)": FunctionFragment;
-    "remainingBudget()": FunctionFragment;
+    "reserveAndMint(uint256)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
-    "setCryptoJobBoard(address,bool)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
+    "setMinter(address,bool)": FunctionFragment;
     "setRecoverer(address)": FunctionFragment;
   };
 
-  encodeFunctionData(
-    functionFragment: "allocateFund",
-    values: [BigNumberish, BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "anarchizedAt",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "claim",
-    values: [BigNumberish, string, BigNumberish, BytesLike, BytesLike]
-  ): string;
-  encodeFunctionData(functionFragment: "claimed", values: [BytesLike]): string;
-  encodeFunctionData(
-    functionFragment: "compensate",
-    values: [BigNumberish, string, BigNumberish]
+    functionFragment: "baseCurrency",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "cryptoJobBoards",
-    values: [string]
+    functionFragment: "commitmentToken",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "disable", values: [string]): string;
   encodeFunctionData(
@@ -87,7 +77,13 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "grant",
+    values: [string, BigNumberish, BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "init", values: [string]): string;
+  encodeFunctionData(functionFragment: "mintable", values?: undefined): string;
+  encodeFunctionData(functionFragment: "minters", values: [string]): string;
   encodeFunctionData(
     functionFragment: "nonRecoverable",
     values: [string]
@@ -105,10 +101,6 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "projectFund",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "recoverERC20",
     values: [string, BigNumberish]
   ): string;
@@ -118,40 +110,37 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "remainingBudget",
-    values?: undefined
+    functionFragment: "reserveAndMint",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setAnarchyPoint",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "setCryptoJobBoard",
-    values: [string, boolean]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setGovernance",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setMinter",
+    values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "setRecoverer",
     values: [string]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "allocateFund",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "anarchizedAt",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "claimed", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "cryptoJobBoards",
+    functionFragment: "baseCurrency",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "commitmentToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "disable", data: BytesLike): Result;
@@ -169,7 +158,10 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "grant", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "mintable", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "minters", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "nonRecoverable",
     data: BytesLike
@@ -187,17 +179,13 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "projectFund",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "recoverERC20",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "recoverer", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "remainingBudget",
+    functionFragment: "reserveAndMint",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -205,13 +193,10 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setCryptoJobBoard",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setGovernance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setMinter", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setRecoverer",
     data: BytesLike
@@ -219,24 +204,20 @@ interface CommitmentFundInterface extends ethers.utils.Interface {
 
   events: {
     "Anarchized()": EventFragment;
-    "CryptoJobBoardUpdated(address)": EventFragment;
+    "MinterUpdated(address)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
-    "NewProject(bytes32,address,uint256)": EventFragment;
-    "Payed(uint256,address,uint256)": EventFragment;
     "Recovered(address,uint256)": EventFragment;
     "Redeemed(address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "CryptoJobBoardUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "MinterUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewProject"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Payed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Recovered"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Redeemed"): EventFragment;
 }
 
-export class CommitmentFund extends Contract {
+export class StableReserves extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -277,21 +258,9 @@ export class CommitmentFund extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: CommitmentFundInterface;
+  interface: StableReservesInterface;
 
   functions: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -304,54 +273,13 @@ export class CommitmentFund extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    claim(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    baseCurrency(overrides?: CallOverrides): Promise<[string]>;
 
-    "claim(uint256,address,uint256,bytes32,bytes)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "baseCurrency()"(overrides?: CallOverrides): Promise<[string]>;
 
-    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<[boolean]>;
+    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "claimed(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    compensate(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "compensate(uint256,address,uint256)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    cryptoJobBoards(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "cryptoJobBoards(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     disable(
       _contract: string,
@@ -399,15 +327,40 @@ export class CommitmentFund extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
+    grant(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "grant(address,uint256,bytes)"(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     init(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "init(address)"(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    mintable(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "mintable()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    minters(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    "minters(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -440,16 +393,6 @@ export class CommitmentFund extends Contract {
 
     "priceOfCommitmentToken()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    projectFund(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "projectFund(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     recoverERC20(
       tokenAddress: string,
       tokenAmount: BigNumberish,
@@ -476,9 +419,15 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    remainingBudget(overrides?: CallOverrides): Promise<[BigNumber]>;
+    reserveAndMint(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    "remainingBudget()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "reserveAndMint(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -490,18 +439,6 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setCryptoJobBoard(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setCryptoJobBoard(address,bool)"(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     setGovernance(
       _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -509,6 +446,18 @@ export class CommitmentFund extends Contract {
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setMinter(
+      minter: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setMinter(address,bool)"(
+      minter: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -523,18 +472,6 @@ export class CommitmentFund extends Contract {
     ): Promise<ContractTransaction>;
   };
 
-  allocateFund(
-    projId: BigNumberish,
-    budget: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "allocateFund(uint256,uint256)"(
-    projId: BigNumberish,
-    budget: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   anarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -547,51 +484,13 @@ export class CommitmentFund extends Contract {
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  claim(
-    projectId: BigNumberish,
-    to: string,
-    amount: BigNumberish,
-    salt: BytesLike,
-    sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  baseCurrency(overrides?: CallOverrides): Promise<string>;
 
-  "claim(uint256,address,uint256,bytes32,bytes)"(
-    projectId: BigNumberish,
-    to: string,
-    amount: BigNumberish,
-    salt: BytesLike,
-    sig: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-  claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+  commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-  "claimed(bytes32)"(
-    arg0: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  compensate(
-    projectId: BigNumberish,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "compensate(uint256,address,uint256)"(
-    projectId: BigNumberish,
-    to: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  cryptoJobBoards(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "cryptoJobBoards(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
 
   disable(
     _contract: string,
@@ -639,15 +538,37 @@ export class CommitmentFund extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  grant(
+    recipient: string,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "grant(address,uint256,bytes)"(
+    recipient: string,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   init(
-    cryptoJobBoard: string,
+    minter: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "init(address)"(
-    cryptoJobBoard: string,
+    minter: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  mintable(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "mintable()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  minters(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "minters(address)"(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -680,16 +601,6 @@ export class CommitmentFund extends Contract {
 
   "priceOfCommitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  projectFund(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "projectFund(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   recoverERC20(
     tokenAddress: string,
     tokenAmount: BigNumberish,
@@ -716,9 +627,15 @@ export class CommitmentFund extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  remainingBudget(overrides?: CallOverrides): Promise<BigNumber>;
+  reserveAndMint(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  "remainingBudget()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "reserveAndMint(uint256)"(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   setAnarchyPoint(
     timestamp: BigNumberish,
@@ -730,18 +647,6 @@ export class CommitmentFund extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setCryptoJobBoard(
-    cryptoJobBoard: string,
-    active: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setCryptoJobBoard(address,bool)"(
-    cryptoJobBoard: string,
-    active: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setGovernance(
     _gov: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -749,6 +654,18 @@ export class CommitmentFund extends Contract {
 
   "setGovernance(address)"(
     _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setMinter(
+    minter: string,
+    active: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setMinter(address,bool)"(
+    minter: string,
+    active: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -763,18 +680,6 @@ export class CommitmentFund extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     anarchize(overrides?: CallOverrides): Promise<void>;
 
     "anarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -783,51 +688,13 @@ export class CommitmentFund extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    claim(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    baseCurrency(overrides?: CallOverrides): Promise<string>;
 
-    "claim(uint256,address,uint256,bytes32,bytes)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<boolean>;
+    commitmentToken(overrides?: CallOverrides): Promise<string>;
 
-    "claimed(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    compensate(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "compensate(uint256,address,uint256)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    cryptoJobBoards(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-    "cryptoJobBoards(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
 
     disable(_contract: string, overrides?: CallOverrides): Promise<void>;
 
@@ -865,12 +732,34 @@ export class CommitmentFund extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
-    init(cryptoJobBoard: string, overrides?: CallOverrides): Promise<void>;
-
-    "init(address)"(
-      cryptoJobBoard: string,
+    grant(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    "grant(address,uint256,bytes)"(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    init(minter: string, overrides?: CallOverrides): Promise<void>;
+
+    "init(address)"(minter: string, overrides?: CallOverrides): Promise<void>;
+
+    mintable(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "mintable()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minters(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "minters(address)"(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -903,16 +792,6 @@ export class CommitmentFund extends Contract {
 
     "priceOfCommitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    projectFund(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "projectFund(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     recoverERC20(
       tokenAddress: string,
       tokenAmount: BigNumberish,
@@ -936,9 +815,15 @@ export class CommitmentFund extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    remainingBudget(overrides?: CallOverrides): Promise<BigNumber>;
+    reserveAndMint(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "remainingBudget()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "reserveAndMint(uint256)"(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -950,22 +835,22 @@ export class CommitmentFund extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setCryptoJobBoard(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setCryptoJobBoard(address,bool)"(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setGovernance(_gov: string, overrides?: CallOverrides): Promise<void>;
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setMinter(
+      minter: string,
+      active: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setMinter(address,bool)"(
+      minter: string,
+      active: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -980,9 +865,9 @@ export class CommitmentFund extends Contract {
   filters: {
     Anarchized(): TypedEventFilter<[], {}>;
 
-    CryptoJobBoardUpdated(
-      cryptoJobBoard: string | null
-    ): TypedEventFilter<[string], { cryptoJobBoard: string }>;
+    MinterUpdated(
+      minter: string | null
+    ): TypedEventFilter<[string], { minter: string }>;
 
     NewGovernance(
       _prevGovernance: string | null,
@@ -990,24 +875,6 @@ export class CommitmentFund extends Contract {
     ): TypedEventFilter<
       [string, string],
       { _prevGovernance: string; _newGovernance: string }
-    >;
-
-    NewProject(
-      projId: null,
-      budgetOwner: null,
-      budget: null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { projId: string; budgetOwner: string; budget: BigNumber }
-    >;
-
-    Payed(
-      projId: null,
-      to: null,
-      amount: null
-    ): TypedEventFilter<
-      [BigNumber, string, BigNumber],
-      { projId: BigNumber; to: string; amount: BigNumber }
     >;
 
     Recovered(
@@ -1025,18 +892,6 @@ export class CommitmentFund extends Contract {
   };
 
   estimateGas: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1049,54 +904,13 @@ export class CommitmentFund extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    claim(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    baseCurrency(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "claim(uint256,address,uint256,bytes32,bytes)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "baseCurrency()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    claimed(arg0: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
+    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "claimed(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    compensate(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "compensate(uint256,address,uint256)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    cryptoJobBoards(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "cryptoJobBoards(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     disable(
       _contract: string,
@@ -1144,14 +958,39 @@ export class CommitmentFund extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    grant(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "grant(address,uint256,bytes)"(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     init(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "init(address)"(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    mintable(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "mintable()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    minters(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "minters(address)"(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     nonRecoverable(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
@@ -1185,16 +1024,6 @@ export class CommitmentFund extends Contract {
 
     "priceOfCommitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    projectFund(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "projectFund(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     recoverERC20(
       tokenAddress: string,
       tokenAmount: BigNumberish,
@@ -1221,9 +1050,15 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    remainingBudget(overrides?: CallOverrides): Promise<BigNumber>;
+    reserveAndMint(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    "remainingBudget()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "reserveAndMint(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -1235,18 +1070,6 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setCryptoJobBoard(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setCryptoJobBoard(address,bool)"(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     setGovernance(
       _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1254,6 +1077,18 @@ export class CommitmentFund extends Contract {
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setMinter(
+      minter: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setMinter(address,bool)"(
+      minter: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1269,18 +1104,6 @@ export class CommitmentFund extends Contract {
   };
 
   populateTransaction: {
-    allocateFund(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "allocateFund(uint256,uint256)"(
-      projId: BigNumberish,
-      budget: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1293,55 +1116,13 @@ export class CommitmentFund extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    claim(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    baseCurrency(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "claim(uint256,address,uint256,bytes32,bytes)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      salt: BytesLike,
-      sig: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    "baseCurrency()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    claimed(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "claimed(bytes32)"(
-      arg0: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    compensate(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "compensate(uint256,address,uint256)"(
-      projectId: BigNumberish,
-      to: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    cryptoJobBoards(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "cryptoJobBoards(address)"(
-      arg0: string,
+    "commitmentToken()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1393,14 +1174,42 @@ export class CommitmentFund extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    grant(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "grant(address,uint256,bytes)"(
+      recipient: string,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     init(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "init(address)"(
-      cryptoJobBoard: string,
+      minter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mintable(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "mintable()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    minters(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "minters(address)"(
+      arg0: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     nonRecoverable(
@@ -1441,16 +1250,6 @@ export class CommitmentFund extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    projectFund(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "projectFund(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     recoverERC20(
       tokenAddress: string,
       tokenAmount: BigNumberish,
@@ -1477,10 +1276,14 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    remainingBudget(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    reserveAndMint(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
-    "remainingBudget()"(
-      overrides?: CallOverrides
+    "reserveAndMint(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setAnarchyPoint(
@@ -1493,18 +1296,6 @@ export class CommitmentFund extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setCryptoJobBoard(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setCryptoJobBoard(address,bool)"(
-      cryptoJobBoard: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     setGovernance(
       _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1512,6 +1303,18 @@ export class CommitmentFund extends Contract {
 
     "setGovernance(address)"(
       _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setMinter(
+      minter: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setMinter(address,bool)"(
+      minter: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
