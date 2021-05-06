@@ -4,161 +4,146 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "../libraries/Product.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
 import "../libraries/ERC20Recoverer.sol";
 import "../libraries/Planter.sol";
 import "../interfaces/IVisionFarm.sol";
-import "../interfaces/IProduct.sol";
-import "../interfaces/IProductFactory.sol";
 import "../interfaces/ICommitmentToken.sol";
+import "../interfaces/IMarketplace.sol";
 import "../governance/Governed.sol";
 
-struct ProductInfo {
-    uint256 price; // in commitment token
-    uint256 profitRate; // amount goes to the manufacturer
-    uint256 stock; // amount of remaining stocks
-}
+contract Marketplace is
+    Planter,
+    ERC20Recoverer,
+    Governed,
+    ReentrancyGuard,
+    ERC1155Burnable,
+    IMarketplace
+{
+    struct Product {
+        address manufacturer;
+        uint256 totalSupply;
+        uint256 maxSupply;
+        uint256 price;
+        uint256 profitRate;
+        string uri;
+    }
 
-contract Marketplace is Planter, ERC20Recoverer, Governed, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeERC20 for ICommitmentToken;
     using SafeMath for uint256;
 
     ICommitmentToken immutable commitmentToken;
 
-    IProductFactory public factory;
-
     uint256 public taxRate = 2000; // denominator is 10,000
 
-    mapping(address => ProductInfo) public products;
-
-    event FactoryChanged(address prevFactory, address newFactory);
-
-    event TaxRateUpdated(uint256 taxRate);
-
-    event ProductLaunched(address indexed manufacturer, address product);
-
-    event PriceUpdated(address indexed product, uint256 price);
-
-    event ProfitRateUpdated(address indexed product, uint256 profitRate);
-
-    event Supply(address indexed product, uint256 amount);
+    mapping(uint256 => Product) public override products;
 
     uint256 public constant RATE_DENOMINATOR = 10000;
 
-    constructor(
-        address _gov,
-        address _factory,
-        address _commitmentToken,
-        address _visionFarm
-    ) ERC20Recoverer() Governed() Planter(_visionFarm) {
-        commitmentToken = ICommitmentToken(_commitmentToken);
-        factory = IProductFactory(_factory);
-        ERC20Recoverer.setRecoverer(_gov);
-        Governed.setGovernance(_gov);
-    }
-
-    modifier onlyManufacturer(address product) {
+    modifier onlyManufacturer(uint256 id) {
         require(
-            IProduct(product).manufacturer() == msg.sender,
-            "Not the manufacturer."
+            msg.sender == products[id].manufacturer,
+            "allowed only for manufacturer"
         );
         _;
     }
 
-    function buy(address product, uint256 amount)
-        public
-        nonReentrant
-        returns (uint256[] memory tokenIds)
-    {
+    constructor(
+        address _gov,
+        address _commitmentToken,
+        address _visionFarm
+    ) ERC20Recoverer() Governed() Planter(_visionFarm) ERC1155("") {
+        commitmentToken = ICommitmentToken(_commitmentToken);
+        ERC20Recoverer.setRecoverer(_gov);
+        Governed.setGovernance(_gov);
+    }
+
+    function buy(
+        uint256 id,
+        address to,
+        uint256 amount
+    ) public override nonReentrant {
         require(amount > 0, "cannot buy 0");
         // check the product is for sale
-        ProductInfo storage prod = products[product];
-        require(amount <= prod.stock, "Sold out");
-        require(prod.stock > 0, "Not for sale.");
-        uint256 totalPayment = prod.price.mul(amount); // SafeMath prevents overflow
+        Product storage product = products[id];
+        require(product.manufacturer != address(0), "Product not exists");
+        uint256 stock = product.maxSupply - product.totalSupply;
+        require(product.maxSupply == 0 || amount <= stock, "Sold out");
+        require(product.maxSupply == 0 || stock > 0, "Not for sale.");
+        uint256 totalPayment = product.price.mul(amount); // SafeMath prevents overflow
         // Vision Tax
         uint256 visionTax = totalPayment.mul(taxRate).div(RATE_DENOMINATOR);
         // Burn tokens
         uint256 postTax = totalPayment.sub(visionTax);
         uint256 forManufacturer =
-            postTax.mul(prod.profitRate).div(RATE_DENOMINATOR);
+            postTax.mul(product.profitRate).div(RATE_DENOMINATOR);
         uint256 amountToBurn = postTax.sub(forManufacturer);
-        address manufacturer = IProduct(product).manufacturer();
         commitmentToken.safeTransferFrom(msg.sender, address(this), visionTax);
         commitmentToken.safeTransferFrom(
             msg.sender,
-            manufacturer,
+            product.manufacturer,
             forManufacturer
         );
         commitmentToken.burnFrom(msg.sender, amountToBurn);
         _plant(address(commitmentToken), visionTax);
         // mint & give
-        tokenIds = IProduct(product).deliver(msg.sender, amount);
-        // decrease stock
-        products[product].stock = products[product].stock.sub(amount);
-        return tokenIds;
+        _mint(to, id, amount, "");
     }
 
-    function launchNewProduct(
-        string memory _name,
-        string memory _symbol,
-        string memory _baseURI,
-        string memory _description,
+    function manufacture(
+        string memory cid,
         uint256 profitRate,
-        uint256 price,
-        uint256 initialStock
-    ) public {
-        address prodAddr =
-            IProductFactory(factory).create(
-                msg.sender,
-                address(this),
-                0,
-                _name,
-                _symbol,
-                _baseURI,
-                _description
-            );
-        setPrice(prodAddr, price);
-        setProfitRate(prodAddr, profitRate);
-        addStocks(prodAddr, initialStock);
-        emit ProductLaunched(msg.sender, prodAddr);
+        uint256 price
+    ) external override {
+        uint256 id = uint256(keccak256(bytes(cid)));
+        products[id] = Product(msg.sender, 0, 0, price, profitRate, cid);
+        emit NewProduct(id, msg.sender, cid);
     }
 
-    function launchNewProductWithMaxSupply(
-        string memory _name,
-        string memory _symbol,
-        string memory _baseURI,
-        string memory _description,
+    function manufactureLimitedEdition(
+        string memory cid,
         uint256 profitRate,
         uint256 price,
-        uint256 initialStock,
         uint256 maxSupply
-    ) public {
-        address prodAddr =
-            IProductFactory(factory).create(
-                msg.sender,
-                address(this),
-                maxSupply,
-                _name,
-                _symbol,
-                _baseURI,
-                _description
-            );
-        setPrice(prodAddr, price);
-        setProfitRate(prodAddr, profitRate);
-        addStocks(prodAddr, initialStock);
-        emit ProductLaunched(msg.sender, prodAddr);
+    ) external override {
+        uint256 id = uint256(keccak256(bytes(cid)));
+        products[id] = Product(
+            msg.sender,
+            0,
+            maxSupply,
+            price,
+            profitRate,
+            cid
+        );
+        emit NewProduct(id, msg.sender, cid);
     }
 
-    function setPrice(address product, uint256 price)
+    /**
+     * @notice Set max supply and make it a limited edition.
+     */
+    function setMaxSupply(uint256 id, uint256 _maxSupply)
+        external
+        override
+        onlyManufacturer(id)
+    {
+        require(products[id].maxSupply == 0, "Max supply is already set");
+        require(
+            products[id].totalSupply <= _maxSupply,
+            "Max supply is less than current supply"
+        );
+        products[id].maxSupply = _maxSupply;
+    }
+
+    function setPrice(uint256 id, uint256 price)
         public
-        onlyManufacturer(product)
+        override
+        onlyManufacturer(id)
     {
         // to prevent overflow
         require(price * 1000000000 > price, "Cannot be expensive too much");
-        products[product].price = price;
-        emit PriceUpdated(product, price);
+        products[id].price = price;
+        emit PriceUpdated(id, price);
     }
 
     /**
@@ -167,30 +152,61 @@ contract Marketplace is Planter, ERC20Recoverer, Governed, ReentrancyGuard {
      *      2000 DCT will go to the vision farm, 4000 DCT will be burnt, and 4000 will be given
      *      to the manufacturer.
      */
-    function setProfitRate(address product, uint256 profitRate)
+    function setProfitRate(uint256 id, uint256 profitRate)
         public
-        onlyManufacturer(product)
+        override
+        onlyManufacturer(id)
     {
         require(profitRate <= RATE_DENOMINATOR, "Profit rate is too high");
-        products[product].profitRate = profitRate;
-        emit ProfitRateUpdated(product, profitRate);
+        products[id].profitRate = profitRate;
+        emit ProfitRateUpdated(id, profitRate);
     }
 
-    function addStocks(address product, uint256 amount)
-        public
-        onlyManufacturer(product)
-    {
-        products[product].stock = products[product].stock.add(amount);
-        emit Supply(product, amount);
-    }
-
-    function setTaxRate(uint256 rate) public governed {
+    function setTaxRate(uint256 rate) public override governed {
         require(rate <= RATE_DENOMINATOR);
         taxRate = rate;
     }
 
-    function setFactory(address _factory) public governed {
-        emit FactoryChanged(address(factory), _factory);
-        factory = IProductFactory(_factory);
+    function uri(uint256 id)
+        external
+        view
+        override(IERC1155MetadataURI, ERC1155)
+        returns (string memory)
+    {
+        return string(abi.encodePacked("ipfs://", products[id].uri));
+    }
+
+    function _mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) internal override {
+        uint256 newSupply = products[id].totalSupply.add(amount);
+        require(
+            products[id].maxSupply == 0 || newSupply <= products[id].maxSupply,
+            "Sold out"
+        );
+        products[id].totalSupply = newSupply;
+        super._mint(account, id, amount, data);
+    }
+
+    function _mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal override {
+        for (uint256 i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            uint256 newSupply = products[id].totalSupply.add(amounts[i]);
+            require(
+                products[id].maxSupply == 0 ||
+                    newSupply <= products[id].maxSupply,
+                "Sold out"
+            );
+            products[id].totalSupply = newSupply;
+        }
+        super._mintBatch(to, ids, amounts, data);
     }
 }

@@ -22,32 +22,40 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface MarketplaceInterface extends ethers.utils.Interface {
   functions: {
     "RATE_DENOMINATOR()": FunctionFragment;
-    "addStocks(address,uint256)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "buy(address,uint256)": FunctionFragment;
+    "balanceOf(address,uint256)": FunctionFragment;
+    "balanceOfBatch(address[],uint256[])": FunctionFragment;
+    "burn(address,uint256,uint256)": FunctionFragment;
+    "burnBatch(address,uint256[],uint256[])": FunctionFragment;
+    "buy(uint256,address,uint256)": FunctionFragment;
     "disable(address)": FunctionFragment;
     "disablePermanently(address)": FunctionFragment;
     "enable(address)": FunctionFragment;
-    "factory()": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
-    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)": FunctionFragment;
-    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)": FunctionFragment;
+    "isApprovedForAll(address,address)": FunctionFragment;
+    "manufacture(string,uint256,uint256)": FunctionFragment;
+    "manufactureLimitedEdition(string,uint256,uint256,uint256)": FunctionFragment;
     "nonRecoverable(address)": FunctionFragment;
     "permanentlyNonRecoverable(address)": FunctionFragment;
-    "products(address)": FunctionFragment;
+    "products(uint256)": FunctionFragment;
     "recoverERC20(address,uint256)": FunctionFragment;
     "recoverer()": FunctionFragment;
+    "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
+    "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
-    "setFactory(address)": FunctionFragment;
+    "setApprovalForAll(address,bool)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
-    "setPrice(address,uint256)": FunctionFragment;
-    "setProfitRate(address,uint256)": FunctionFragment;
+    "setMaxSupply(uint256,uint256)": FunctionFragment;
+    "setPrice(uint256,uint256)": FunctionFragment;
+    "setProfitRate(uint256,uint256)": FunctionFragment;
     "setRecoverer(address)": FunctionFragment;
     "setTaxRate(uint256)": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
     "taxRate()": FunctionFragment;
+    "uri(uint256)": FunctionFragment;
     "visionFarm()": FunctionFragment;
   };
 
@@ -55,18 +63,30 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     functionFragment: "RATE_DENOMINATOR",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "addStocks",
-    values: [string, BigNumberish]
-  ): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "anarchizedAt",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "buy",
+    functionFragment: "balanceOf",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfBatch",
+    values: [string[], BigNumberish[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burn",
+    values: [string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnBatch",
+    values: [string, BigNumberish[], BigNumberish[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "buy",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "disable", values: [string]): string;
   encodeFunctionData(
@@ -74,7 +94,6 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "enable", values: [string]): string;
-  encodeFunctionData(functionFragment: "factory", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "forceAnarchize",
     values?: undefined
@@ -85,29 +104,16 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "launchNewProduct",
-    values: [
-      string,
-      string,
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ]
+    functionFragment: "isApprovedForAll",
+    values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "launchNewProductWithMaxSupply",
-    values: [
-      string,
-      string,
-      string,
-      string,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish,
-      BigNumberish
-    ]
+    functionFragment: "manufacture",
+    values: [string, BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "manufactureLimitedEdition",
+    values: [string, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "nonRecoverable",
@@ -117,28 +123,46 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     functionFragment: "permanentlyNonRecoverable",
     values: [string]
   ): string;
-  encodeFunctionData(functionFragment: "products", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "products",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "recoverERC20",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "recoverer", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "safeBatchTransferFrom",
+    values: [string, string, BigNumberish[], BigNumberish[], BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "safeTransferFrom",
+    values: [string, string, BigNumberish, BigNumberish, BytesLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setAnarchyPoint",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setFactory", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setApprovalForAll",
+    values: [string, boolean]
+  ): string;
   encodeFunctionData(
     functionFragment: "setGovernance",
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "setMaxSupply",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setPrice",
-    values: [string, BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setProfitRate",
-    values: [string, BigNumberish]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setRecoverer",
@@ -148,7 +172,12 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     functionFragment: "setTaxRate",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
+  ): string;
   encodeFunctionData(functionFragment: "taxRate", values?: undefined): string;
+  encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "visionFarm",
     values?: undefined
@@ -158,12 +187,18 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     functionFragment: "RATE_DENOMINATOR",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "addStocks", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "anarchizedAt",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfBatch",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "buy", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "disable", data: BytesLike): Result;
   decodeFunctionResult(
@@ -171,7 +206,6 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "enable", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "factory", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchize",
     data: BytesLike
@@ -182,11 +216,15 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "launchNewProduct",
+    functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "launchNewProductWithMaxSupply",
+    functionFragment: "manufacture",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "manufactureLimitedEdition",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -204,12 +242,27 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "recoverer", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "safeBatchTransferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "safeTransferFrom",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setAnarchyPoint",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setFactory", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "setGovernance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setMaxSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setPrice", data: BytesLike): Result;
@@ -222,30 +275,39 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setTaxRate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "taxRate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
-    "FactoryChanged(address,address)": EventFragment;
+    "ApprovalForAll(address,address,bool)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
-    "PriceUpdated(address,uint256)": EventFragment;
-    "ProductLaunched(address,address)": EventFragment;
-    "ProfitRateUpdated(address,uint256)": EventFragment;
+    "NewProduct(uint256,address,string)": EventFragment;
+    "PriceUpdated(uint256,uint256)": EventFragment;
+    "ProfitRateUpdated(uint256,uint256)": EventFragment;
     "Recovered(address,uint256)": EventFragment;
-    "Supply(address,uint256)": EventFragment;
     "TaxRateUpdated(uint256)": EventFragment;
+    "TransferBatch(address,address,address,uint256[],uint256[])": EventFragment;
+    "TransferSingle(address,address,address,uint256,uint256)": EventFragment;
+    "URI(string,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "FactoryChanged"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewProduct"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PriceUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ProductLaunched"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProfitRateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Recovered"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Supply"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TaxRateUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferBatch"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TransferSingle"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "URI"): EventFragment;
 }
 
 export class Marketplace extends Contract {
@@ -296,18 +358,6 @@ export class Marketplace extends Contract {
 
     "RATE_DENOMINATOR()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    addStocks(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "addStocks(address,uint256)"(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -320,14 +370,68 @@ export class Marketplace extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    balanceOf(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "balanceOf(address,uint256)"(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOfBatch(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
+
+    "balanceOfBatch(address[],uint256[])"(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]]>;
+
+    burn(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "burn(address,uint256,uint256)"(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    burnBatch(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "burnBatch(address,uint256[],uint256[])"(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     buy(
-      product: string,
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "buy(address,uint256)"(
-      product: string,
+    "buy(uint256,address,uint256)"(
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -362,10 +466,6 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    factory(overrides?: CallOverrides): Promise<[string]>;
-
-    "factory()"(overrides?: CallOverrides): Promise<[string]>;
-
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -382,48 +482,44 @@ export class Marketplace extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
-    launchNewProduct(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    isApprovedForAll(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "isApprovedForAll(address,address)"(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    manufacture(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufacture(string,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    launchNewProductWithMaxSupply(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    manufactureLimitedEdition(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufactureLimitedEdition(string,uint256,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -446,24 +542,30 @@ export class Marketplace extends Contract {
     ): Promise<[boolean]>;
 
     products(
-      arg0: string,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+        manufacturer: string;
+        totalSupply: BigNumber;
+        maxSupply: BigNumber;
         price: BigNumber;
         profitRate: BigNumber;
-        stock: BigNumber;
+        uri: string;
       }
     >;
 
-    "products(address)"(
-      arg0: string,
+    "products(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+        manufacturer: string;
+        totalSupply: BigNumber;
+        maxSupply: BigNumber;
         price: BigNumber;
         profitRate: BigNumber;
-        stock: BigNumber;
+        uri: string;
       }
     >;
 
@@ -483,6 +585,42 @@ export class Marketplace extends Contract {
 
     "recoverer()"(overrides?: CallOverrides): Promise<[string]>;
 
+    safeBatchTransferFrom(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    safeTransferFrom(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "safeTransferFrom(address,address,uint256,uint256,bytes)"(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -493,13 +631,15 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setFactory(
-      _factory: string,
+    setApprovalForAll(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "setFactory(address)"(
-      _factory: string,
+    "setApprovalForAll(address,bool)"(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -513,26 +653,38 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setMaxSupply(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setMaxSupply(uint256,uint256)"(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setPrice(
-      product: string,
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "setPrice(address,uint256)"(
-      product: string,
+    "setPrice(uint256,uint256)"(
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     setProfitRate(
-      product: string,
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "setProfitRate(address,uint256)"(
-      product: string,
+    "setProfitRate(uint256,uint256)"(
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -557,9 +709,26 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     taxRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    uri(id: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    "uri(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     visionFarm(overrides?: CallOverrides): Promise<[string]>;
 
@@ -569,18 +738,6 @@ export class Marketplace extends Contract {
   RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
   "RATE_DENOMINATOR()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  addStocks(
-    product: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "addStocks(address,uint256)"(
-    product: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   anarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -594,14 +751,68 @@ export class Marketplace extends Contract {
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  balanceOf(
+    account: string,
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "balanceOf(address,uint256)"(
+    account: string,
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOfBatch(
+    accounts: string[],
+    ids: BigNumberish[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  "balanceOfBatch(address[],uint256[])"(
+    accounts: string[],
+    ids: BigNumberish[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  burn(
+    account: string,
+    id: BigNumberish,
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "burn(address,uint256,uint256)"(
+    account: string,
+    id: BigNumberish,
+    value: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  burnBatch(
+    account: string,
+    ids: BigNumberish[],
+    values: BigNumberish[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "burnBatch(address,uint256[],uint256[])"(
+    account: string,
+    ids: BigNumberish[],
+    values: BigNumberish[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   buy(
-    product: string,
+    id: BigNumberish,
+    to: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "buy(address,uint256)"(
-    product: string,
+  "buy(uint256,address,uint256)"(
+    id: BigNumberish,
+    to: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -636,10 +847,6 @@ export class Marketplace extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  factory(overrides?: CallOverrides): Promise<string>;
-
-  "factory()"(overrides?: CallOverrides): Promise<string>;
-
   forceAnarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -656,48 +863,44 @@ export class Marketplace extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
-  launchNewProduct(
-    _name: string,
-    _symbol: string,
-    _baseURI: string,
-    _description: string,
+  isApprovedForAll(
+    account: string,
+    operator: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "isApprovedForAll(address,address)"(
+    account: string,
+    operator: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  manufacture(
+    cid: string,
     profitRate: BigNumberish,
     price: BigNumberish,
-    initialStock: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
-    _name: string,
-    _symbol: string,
-    _baseURI: string,
-    _description: string,
+  "manufacture(string,uint256,uint256)"(
+    cid: string,
     profitRate: BigNumberish,
     price: BigNumberish,
-    initialStock: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  launchNewProductWithMaxSupply(
-    _name: string,
-    _symbol: string,
-    _baseURI: string,
-    _description: string,
+  manufactureLimitedEdition(
+    cid: string,
     profitRate: BigNumberish,
     price: BigNumberish,
-    initialStock: BigNumberish,
     maxSupply: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
-    _name: string,
-    _symbol: string,
-    _baseURI: string,
-    _description: string,
+  "manufactureLimitedEdition(string,uint256,uint256,uint256)"(
+    cid: string,
     profitRate: BigNumberish,
     price: BigNumberish,
-    initialStock: BigNumberish,
     maxSupply: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -720,24 +923,30 @@ export class Marketplace extends Contract {
   ): Promise<boolean>;
 
   products(
-    arg0: string,
+    arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+      manufacturer: string;
+      totalSupply: BigNumber;
+      maxSupply: BigNumber;
       price: BigNumber;
       profitRate: BigNumber;
-      stock: BigNumber;
+      uri: string;
     }
   >;
 
-  "products(address)"(
-    arg0: string,
+  "products(uint256)"(
+    arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
+    [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+      manufacturer: string;
+      totalSupply: BigNumber;
+      maxSupply: BigNumber;
       price: BigNumber;
       profitRate: BigNumber;
-      stock: BigNumber;
+      uri: string;
     }
   >;
 
@@ -757,6 +966,42 @@ export class Marketplace extends Contract {
 
   "recoverer()"(overrides?: CallOverrides): Promise<string>;
 
+  safeBatchTransferFrom(
+    from: string,
+    to: string,
+    ids: BigNumberish[],
+    amounts: BigNumberish[],
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"(
+    from: string,
+    to: string,
+    ids: BigNumberish[],
+    amounts: BigNumberish[],
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  safeTransferFrom(
+    from: string,
+    to: string,
+    id: BigNumberish,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "safeTransferFrom(address,address,uint256,uint256,bytes)"(
+    from: string,
+    to: string,
+    id: BigNumberish,
+    amount: BigNumberish,
+    data: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setAnarchyPoint(
     timestamp: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -767,13 +1012,15 @@ export class Marketplace extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setFactory(
-    _factory: string,
+  setApprovalForAll(
+    operator: string,
+    approved: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "setFactory(address)"(
-    _factory: string,
+  "setApprovalForAll(address,bool)"(
+    operator: string,
+    approved: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -787,26 +1034,38 @@ export class Marketplace extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setMaxSupply(
+    id: BigNumberish,
+    _maxSupply: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setMaxSupply(uint256,uint256)"(
+    id: BigNumberish,
+    _maxSupply: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setPrice(
-    product: string,
+    id: BigNumberish,
     price: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "setPrice(address,uint256)"(
-    product: string,
+  "setPrice(uint256,uint256)"(
+    id: BigNumberish,
     price: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   setProfitRate(
-    product: string,
+    id: BigNumberish,
     profitRate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "setProfitRate(address,uint256)"(
-    product: string,
+  "setProfitRate(uint256,uint256)"(
+    id: BigNumberish,
     profitRate: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -831,9 +1090,23 @@ export class Marketplace extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "supportsInterface(bytes4)"(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   taxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
   "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  uri(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  "uri(uint256)"(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   visionFarm(overrides?: CallOverrides): Promise<string>;
 
@@ -844,18 +1117,6 @@ export class Marketplace extends Contract {
 
     "RATE_DENOMINATOR()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    addStocks(
-      product: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "addStocks(address,uint256)"(
-      product: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     anarchize(overrides?: CallOverrides): Promise<void>;
 
     "anarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -864,17 +1125,71 @@ export class Marketplace extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    buy(
-      product: string,
-      amount: BigNumberish,
+    balanceOf(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOf(address,uint256)"(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfBatch(
+      accounts: string[],
+      ids: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
 
-    "buy(address,uint256)"(
-      product: string,
-      amount: BigNumberish,
+    "balanceOfBatch(address[],uint256[])"(
+      accounts: string[],
+      ids: BigNumberish[],
       overrides?: CallOverrides
     ): Promise<BigNumber[]>;
+
+    burn(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "burn(address,uint256,uint256)"(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    burnBatch(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "burnBatch(address,uint256[],uint256[])"(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    buy(
+      id: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "buy(uint256,address,uint256)"(
+      id: BigNumberish,
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     disable(_contract: string, overrides?: CallOverrides): Promise<void>;
 
@@ -900,10 +1215,6 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    factory(overrides?: CallOverrides): Promise<string>;
-
-    "factory()"(overrides?: CallOverrides): Promise<string>;
-
     forceAnarchize(overrides?: CallOverrides): Promise<void>;
 
     "forceAnarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -916,48 +1227,44 @@ export class Marketplace extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
-    launchNewProduct(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    isApprovedForAll(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "isApprovedForAll(address,address)"(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    manufacture(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufacture(string,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    launchNewProductWithMaxSupply(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    manufactureLimitedEdition(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufactureLimitedEdition(string,uint256,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -980,24 +1287,30 @@ export class Marketplace extends Contract {
     ): Promise<boolean>;
 
     products(
-      arg0: string,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+        manufacturer: string;
+        totalSupply: BigNumber;
+        maxSupply: BigNumber;
         price: BigNumber;
         profitRate: BigNumber;
-        stock: BigNumber;
+        uri: string;
       }
     >;
 
-    "products(address)"(
-      arg0: string,
+    "products(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
+      [string, BigNumber, BigNumber, BigNumber, BigNumber, string] & {
+        manufacturer: string;
+        totalSupply: BigNumber;
+        maxSupply: BigNumber;
         price: BigNumber;
         profitRate: BigNumber;
-        stock: BigNumber;
+        uri: string;
       }
     >;
 
@@ -1017,6 +1330,42 @@ export class Marketplace extends Contract {
 
     "recoverer()"(overrides?: CallOverrides): Promise<string>;
 
+    safeBatchTransferFrom(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    safeTransferFrom(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "safeTransferFrom(address,address,uint256,uint256,bytes)"(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: CallOverrides
@@ -1027,10 +1376,15 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setFactory(_factory: string, overrides?: CallOverrides): Promise<void>;
+    setApprovalForAll(
+      operator: string,
+      approved: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "setFactory(address)"(
-      _factory: string,
+    "setApprovalForAll(address,bool)"(
+      operator: string,
+      approved: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1041,26 +1395,38 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setMaxSupply(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setMaxSupply(uint256,uint256)"(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setPrice(
-      product: string,
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setPrice(address,uint256)"(
-      product: string,
+    "setPrice(uint256,uint256)"(
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     setProfitRate(
-      product: string,
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "setProfitRate(address,uint256)"(
-      product: string,
+    "setProfitRate(uint256,uint256)"(
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1079,9 +1445,26 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     taxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    uri(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    "uri(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     visionFarm(overrides?: CallOverrides): Promise<string>;
 
@@ -1091,12 +1474,13 @@ export class Marketplace extends Contract {
   filters: {
     Anarchized(): TypedEventFilter<[], {}>;
 
-    FactoryChanged(
-      prevFactory: null,
-      newFactory: null
+    ApprovalForAll(
+      account: string | null,
+      operator: string | null,
+      approved: null
     ): TypedEventFilter<
-      [string, string],
-      { prevFactory: string; newFactory: string }
+      [string, string, boolean],
+      { account: string; operator: string; approved: boolean }
     >;
 
     NewGovernance(
@@ -1107,28 +1491,29 @@ export class Marketplace extends Contract {
       { _prevGovernance: string; _newGovernance: string }
     >;
 
-    PriceUpdated(
-      product: string | null,
-      price: null
+    NewProduct(
+      id: null,
+      manufacturer: null,
+      uri: null
     ): TypedEventFilter<
-      [string, BigNumber],
-      { product: string; price: BigNumber }
+      [BigNumber, string, string],
+      { id: BigNumber; manufacturer: string; uri: string }
     >;
 
-    ProductLaunched(
-      manufacturer: string | null,
-      product: null
+    PriceUpdated(
+      productId: BigNumberish | null,
+      price: null
     ): TypedEventFilter<
-      [string, string],
-      { manufacturer: string; product: string }
+      [BigNumber, BigNumber],
+      { productId: BigNumber; price: BigNumber }
     >;
 
     ProfitRateUpdated(
-      product: string | null,
+      productId: BigNumberish | null,
       profitRate: null
     ): TypedEventFilter<
-      [string, BigNumber],
-      { product: string; profitRate: BigNumber }
+      [BigNumber, BigNumber],
+      { productId: BigNumber; profitRate: BigNumber }
     >;
 
     Recovered(
@@ -1139,35 +1524,54 @@ export class Marketplace extends Contract {
       { token: string; amount: BigNumber }
     >;
 
-    Supply(
-      product: string | null,
-      amount: null
-    ): TypedEventFilter<
-      [string, BigNumber],
-      { product: string; amount: BigNumber }
-    >;
-
     TaxRateUpdated(
       taxRate: null
     ): TypedEventFilter<[BigNumber], { taxRate: BigNumber }>;
+
+    TransferBatch(
+      operator: string | null,
+      from: string | null,
+      to: string | null,
+      ids: null,
+      values: null
+    ): TypedEventFilter<
+      [string, string, string, BigNumber[], BigNumber[]],
+      {
+        operator: string;
+        from: string;
+        to: string;
+        ids: BigNumber[];
+        values: BigNumber[];
+      }
+    >;
+
+    TransferSingle(
+      operator: string | null,
+      from: string | null,
+      to: string | null,
+      id: null,
+      value: null
+    ): TypedEventFilter<
+      [string, string, string, BigNumber, BigNumber],
+      {
+        operator: string;
+        from: string;
+        to: string;
+        id: BigNumber;
+        value: BigNumber;
+      }
+    >;
+
+    URI(
+      value: null,
+      id: BigNumberish | null
+    ): TypedEventFilter<[string, BigNumber], { value: string; id: BigNumber }>;
   };
 
   estimateGas: {
     RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
     "RATE_DENOMINATOR()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    addStocks(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "addStocks(address,uint256)"(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1181,14 +1585,68 @@ export class Marketplace extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    balanceOf(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOf(address,uint256)"(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfBatch(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfBatch(address[],uint256[])"(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    burn(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "burn(address,uint256,uint256)"(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    burnBatch(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "burnBatch(address,uint256[],uint256[])"(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     buy(
-      product: string,
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "buy(address,uint256)"(
-      product: string,
+    "buy(uint256,address,uint256)"(
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1223,10 +1681,6 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    factory(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "factory()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1243,48 +1697,44 @@ export class Marketplace extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    launchNewProduct(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    isApprovedForAll(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "isApprovedForAll(address,address)"(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    manufacture(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufacture(string,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    launchNewProductWithMaxSupply(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    manufactureLimitedEdition(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufactureLimitedEdition(string,uint256,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1306,10 +1756,10 @@ export class Marketplace extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    products(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    products(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "products(address)"(
-      arg0: string,
+    "products(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1329,6 +1779,42 @@ export class Marketplace extends Contract {
 
     "recoverer()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    safeBatchTransferFrom(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    safeTransferFrom(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "safeTransferFrom(address,address,uint256,uint256,bytes)"(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1339,13 +1825,15 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setFactory(
-      _factory: string,
+    setApprovalForAll(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setFactory(address)"(
-      _factory: string,
+    "setApprovalForAll(address,bool)"(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1359,26 +1847,38 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setMaxSupply(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setMaxSupply(uint256,uint256)"(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setPrice(
-      product: string,
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setPrice(address,uint256)"(
-      product: string,
+    "setPrice(uint256,uint256)"(
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     setProfitRate(
-      product: string,
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setProfitRate(address,uint256)"(
-      product: string,
+    "setProfitRate(uint256,uint256)"(
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1403,9 +1903,26 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     taxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    uri(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "uri(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1417,18 +1934,6 @@ export class Marketplace extends Contract {
 
     "RATE_DENOMINATOR()"(
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    addStocks(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "addStocks(address,uint256)"(
-      product: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     anarchize(
@@ -1443,14 +1948,68 @@ export class Marketplace extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    balanceOf(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOf(address,uint256)"(
+      account: string,
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfBatch(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOfBatch(address[],uint256[])"(
+      accounts: string[],
+      ids: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    burn(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "burn(address,uint256,uint256)"(
+      account: string,
+      id: BigNumberish,
+      value: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    burnBatch(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "burnBatch(address,uint256[],uint256[])"(
+      account: string,
+      ids: BigNumberish[],
+      values: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     buy(
-      product: string,
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buy(address,uint256)"(
-      product: string,
+    "buy(uint256,address,uint256)"(
+      id: BigNumberish,
+      to: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1485,10 +2044,6 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    factory(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "factory()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1507,48 +2062,44 @@ export class Marketplace extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    launchNewProduct(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    isApprovedForAll(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "isApprovedForAll(address,address)"(
+      account: string,
+      operator: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    manufacture(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "launchNewProduct(string,string,string,string,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufacture(string,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    launchNewProductWithMaxSupply(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    manufactureLimitedEdition(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "launchNewProductWithMaxSupply(string,string,string,string,uint256,uint256,uint256,uint256)"(
-      _name: string,
-      _symbol: string,
-      _baseURI: string,
-      _description: string,
+    "manufactureLimitedEdition(string,uint256,uint256,uint256)"(
+      cid: string,
       profitRate: BigNumberish,
       price: BigNumberish,
-      initialStock: BigNumberish,
       maxSupply: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1574,12 +2125,12 @@ export class Marketplace extends Contract {
     ): Promise<PopulatedTransaction>;
 
     products(
-      arg0: string,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "products(address)"(
-      arg0: string,
+    "products(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1599,6 +2150,42 @@ export class Marketplace extends Contract {
 
     "recoverer()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    safeBatchTransferFrom(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"(
+      from: string,
+      to: string,
+      ids: BigNumberish[],
+      amounts: BigNumberish[],
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    safeTransferFrom(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "safeTransferFrom(address,address,uint256,uint256,bytes)"(
+      from: string,
+      to: string,
+      id: BigNumberish,
+      amount: BigNumberish,
+      data: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1609,13 +2196,15 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setFactory(
-      _factory: string,
+    setApprovalForAll(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "setFactory(address)"(
-      _factory: string,
+    "setApprovalForAll(address,bool)"(
+      operator: string,
+      approved: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1629,26 +2218,38 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setMaxSupply(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setMaxSupply(uint256,uint256)"(
+      id: BigNumberish,
+      _maxSupply: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setPrice(
-      product: string,
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "setPrice(address,uint256)"(
-      product: string,
+    "setPrice(uint256,uint256)"(
+      id: BigNumberish,
       price: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     setProfitRate(
-      product: string,
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "setProfitRate(address,uint256)"(
-      product: string,
+    "setProfitRate(uint256,uint256)"(
+      id: BigNumberish,
       profitRate: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1673,9 +2274,29 @@ export class Marketplace extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     taxRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "taxRate()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    uri(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "uri(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

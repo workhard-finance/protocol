@@ -20,11 +20,7 @@ async function main() {
     deployed[network].CryptoJobBoard,
     signer
   );
-  await cryptoJobBoard.createProject(
-    "Workhard Core Dev",
-    "https://hackmd.io/something",
-    ""
-  );
+  await cryptoJobBoard.createProject("sampleuri");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

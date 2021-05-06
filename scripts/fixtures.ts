@@ -43,7 +43,6 @@ export interface AppFixture extends MiningFixture {
   cryptoJobBoard: Contract;
   stableReserves: Contract;
   marketplace: Contract;
-  productFactory: Contract;
 }
 
 export async function getTokenFixture(): Promise<TokenFixture> {
@@ -197,25 +196,21 @@ export async function getAppFixture(): Promise<AppFixture> {
     baseCurrency.address,
     ONE_INCH
   );
-  // 20. Deploy Product Factory
-  const productFactory = await autoDeploy("ProductFactory");
-  // 21. Deploy Product Market
+  // 20. Deploy Product Market
   const marketplace = await autoDeploy(
     "Marketplace",
     timelock.address,
-    productFactory.address,
     commitmentToken.address,
     visionFarm.address
   );
-  // 22. Initialize Labor Market
+  // 21. Initialize Labor Market
   await stableReserves.init(cryptoJobBoard.address);
-  // 23. Initialize Vision Farm
+  // 22. Initialize Vision Farm
   await visionFarm.init(cryptoJobBoard.address, marketplace.address);
   return {
     ...miningFixture,
     cryptoJobBoard: cryptoJobBoard,
     stableReserves,
-    productFactory,
     marketplace,
   };
 }
