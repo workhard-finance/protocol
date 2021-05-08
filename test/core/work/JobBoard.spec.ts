@@ -1,11 +1,16 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber, Signer } from "ethers";
-import { parseEther } from "ethers/lib/utils";
+import { Contract, BigNumber, Signer, BigNumberish } from "ethers";
+import {
+  keccak256,
+  parseEther,
+  solidityKeccak256,
+  solidityPack,
+} from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { runTimelockTx } from "../utils/utilities";
-import { getAppFixture, AppFixture } from "../../scripts/fixtures";
+import { runTimelockTx } from "../../utils/utilities";
+import { getAppFixture, AppFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -24,7 +29,7 @@ describe("JobBoard.sol", function () {
   let dividendPool: Contract;
   let timelock: Contract;
   let project: {
-    id: number;
+    id: BigNumberish;
     title: string;
     description: string;
     uri: string;
@@ -63,20 +68,22 @@ describe("JobBoard.sol", function () {
     };
     await prepare(projOwner);
     await prepare(bob);
+    const uri = "ipfs://MY_PROJECT_URL";
     project = {
-      id: 0,
+      id: BigNumber.from(
+        solidityKeccak256(["string", "address"], [uri, projOwner.address])
+      ),
       title: "Workhard is hiring",
       description: "helloworld",
-      uri: "ipfs://MY_PROJECT_URL",
+      uri,
     };
     budget = { currency: baseCurrency.address, amount: parseEther("100") };
   });
   describe("createProject()", async () => {
     it("should emit ProjectPosted() event", async () => {
-      const expectedId = 0;
       await expect(jobBoard.connect(projOwner).createProject(project.uri))
         .to.emit(jobBoard, "ProjectPosted")
-        .withArgs(expectedId);
+        .withArgs(project.id);
     });
   });
   describe("addBudget()", async () => {
@@ -185,7 +192,7 @@ describe("JobBoard.sol", function () {
       );
       await jobBoard.connect(projOwner).executeBudget(project.id, 0, []);
       const currentEpoch = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.getHarvestableCrops(
+      const result = await dividendPool.callStatic.getClaimableCrops(
         currentEpoch + 1
       );
       expect(result.tokens).to.deep.eq([baseCurrency.address]);
@@ -228,7 +235,7 @@ describe("JobBoard.sol", function () {
       ).to.eq(parseEther("50"));
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
       const currentEpoch = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.getHarvestableCrops(
+      const result = await dividendPool.callStatic.getClaimableCrops(
         currentEpoch + 1
       );
       expect(result.tokens).to.deep.eq([baseCurrency.address]);
@@ -262,7 +269,6 @@ describe("JobBoard.sol", function () {
     });
     describe("compensate()", async () => {
       beforeEach(async () => {
-        await jobBoard.connect(projOwner).createProject(project.uri);
         await jobBoard
           .connect(projOwner)
           .addBudget(project.id, budget.currency, budget.amount);

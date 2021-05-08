@@ -53,13 +53,15 @@ describe("Marketplace.sol", function () {
     await prepare(bob);
   });
   describe("launchNewProduct()", async () => {
-    const PRICE_IN_COMMITMENT_TOKEN = parseEther("1");
-    const PROFIT_FOR_MANUFACTURER = 1000;
-    const BASE_URI = "ipfscid";
-    const PROJ_ID = BigNumber.from(
-      keccak256(solidityPack(["string"], [BASE_URI]))
-    );
     it("anyone can buy the NFT by paying Commitment token", async () => {
+      const PRICE_IN_COMMITMENT_TOKEN = parseEther("1");
+      const PROFIT_FOR_MANUFACTURER = 1000;
+      const BASE_URI = "ipfscid";
+      const PROJ_ID = BigNumber.from(
+        keccak256(
+          solidityPack(["string", "address"], [BASE_URI, alice.address])
+        )
+      );
       await expect(
         marketplace
           .connect(alice)

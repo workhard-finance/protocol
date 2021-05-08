@@ -26,6 +26,7 @@ interface ProjectInterface extends ethers.utils.Interface {
     "baseURI()": FunctionFragment;
     "burn(uint256)": FunctionFragment;
     "create(string)": FunctionFragment;
+    "createTo(string,address)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "name()": FunctionFragment;
@@ -49,6 +50,10 @@ interface ProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "create", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "createTo",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
@@ -101,6 +106,7 @@ interface ProjectInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "create", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "createTo", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -239,6 +245,18 @@ export class Project extends Contract {
 
     "create(string)"(
       URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    createTo(
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "createTo(string,address)"(
+      URI: string,
+      _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -413,6 +431,18 @@ export class Project extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  createTo(
+    URI: string,
+    _to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "createTo(string,address)"(
+    URI: string,
+    _to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getApproved(
     tokenId: BigNumberish,
     overrides?: CallOverrides
@@ -569,6 +599,18 @@ export class Project extends Contract {
 
     "create(string)"(
       URI: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    createTo(
+      URI: string,
+      _to: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "createTo(string,address)"(
+      URI: string,
+      _to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -769,6 +811,18 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    createTo(
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "createTo(string,address)"(
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -941,6 +995,18 @@ export class Project extends Contract {
 
     "create(string)"(
       URI: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    createTo(
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "createTo(string,address)"(
+      URI: string,
+      _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -3,8 +3,8 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, constants, BigNumber } from "ethers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
-import { getCreate2Address, goTo, goToNextWeek } from "../utils/utilities";
-import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
+import { getCreate2Address, goTo, goToNextWeek } from "../../utils/utilities";
+import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 

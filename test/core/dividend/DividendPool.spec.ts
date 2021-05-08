@@ -3,8 +3,8 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Signer, Contract, BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { goTo, runTimelockTx } from "../utils/utilities";
-import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
+import { goTo, runTimelockTx } from "../../utils/utilities";
+import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -133,7 +133,7 @@ describe("DividendPool.sol", function () {
       });
     });
   });
-  describe("plantSeeds() & dispatchFarmers() & harvest()", async () => {
+  describe("plantSeeds() & dispatchFarmers() & claim()", async () => {
     beforeEach(async () => {
       await runTimelockTx(
         timelock,
@@ -149,47 +149,47 @@ describe("DividendPool.sol", function () {
     it("batchDispatch() automatically dispatches farmers for the future epochs", async () => {
       await dividendPool.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await dividendPool.connect(alice).harvestAll(1);
+      await dividendPool.connect(alice).claimAll(1);
       await expect(dividendPool.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
-        .withArgs(dividendPool.address, aliceAddress, parseEther("100")); // harvest for epoch 1
+        .withArgs(dividendPool.address, aliceAddress, parseEther("100")); // claim for epoch 1
       await goTo(3600 * 24 * 7 * 4); // go to epoch 3
       // no seed were planted for epoch 2.
-      await dividendPool.connect(alice).harvestAll(2);
+      await dividendPool.connect(alice).claimAll(2);
       await expect(dividendPool.connect(alice).withdrawAll()).not.to.emit(
         testingRewardToken,
         "Transfer"
-      ); // harvest for epoch 2
+      ); // claim for epoch 2
     });
-    it("harvest()", async () => {
+    it("claim()", async () => {
       await dividendPool.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await dividendPool.connect(bob).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await dividendPool.connect(carl).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
       await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await dividendPool.connect(alice).harvestAll(1);
+      await dividendPool.connect(alice).claimAll(1);
       await expect(dividendPool.connect(alice).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           dividendPool.address,
           aliceAddress,
           parseEther("100").mul(400).div(1000)
-        ); // alice harvests for epoch 1
-      await dividendPool.connect(bob).harvestAll(1);
+        ); // alice claims for epoch 1
+      await dividendPool.connect(bob).claimAll(1);
       await expect(dividendPool.connect(bob).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           dividendPool.address,
           bobAddress,
           parseEther("100").mul(400).div(1000)
-        ); // bob harvests for epoch 1
-      await dividendPool.connect(carl).harvestAll(1);
+        ); // bob claims for epoch 1
+      await dividendPool.connect(carl).claimAll(1);
       await expect(dividendPool.connect(carl).withdrawAll())
         .to.emit(testingRewardToken, "Transfer")
         .withArgs(
           dividendPool.address,
           carlAddress,
           parseEther("100").mul(200).div(1000)
-        ); // carl harvests for epoch 1
+        ); // carl claims for epoch 1
     });
   });
 });

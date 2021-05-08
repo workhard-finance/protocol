@@ -3,7 +3,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, BigNumber, BigNumberish } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { goTo } from "../utils/utilities";
+import { goTo } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);

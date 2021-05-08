@@ -5,4 +5,6 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 interface IProject is IERC721 {
     function create(string memory URI) external returns (uint256);
+
+    function createTo(string memory URI, address to) external returns (uint256);
 }

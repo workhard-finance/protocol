@@ -1,11 +1,16 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber, Signer } from "ethers";
-import { defaultAbiCoder, keccak256, parseEther } from "ethers/lib/utils";
+import { Contract, BigNumber, Signer, BigNumberish } from "ethers";
+import {
+  defaultAbiCoder,
+  keccak256,
+  parseEther,
+  solidityKeccak256,
+} from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { runTimelockTx } from "../utils/utilities";
-import { AppFixture, getAppFixture } from "../../scripts/fixtures";
+import { runTimelockTx } from "../../utils/utilities";
+import { AppFixture, getAppFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -24,7 +29,7 @@ describe("StableReserve.sol", function () {
   let timelock: Contract;
   let baseCurrency: Contract;
   let project: {
-    id: number;
+    id: BigNumberish;
     title: string;
     description: string;
     uri: string;
@@ -66,8 +71,11 @@ describe("StableReserve.sol", function () {
     await prepare(alice);
     await prepare(bob);
     const description = "helloworld";
+    const uri = "ipfs://MY_PROJECT_URL";
     project = {
-      id: 0,
+      id: BigNumber.from(
+        solidityKeccak256(["string", "address"], [uri, projOwner.address])
+      ),
       title: "Workhard is firing",
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",

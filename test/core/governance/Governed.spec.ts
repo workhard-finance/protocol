@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, Signer, constants } from "ethers";
-import { goTo } from "../utils/utilities";
+import { goTo } from "../../utils/utilities";
 
 chai.use(solidity);
 
