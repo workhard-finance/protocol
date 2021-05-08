@@ -30,8 +30,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "epoch()": FunctionFragment;
-    "getLastLockPoint(uint256)": FunctionFragment;
-    "getLockPointHistory(uint256,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "init(address)": FunctionFragment;
     "lock()": FunctionFragment;
@@ -78,14 +76,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "epoch", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "getLastLockPoint",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLockPointHistory",
-    values: [BigNumberish, BigNumberish]
-  ): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
@@ -145,14 +135,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "epoch", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getLastLockPoint",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLockPointHistory",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
@@ -329,64 +311,6 @@ export class VotingEscrowToken extends Contract {
     epoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "epoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ]
-    >;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ]
-    >;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ]
-    >;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ]
-    >;
 
     increaseAllowance(
       spender: string,
@@ -619,56 +543,6 @@ export class VotingEscrowToken extends Contract {
 
   "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getLastLockPoint(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  "getLastLockPoint(uint256)"(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  getLockPointHistory(
-    tokenId: BigNumberish,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  "getLockPointHistory(uint256,uint256)"(
-    tokenId: BigNumberish,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
@@ -897,56 +771,6 @@ export class VotingEscrowToken extends Contract {
     epoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
 
     increaseAllowance(
       spender: string,
@@ -1194,28 +1018,6 @@ export class VotingEscrowToken extends Contract {
 
     "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -1422,28 +1224,6 @@ export class VotingEscrowToken extends Contract {
     epoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "epoch()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: string,

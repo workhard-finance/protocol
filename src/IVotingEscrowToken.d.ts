@@ -27,8 +27,6 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
     "balanceOfLockAtBlockNum(uint256,uint256)": FunctionFragment;
     "checkpoint()": FunctionFragment;
-    "getLastLockPoint(uint256)": FunctionFragment;
-    "getLockPointHistory(uint256,uint256)": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "totalSupplyAt(uint256)": FunctionFragment;
     "totalSupplyAtBlockNum(uint256)": FunctionFragment;
@@ -56,14 +54,6 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "checkpoint",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLastLockPoint",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getLockPointHistory",
-    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -98,14 +88,6 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "checkpoint", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "getLastLockPoint",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getLockPointHistory",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike
@@ -240,92 +222,6 @@ export class IVotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ] & {
-        point: [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        };
-      }
-    >;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ] & {
-        point: [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        };
-      }
-    >;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ] & {
-        point: [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        };
-      }
-    >;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        }
-      ] & {
-        point: [BigNumber, BigNumber, BigNumber, BigNumber] & {
-          bias: BigNumber;
-          slope: BigNumber;
-          timestamp: BigNumber;
-          blockNum: BigNumber;
-        };
-      }
-    >;
-
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -440,56 +336,6 @@ export class IVotingEscrowToken extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  getLastLockPoint(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  "getLastLockPoint(uint256)"(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  getLockPointHistory(
-    tokenId: BigNumberish,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
-  "getLockPointHistory(uint256,uint256)"(
-    tokenId: BigNumberish,
-    index: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      bias: BigNumber;
-      slope: BigNumber;
-      timestamp: BigNumber;
-      blockNum: BigNumber;
-    }
-  >;
-
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -599,56 +445,6 @@ export class IVotingEscrowToken extends Contract {
     checkpoint(overrides?: CallOverrides): Promise<void>;
 
     "checkpoint()"(overrides?: CallOverrides): Promise<void>;
-
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        bias: BigNumber;
-        slope: BigNumber;
-        timestamp: BigNumber;
-        blockNum: BigNumber;
-      }
-    >;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -785,28 +581,6 @@ export class IVotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -923,28 +697,6 @@ export class IVotingEscrowToken extends Contract {
 
     "checkpoint()"(
       overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getLastLockPoint(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getLastLockPoint(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getLockPointHistory(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getLockPointHistory(uint256,uint256)"(
-      tokenId: BigNumberish,
-      index: BigNumberish,
-      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;

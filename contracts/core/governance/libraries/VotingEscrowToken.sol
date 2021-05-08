@@ -5,17 +5,10 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/SafeCast.sol";
-import {
-    Point,
-    Lock
-} from "../../../core/governance/libraries/VotingEscrowLib.sol";
-import {
-    IVotingEscrowLock
-} from "../../../core/governance/interfaces/IVotingEscrowLock.sol";
-import {
-    IVotingEscrowToken
-} from "../../../core/governance/interfaces/IVotingEscrowToken.sol";
-import {HasInitializer} from "../../../utils/HasInitializer.sol";
+import "../../../core/governance/libraries/VotingEscrowLib.sol";
+import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
+import "../../../core/governance/interfaces/IVotingEscrowToken.sol";
+import "../../../utils/HasInitializer.sol";
 
 /**
  * @dev Voting Escrow Token is the solidity implementation of veCRV
@@ -254,28 +247,6 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
             timestampCursor = ithWeekTimestamp;
         }
         return supply > 0 ? uint256(supply) : 0;
-    }
-
-    function getLastLockPoint(uint256 tokenId)
-        external
-        view
-        override
-        returns (Point memory)
-    {
-        uint256 len = lockPointHistory[tokenId].length;
-        require(len > 0, "no lock exists");
-        Point memory latestPoint = lockPointHistory[tokenId][len - 1];
-        return latestPoint;
-    }
-
-    function getLockPointHistory(uint256 tokenId, uint256 index)
-        external
-        view
-        override
-        returns (Point memory)
-    {
-        Point memory point = lockPointHistory[tokenId][index];
-        return point;
     }
 
     function _findBlockEpoch(uint256 blockNum, uint256 maxEpoch)
