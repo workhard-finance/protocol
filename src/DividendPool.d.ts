@@ -26,6 +26,8 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "anarchizedAt()": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "batchDispatch()": FunctionFragment;
+    "claim(uint256,address[])": FunctionFragment;
+    "claimAll(uint256)": FunctionFragment;
     "dispatchFarmers(uint256)": FunctionFragment;
     "dispatchableFarmers(address,uint256)": FunctionFragment;
     "dispatchedFarmers(address,uint256)": FunctionFragment;
@@ -34,18 +36,16 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "genesis()": FunctionFragment;
-    "getAllHarvestableCropsFor(uint256,address)": FunctionFragment;
-    "getAllHarvestedCropsOf(address)": FunctionFragment;
+    "getAllClaimableCropsFor(uint256,address)": FunctionFragment;
+    "getAllClaimedCropsOf(address)": FunctionFragment;
+    "getClaimableCrops(uint256)": FunctionFragment;
+    "getClaimableCropsFor(uint256,address,address[])": FunctionFragment;
+    "getClaimedCropsOf(address,address[])": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
-    "getHarvestableCrops(uint256)": FunctionFragment;
-    "getHarvestableCropsFor(uint256,address,address[])": FunctionFragment;
-    "getHarvestedCropsOf(address,address[])": FunctionFragment;
     "getNextEpoch()": FunctionFragment;
     "gov()": FunctionFragment;
-    "harvest(uint256,address[])": FunctionFragment;
-    "harvestAll(uint256)": FunctionFragment;
     "init(address,address)": FunctionFragment;
-    "isHarvestable(uint256)": FunctionFragment;
+    "isClaimable(uint256)": FunctionFragment;
     "lock(uint256)": FunctionFragment;
     "maximumLock()": FunctionFragment;
     "minimumLock()": FunctionFragment;
@@ -78,6 +78,14 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "claim",
+    values: [BigNumberish, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimAll",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "dispatchFarmers",
     values: [BigNumberish]
   ): string;
@@ -101,28 +109,28 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "genesis", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "getAllHarvestableCropsFor",
+    functionFragment: "getAllClaimableCropsFor",
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAllHarvestedCropsOf",
+    functionFragment: "getAllClaimedCropsOf",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getClaimableCrops",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getClaimableCropsFor",
+    values: [BigNumberish, string, string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getClaimedCropsOf",
+    values: [string, string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentEpoch",
     values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getHarvestableCrops",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getHarvestableCropsFor",
-    values: [BigNumberish, string, string[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getHarvestedCropsOf",
-    values: [string, string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getNextEpoch",
@@ -130,19 +138,11 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "harvest",
-    values: [BigNumberish, string[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "harvestAll",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "init",
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "isHarvestable",
+    functionFragment: "isClaimable",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "lock", values: [BigNumberish]): string;
@@ -214,6 +214,8 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "batchDispatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "claimAll", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "dispatchFarmers",
     data: BytesLike
@@ -238,11 +240,23 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "genesis", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getAllHarvestableCropsFor",
+    functionFragment: "getAllClaimableCropsFor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAllHarvestedCropsOf",
+    functionFragment: "getAllClaimedCropsOf",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getClaimableCrops",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getClaimableCropsFor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getClaimedCropsOf",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -250,27 +264,13 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getHarvestableCrops",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getHarvestableCropsFor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getHarvestedCropsOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getNextEpoch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "harvest", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "harvestAll", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isHarvestable",
+    functionFragment: "isClaimable",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
@@ -415,6 +415,28 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    claim(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "claim(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    claimAll(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "claimAll(uint256)"(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     dispatchFarmers(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -479,7 +501,7 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getAllHarvestableCropsFor(
+    getAllClaimableCropsFor(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
@@ -487,7 +509,7 @@ export class DividendPool extends Contract {
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    "getAllHarvestableCropsFor(uint256,address)"(
+    "getAllClaimableCropsFor(uint256,address)"(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
@@ -495,63 +517,63 @@ export class DividendPool extends Contract {
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    getAllHarvestedCropsOf(
+    getAllClaimedCropsOf(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    "getAllHarvestedCropsOf(address)"(
+    "getAllClaimedCropsOf(address)"(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
+
+    getClaimableCrops(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getClaimableCrops(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    getClaimableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    "getClaimableCropsFor(uint256,address,address[])"(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    getClaimedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
+
+    "getClaimedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    getHarvestableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getHarvestableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getHarvestableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    "getHarvestableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    getHarvestedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    "getHarvestedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -560,28 +582,6 @@ export class DividendPool extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
-
-    harvest(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "harvest(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    harvestAll(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "harvestAll(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     init(
       jobBoard: string,
@@ -595,12 +595,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    isHarvestable(
+    isClaimable(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "isHarvestable(uint256)"(
+    "isClaimable(uint256)"(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -818,6 +818,28 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  claim(
+    epoch: BigNumberish,
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "claim(uint256,address[])"(
+    epoch: BigNumberish,
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  claimAll(
+    epoch: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "claimAll(uint256)"(
+    epoch: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   dispatchFarmers(
     epoch: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -879,7 +901,7 @@ export class DividendPool extends Contract {
 
   "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getAllHarvestableCropsFor(
+  getAllClaimableCropsFor(
     epoch: BigNumberish,
     staker: string,
     overrides?: CallOverrides
@@ -887,7 +909,7 @@ export class DividendPool extends Contract {
     [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
   >;
 
-  "getAllHarvestableCropsFor(uint256,address)"(
+  "getAllClaimableCropsFor(uint256,address)"(
     epoch: BigNumberish,
     staker: string,
     overrides?: CallOverrides
@@ -895,63 +917,63 @@ export class DividendPool extends Contract {
     [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
   >;
 
-  getAllHarvestedCropsOf(
+  getAllClaimedCropsOf(
     farmer: string,
     overrides?: CallOverrides
   ): Promise<
     [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
   >;
 
-  "getAllHarvestedCropsOf(address)"(
+  "getAllClaimedCropsOf(address)"(
     farmer: string,
     overrides?: CallOverrides
   ): Promise<
     [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
   >;
+
+  getClaimableCrops(
+    epoch: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
+  "getClaimableCrops(uint256)"(
+    epoch: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+  >;
+
+  getClaimableCropsFor(
+    epoch: BigNumberish,
+    staker: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  "getClaimableCropsFor(uint256,address,address[])"(
+    epoch: BigNumberish,
+    staker: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  getClaimedCropsOf(
+    farmer: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  "getClaimedCropsOf(address,address[])"(
+    farmer: string,
+    tokens: string[],
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
 
   getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  getHarvestableCrops(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  "getHarvestableCrops(uint256)"(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  getHarvestableCropsFor(
-    epoch: BigNumberish,
-    staker: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getHarvestableCropsFor(uint256,address,address[])"(
-    epoch: BigNumberish,
-    staker: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getHarvestedCropsOf(
-    farmer: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getHarvestedCropsOf(address,address[])"(
-    farmer: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
 
   getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -960,28 +982,6 @@ export class DividendPool extends Contract {
   gov(overrides?: CallOverrides): Promise<string>;
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
-
-  harvest(
-    epoch: BigNumberish,
-    tokens: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "harvest(uint256,address[])"(
-    epoch: BigNumberish,
-    tokens: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  harvestAll(
-    epoch: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "harvestAll(uint256)"(
-    epoch: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   init(
     jobBoard: string,
@@ -995,12 +995,9 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  isHarvestable(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  isClaimable(epoch: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
 
-  "isHarvestable(uint256)"(
+  "isClaimable(uint256)"(
     epoch: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -1198,6 +1195,25 @@ export class DividendPool extends Contract {
 
     "batchDispatch()"(overrides?: CallOverrides): Promise<void>;
 
+    claim(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "claim(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    claimAll(epoch: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    "claimAll(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     dispatchFarmers(
       epoch: BigNumberish,
       overrides?: CallOverrides
@@ -1255,7 +1271,7 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAllHarvestableCropsFor(
+    getAllClaimableCropsFor(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
@@ -1263,7 +1279,7 @@ export class DividendPool extends Contract {
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    "getAllHarvestableCropsFor(uint256,address)"(
+    "getAllClaimableCropsFor(uint256,address)"(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
@@ -1271,63 +1287,63 @@ export class DividendPool extends Contract {
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    getAllHarvestedCropsOf(
+    getAllClaimedCropsOf(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
 
-    "getAllHarvestedCropsOf(address)"(
+    "getAllClaimedCropsOf(address)"(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<
       [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
     >;
+
+    getClaimableCrops(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    "getClaimableCrops(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
+    >;
+
+    getClaimableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    "getClaimableCropsFor(uint256,address,address[])"(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    getClaimedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    "getClaimedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getHarvestableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getHarvestableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getHarvestableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getHarvestableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getHarvestedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getHarvestedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1336,25 +1352,6 @@ export class DividendPool extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
-
-    harvest(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "harvest(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    harvestAll(epoch: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "harvestAll(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     init(
       jobBoard: string,
@@ -1368,12 +1365,12 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    isHarvestable(
+    isClaimable(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "isHarvestable(uint256)"(
+    "isClaimable(uint256)"(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1582,6 +1579,28 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    claim(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "claim(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    claimAll(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "claimAll(uint256)"(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     dispatchFarmers(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1643,67 +1662,67 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAllHarvestableCropsFor(
+    getAllClaimableCropsFor(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getAllHarvestableCropsFor(uint256,address)"(
+    "getAllClaimableCropsFor(uint256,address)"(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getAllHarvestedCropsOf(
+    getAllClaimedCropsOf(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getAllHarvestedCropsOf(address)"(
+    "getAllClaimedCropsOf(address)"(
       farmer: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getClaimableCrops(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getClaimableCrops(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getClaimableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getClaimableCropsFor(uint256,address,address[])"(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getClaimedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getClaimedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getHarvestableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getHarvestableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getHarvestableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getHarvestableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getHarvestedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getHarvestedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1712,28 +1731,6 @@ export class DividendPool extends Contract {
     gov(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    harvest(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "harvest(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    harvestAll(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "harvestAll(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
 
     init(
       jobBoard: string,
@@ -1747,12 +1744,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    isHarvestable(
+    isClaimable(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isHarvestable(uint256)"(
+    "isClaimable(uint256)"(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1959,6 +1956,28 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    claim(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "claim(uint256,address[])"(
+      epoch: BigNumberish,
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claimAll(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "claimAll(uint256)"(
+      epoch: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     dispatchFarmers(
       epoch: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2025,67 +2044,67 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getAllHarvestableCropsFor(
+    getAllClaimableCropsFor(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getAllHarvestableCropsFor(uint256,address)"(
+    "getAllClaimableCropsFor(uint256,address)"(
       epoch: BigNumberish,
       staker: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getAllHarvestedCropsOf(
+    getAllClaimedCropsOf(
       farmer: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getAllHarvestedCropsOf(address)"(
+    "getAllClaimedCropsOf(address)"(
       farmer: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getClaimableCrops(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getClaimableCrops(uint256)"(
+      epoch: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getClaimableCropsFor(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getClaimableCropsFor(uint256,address,address[])"(
+      epoch: BigNumberish,
+      staker: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getClaimedCropsOf(
+      farmer: string,
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getClaimedCropsOf(address,address[])"(
+      farmer: string,
+      tokens: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getCurrentEpoch()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getHarvestableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getHarvestableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getHarvestableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getHarvestableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getHarvestedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getHarvestedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2096,28 +2115,6 @@ export class DividendPool extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    harvest(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "harvest(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    harvestAll(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "harvestAll(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
 
     init(
       jobBoard: string,
@@ -2131,12 +2128,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    isHarvestable(
+    isClaimable(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isHarvestable(uint256)"(
+    "isClaimable(uint256)"(
       epoch: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

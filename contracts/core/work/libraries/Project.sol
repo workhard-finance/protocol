@@ -9,7 +9,8 @@ contract Project is ERC721Burnable {
     event NewProject(uint256 id);
 
     function create(string memory URI) public returns (uint256) {
-        uint256 id = totalSupply();
+        uint256 id =
+            uint256(keccak256(abi.encodePacked(bytes(URI), msg.sender)));
         _mint(msg.sender, id);
         _setTokenURI(id, URI);
         emit NewProject(id);

@@ -96,7 +96,8 @@ contract Marketplace is
         uint256 profitRate,
         uint256 price
     ) external override {
-        uint256 id = uint256(keccak256(bytes(cid)));
+        uint256 id =
+            uint256(keccak256(abi.encodePacked(bytes(cid), msg.sender)));
         products[id] = Product(msg.sender, 0, 0, price, profitRate, cid);
         emit NewProduct(id, msg.sender, cid);
     }

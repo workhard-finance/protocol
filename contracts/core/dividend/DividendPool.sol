@@ -31,7 +31,7 @@ contract DividendPool is Governed, HasInitializer {
 
     mapping(address => bool) planters;
 
-    mapping(address => mapping(address => uint256)) harvested;
+    mapping(address => mapping(address => uint256)) claimed;
 
     mapping(address => bool) public planted;
 
@@ -98,7 +98,7 @@ contract DividendPool is Governed, HasInitializer {
      * @notice It plants seeds to the next epoch's farm. Vision Tax pool is the main
      *      planter and there can be other permissioned planters. Since  planting a
      *      number of different tokens can cause a DOS attack by increaing the gas
-     *      cost of harvest() call, only permitted planters can call this function.
+     *      cost of claim() call, only permitted planters can call this function.
      */
     function plantSeeds(address token, uint256 amount) public plantersOnly {
         require(amount != 0, "No amount");
@@ -206,25 +206,25 @@ contract DividendPool is Governed, HasInitializer {
         farm.dispatchedFarmers[msg.sender] = dispatchable;
     }
 
-    function harvestAll(uint256 epoch) public {
-        harvest(epoch, farms[epoch].tokens);
+    function claimAll(uint256 epoch) public {
+        claim(epoch, farms[epoch].tokens);
     }
 
     /**
-     * @dev When the harvestable crops are too many, farmers can seletively
-     *  harvest crops. Note that the non-selected crops will distributed to
+     * @dev When the claimable crops are too many, farmers can seletively
+     *  claim crops. Note that the non-selected crops will distributed to
      *  the other farmers.
      */
-    function harvest(uint256 epoch, address[] memory tokens) public {
-        require(isHarvestable(epoch), "Unripe yet");
+    function claim(uint256 epoch, address[] memory tokens) public {
+        require(isClaimable(epoch), "Unripe yet");
         Farm storage farm = farms[epoch];
         uint256[] memory amounts =
-            getHarvestableCropsFor(epoch, msg.sender, tokens);
+            getClaimableCropsFor(epoch, msg.sender, tokens);
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
             uint256 amount = amounts[i];
             farm.crops[token] = farm.crops[token].sub(amount);
-            harvested[msg.sender][token] += amount;
+            claimed[msg.sender][token] += amount;
         }
         farm.totalFarmers = farm.totalFarmers.sub(
             farm.dispatchedFarmers[msg.sender]
@@ -239,9 +239,9 @@ contract DividendPool is Governed, HasInitializer {
     function withdraw(address[] memory tokens) public {
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
-            uint256 amount = harvested[msg.sender][token];
+            uint256 amount = claimed[msg.sender][token];
             if (amount != 0) {
-                harvested[msg.sender][token] = 0;
+                claimed[msg.sender][token] = 0;
                 IERC20(token).safeTransfer(msg.sender, amount);
             }
         }
@@ -255,7 +255,7 @@ contract DividendPool is Governed, HasInitializer {
         }
     }
 
-    function isHarvestable(uint256 epoch) public view returns (bool) {
+    function isClaimable(uint256 epoch) public view returns (bool) {
         return epoch <= getCurrentEpoch();
     }
 
@@ -302,7 +302,7 @@ contract DividendPool is Governed, HasInitializer {
         return farm.dispatchedFarmers[staker];
     }
 
-    function getHarvestableCrops(uint256 epoch)
+    function getClaimableCrops(uint256 epoch)
         public
         view
         returns (address[] memory tokens, uint256[] memory amounts)
@@ -317,16 +317,16 @@ contract DividendPool is Governed, HasInitializer {
         return (tokens, amounts);
     }
 
-    function getAllHarvestableCropsFor(uint256 epoch, address staker)
+    function getAllClaimableCropsFor(uint256 epoch, address staker)
         public
         view
         returns (address[] memory tokens, uint256[] memory amounts)
     {
         tokens = farms[epoch].tokens;
-        amounts = getHarvestableCropsFor(epoch, staker, tokens);
+        amounts = getClaimableCropsFor(epoch, staker, tokens);
     }
 
-    function getHarvestableCropsFor(
+    function getClaimableCropsFor(
         uint256 epoch,
         address staker,
         address[] memory tokens
@@ -341,16 +341,16 @@ contract DividendPool is Governed, HasInitializer {
         }
     }
 
-    function getAllHarvestedCropsOf(address farmer)
+    function getAllClaimedCropsOf(address farmer)
         public
         view
         returns (address[] memory tokens, uint256[] memory amounts)
     {
         tokens = plantedTokens;
-        amounts = getHarvestedCropsOf(farmer, tokens);
+        amounts = getClaimedCropsOf(farmer, tokens);
     }
 
-    function getHarvestedCropsOf(address farmer, address[] memory tokens)
+    function getClaimedCropsOf(address farmer, address[] memory tokens)
         public
         view
         returns (uint256[] memory amounts)
@@ -358,7 +358,7 @@ contract DividendPool is Governed, HasInitializer {
         amounts = new uint256[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
             address token = tokens[i];
-            amounts[i] = harvested[farmer][token];
+            amounts[i] = claimed[farmer][token];
         }
     }
 
