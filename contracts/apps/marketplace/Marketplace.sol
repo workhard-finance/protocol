@@ -2,13 +2,13 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
 import "../../utils/ERC20Recoverer.sol";
 import "../../core/dividend/libraries/Planter.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../core/tokens/interfaces/ICOMMIT.sol";
 import "../../core/governance/Governed.sol";
 import "../../apps/marketplace/interfaces/IMarketplace.sol";
 
@@ -30,10 +30,10 @@ contract Marketplace is
     }
 
     using SafeERC20 for IERC20;
-    using SafeERC20 for ICOMMIT;
+    using SafeERC20 for ERC20Burnable;
     using SafeMath for uint256;
 
-    ICOMMIT immutable commitmentToken;
+    ERC20Burnable immutable commitmentToken;
 
     uint256 public taxRate = 2000; // denominator is 10,000
 
@@ -54,7 +54,7 @@ contract Marketplace is
         address _commitmentToken,
         address _dividendPool
     ) ERC20Recoverer() Governed() Planter(_dividendPool) ERC1155("") {
-        commitmentToken = ICOMMIT(_commitmentToken);
+        commitmentToken = ERC20Burnable(_commitmentToken);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
     }
