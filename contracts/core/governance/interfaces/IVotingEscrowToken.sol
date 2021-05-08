@@ -10,6 +10,16 @@ interface IVotingEscrowToken is IERC20 {
 
     function totalSupplyAt(uint256 timestamp) external view returns (uint256);
 
+    function balanceOfAt(address account, uint256 timestamp)
+        external
+        view
+        returns (uint256);
+
+    function balanceOfAtBlockNum(address account, uint256 blockNum)
+        external
+        view
+        returns (uint256);
+
     function balanceOfLockAt(uint256 tokenId, uint256 timestamp)
         external
         view

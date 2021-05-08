@@ -7,13 +7,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import {Lock} from "../../../core/governance/libraries/VotingEscrowLib.sol";
-import {
-    VotingEscrowToken
-} from "../../../core/governance/libraries/VotingEscrowToken.sol";
-import {
-    IVotingEscrowLock
-} from "../../../core/governance/interfaces/IVotingEscrowLock.sol";
+import "../../../core/governance/libraries/VotingEscrowLib.sol";
+import "../../../core/governance/libraries/VotingEscrowToken.sol";
+import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
+import "../../../utils/HasInitializer.sol";
 
 /**
  * @dev Voting Escrow Lock is the refactored solidity implementation of veCRV.
@@ -21,19 +18,24 @@ import {
  *      Its original code https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy
  */
 
-contract VotingEscrowLock is IVotingEscrowLock, ERC721, ReentrancyGuard {
+contract VotingEscrowLock is
+    IVotingEscrowLock,
+    ERC721,
+    ReentrancyGuard,
+    HasInitializer
+{
     using SafeERC20 for IERC20;
 
-    address public baseToken;
-    address public veToken;
-
-    uint256 public totalLockedSupply;
-
-    uint256 constant MAXTIME = 4 * (365 days);
-
-    event LockUpdate(uint256 tokenId, uint256 amount, uint256 end);
+    address public override baseToken;
+    address public override veToken;
+    uint256 public override totalLockedSupply;
+    uint256 public constant override MAXTIME = 4 * (365 days);
 
     mapping(uint256 => Lock) public override locks;
+
+    event LockCreated(uint256 tokenId);
+    event LockUpdate(uint256 tokenId, uint256 amount, uint256 end);
+    event Withdraw(uint256 tokenId, uint256 amount);
 
     modifier onlyOwner(uint256 tokenId) {
         require(
@@ -55,7 +57,7 @@ contract VotingEscrowLock is IVotingEscrowLock, ERC721, ReentrancyGuard {
         veToken = _veToken;
     }
 
-    function createLock(uint256 amount, uint256 lockEnd) public nonReentrant {
+    function createLock(uint256 amount, uint256 lockEnd) public override {
         require(amount > 0, "should be greater than zero");
         uint256 roundedEnd = (lockEnd / 1 weeks) * 1 weeks;
 
@@ -63,9 +65,10 @@ contract VotingEscrowLock is IVotingEscrowLock, ERC721, ReentrancyGuard {
             uint256(keccak256(abi.encodePacked(block.number, msg.sender)));
         _safeMint(msg.sender, tokenId);
         _updateLock(tokenId, amount, roundedEnd);
+        emit LockCreated(tokenId);
     }
 
-    function increaseAmount(uint256 tokenId, uint256 amount) public {
+    function increaseAmount(uint256 tokenId, uint256 amount) public override {
         require(amount > 0, "should be greater than zero");
         uint256 newAmount = locks[tokenId].amount + amount;
         _updateLock(tokenId, newAmount, locks[tokenId].end);
@@ -73,10 +76,22 @@ contract VotingEscrowLock is IVotingEscrowLock, ERC721, ReentrancyGuard {
 
     function extendLock(uint256 tokenId, uint256 end)
         public
+        override
         onlyOwner(tokenId)
     {
         uint256 roundedEnd = (end / 1 weeks) * 1 weeks;
         _updateLock(tokenId, locks[tokenId].amount, roundedEnd);
+    }
+
+    function withdraw(uint256 tokenId) public override onlyOwner(tokenId) {
+        Lock memory lock = locks[tokenId];
+        require(block.timestamp >= lock.end, "Locked.");
+        // transfer
+        IERC20(baseToken).safeTransfer(msg.sender, lock.amount);
+        totalLockedSupply -= lock.amount;
+        VotingEscrowToken(veToken).checkpoint(tokenId, lock, Lock(0, 0));
+        locks[tokenId].amount = 0;
+        emit Withdraw(tokenId, lock.amount);
     }
 
     function _updateLock(
@@ -127,15 +142,5 @@ contract VotingEscrowLock is IVotingEscrowLock, ERC721, ReentrancyGuard {
         // 4. updateCheckpoint
         VotingEscrowToken(veToken).checkpoint(tokenId, prevLock, newLock);
         emit LockUpdate(tokenId, amount, end);
-    }
-
-    function withdraw(uint256 tokenId) public nonReentrant onlyOwner(tokenId) {
-        Lock memory lock = locks[tokenId];
-        require(block.timestamp >= lock.end, "Locked.");
-        // transfer
-        IERC20(baseToken).safeTransfer(msg.sender, lock.amount);
-        totalLockedSupply -= lock.amount;
-        VotingEscrowToken(veToken).checkpoint(tokenId, lock, Lock(0, 0));
-        locks[tokenId].amount = 0;
     }
 }

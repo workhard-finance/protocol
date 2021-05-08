@@ -21,6 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface VotingEscrowLockInterface extends ethers.utils.Interface {
   functions: {
+    "MAXTIME()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "baseToken()": FunctionFragment;
@@ -47,6 +48,7 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     "withdraw(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "MAXTIME", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
@@ -123,6 +125,7 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
 
+  decodeFunctionResult(functionFragment: "MAXTIME", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
@@ -184,14 +187,18 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "LockCreated(uint256)": EventFragment;
     "LockUpdate(uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "Withdraw(uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "LockCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LockUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
 export class VotingEscrowLock extends Contract {
@@ -238,6 +245,10 @@ export class VotingEscrowLock extends Contract {
   interface: VotingEscrowLockInterface;
 
   functions: {
+    MAXTIME(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -457,6 +468,10 @@ export class VotingEscrowLock extends Contract {
     ): Promise<ContractTransaction>;
   };
 
+  MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   approve(
     to: string,
     tokenId: BigNumberish,
@@ -670,6 +685,10 @@ export class VotingEscrowLock extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -899,6 +918,10 @@ export class VotingEscrowLock extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
+    LockCreated(
+      tokenId: null
+    ): TypedEventFilter<[BigNumber], { tokenId: BigNumber }>;
+
     LockUpdate(
       tokenId: null,
       amount: null,
@@ -916,9 +939,21 @@ export class VotingEscrowLock extends Contract {
       [string, string, BigNumber],
       { from: string; to: string; tokenId: BigNumber }
     >;
+
+    Withdraw(
+      tokenId: null,
+      amount: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber],
+      { tokenId: BigNumber; amount: BigNumber }
+    >;
   };
 
   estimateGas: {
+    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -1136,6 +1171,10 @@ export class VotingEscrowLock extends Contract {
   };
 
   populateTransaction: {
+    MAXTIME(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     approve(
       to: string,
       tokenId: BigNumberish,

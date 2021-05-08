@@ -5,5 +5,7 @@ pragma abicoder v2;
 import "../../core/governance/libraries/VotingEscrowToken.sol";
 
 contract RIGHT is VotingEscrowToken {
-    constructor() VotingEscrowToken("Right is veVISION", "RIGHT") {}
+    constructor(string memory _uri, address _VISION)
+        VotingEscrowToken("Right is veVISION", "RIGHT", _uri, _VISION)
+    {}
 }

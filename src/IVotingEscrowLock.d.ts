@@ -21,26 +21,48 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IVotingEscrowLockInterface extends ethers.utils.Interface {
   functions: {
+    "MAXTIME()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "baseToken()": FunctionFragment;
+    "createLock(uint256,uint256)": FunctionFragment;
+    "extendLock(uint256,uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
+    "increaseAmount(uint256,uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "locks(uint256)": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "totalLockedSupply()": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "veToken()": FunctionFragment;
+    "withdraw(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "MAXTIME", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "baseToken", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "createLock",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "extendLock",
+    values: [BigNumberish, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "increaseAmount",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -64,14 +86,31 @@ interface IVotingEscrowLockInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "totalLockedSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "veToken", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "withdraw",
+    values: [BigNumberish]
+  ): string;
 
+  decodeFunctionResult(functionFragment: "MAXTIME", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "createLock", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "extendLock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "increaseAmount",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -93,9 +132,15 @@ interface IVotingEscrowLockInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "totalLockedSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "veToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -152,6 +197,10 @@ export class IVotingEscrowLock extends Contract {
   interface: IVotingEscrowLockInterface;
 
   functions: {
+    MAXTIME(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -174,6 +223,34 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { balance: BigNumber }>;
 
+    baseToken(overrides?: CallOverrides): Promise<[string]>;
+
+    "baseToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    createLock(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    extendLock(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "extendLock(uint256,uint256)"(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -183,6 +260,18 @@ export class IVotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string] & { operator: string }>;
+
+    increaseAmount(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "increaseAmount(uint256,uint256)"(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     isApprovedForAll(
       owner: string,
@@ -253,6 +342,10 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    totalLockedSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "totalLockedSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     transferFrom(
       from: string,
       to: string,
@@ -266,7 +359,25 @@ export class IVotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    veToken(overrides?: CallOverrides): Promise<[string]>;
+
+    "veToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    withdraw(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "withdraw(uint256)"(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
   };
+
+  MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   approve(
     to: string,
@@ -287,6 +398,34 @@ export class IVotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  baseToken(overrides?: CallOverrides): Promise<string>;
+
+  "baseToken()"(overrides?: CallOverrides): Promise<string>;
+
+  createLock(
+    amount: BigNumberish,
+    lockEnd: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "createLock(uint256,uint256)"(
+    amount: BigNumberish,
+    lockEnd: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  extendLock(
+    tokenId: BigNumberish,
+    end: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "extendLock(uint256,uint256)"(
+    tokenId: BigNumberish,
+    end: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   getApproved(
     tokenId: BigNumberish,
     overrides?: CallOverrides
@@ -296,6 +435,18 @@ export class IVotingEscrowLock extends Contract {
     tokenId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  increaseAmount(
+    tokenId: BigNumberish,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "increaseAmount(uint256,uint256)"(
+    tokenId: BigNumberish,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   isApprovedForAll(
     owner: string,
@@ -363,6 +514,10 @@ export class IVotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   transferFrom(
     from: string,
     to: string,
@@ -377,7 +532,25 @@ export class IVotingEscrowLock extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  veToken(overrides?: CallOverrides): Promise<string>;
+
+  "veToken()"(overrides?: CallOverrides): Promise<string>;
+
+  withdraw(
+    tokenId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "withdraw(uint256)"(
+    tokenId: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
+    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -397,6 +570,34 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    baseToken(overrides?: CallOverrides): Promise<string>;
+
+    "baseToken()"(overrides?: CallOverrides): Promise<string>;
+
+    createLock(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    extendLock(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "extendLock(uint256,uint256)"(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -406,6 +607,18 @@ export class IVotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    increaseAmount(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "increaseAmount(uint256,uint256)"(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     isApprovedForAll(
       owner: string,
@@ -473,6 +686,10 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferFrom(
       from: string,
       to: string,
@@ -483,6 +700,17 @@ export class IVotingEscrowLock extends Contract {
     "transferFrom(address,address,uint256)"(
       from: string,
       to: string,
+      tokenId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    veToken(overrides?: CallOverrides): Promise<string>;
+
+    "veToken()"(overrides?: CallOverrides): Promise<string>;
+
+    withdraw(tokenId: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    "withdraw(uint256)"(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -518,6 +746,10 @@ export class IVotingEscrowLock extends Contract {
   };
 
   estimateGas: {
+    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -537,6 +769,34 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    baseToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "baseToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    createLock(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    extendLock(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "extendLock(uint256,uint256)"(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -545,6 +805,18 @@ export class IVotingEscrowLock extends Contract {
     "getApproved(uint256)"(
       tokenId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    increaseAmount(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "increaseAmount(uint256,uint256)"(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     isApprovedForAll(
@@ -613,6 +885,10 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     transferFrom(
       from: string,
       to: string,
@@ -626,9 +902,27 @@ export class IVotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    veToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "veToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    withdraw(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "withdraw(uint256)"(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    MAXTIME(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "MAXTIME()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -651,6 +945,34 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    baseToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "baseToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    createLock(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    extendLock(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "extendLock(uint256,uint256)"(
+      tokenId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
@@ -659,6 +981,18 @@ export class IVotingEscrowLock extends Contract {
     "getApproved(uint256)"(
       tokenId: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    increaseAmount(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "increaseAmount(uint256,uint256)"(
+      tokenId: BigNumberish,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isApprovedForAll(
@@ -730,6 +1064,12 @@ export class IVotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    totalLockedSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "totalLockedSupply()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     transferFrom(
       from: string,
       to: string,
@@ -740,6 +1080,20 @@ export class IVotingEscrowLock extends Contract {
     "transferFrom(address,address,uint256)"(
       from: string,
       to: string,
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    veToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "veToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    withdraw(
+      tokenId: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "withdraw(uint256)"(
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

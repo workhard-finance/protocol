@@ -24,6 +24,8 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "balanceOfAt(address,uint256)": FunctionFragment;
+    "balanceOfAtBlockNum(address,uint256)": FunctionFragment;
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
     "balanceOfLockAtBlockNum(uint256,uint256)": FunctionFragment;
     "checkpoint()": FunctionFragment;
@@ -43,6 +45,14 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfAt",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfAtBlockNum",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "balanceOfLockAt",
     values: [BigNumberish, BigNumberish]
@@ -79,6 +89,14 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfAt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfAtBlockNum",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfLockAt",
     data: BytesLike
@@ -187,6 +205,30 @@ export class IVotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -304,6 +346,30 @@ export class IVotingEscrowToken extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  balanceOfAt(
+    account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "balanceOfAt(address,uint256)"(
+    account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOfAtBlockNum(
+    account: string,
+    blockNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "balanceOfAtBlockNum(address,uint256)"(
+    account: string,
+    blockNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   balanceOfLockAt(
     tokenId: BigNumberish,
     timestamp: BigNumberish,
@@ -415,6 +481,30 @@ export class IVotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -549,6 +639,30 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOfLockAt(
       tokenId: BigNumberish,
       timestamp: BigNumberish,
@@ -664,6 +778,30 @@ export class IVotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

@@ -24,6 +24,8 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "balanceOfAt(address,uint256)": FunctionFragment;
+    "balanceOfAtBlockNum(address,uint256)": FunctionFragment;
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
     "balanceOfLockAtBlockNum(uint256,uint256)": FunctionFragment;
     "checkpoint(uint256,tuple,tuple)": FunctionFragment;
@@ -31,8 +33,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "epoch()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
-    "init(address)": FunctionFragment;
-    "lock()": FunctionFragment;
     "lockPointHistory(uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "pointHistory(uint256)": FunctionFragment;
@@ -43,6 +43,7 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     "totalSupplyAtBlockNum(uint256)": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "veLocker()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -54,6 +55,14 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfAt",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "balanceOfAtBlockNum",
+    values: [string, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "balanceOfLockAt",
     values: [BigNumberish, BigNumberish]
@@ -80,8 +89,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "init", values: [string]): string;
-  encodeFunctionData(functionFragment: "lock", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "lockPointHistory",
     values: [BigNumberish, BigNumberish]
@@ -116,10 +123,19 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfAt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "balanceOfAtBlockNum",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfLockAt",
     data: BytesLike
@@ -139,8 +155,6 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockPointHistory",
     data: BytesLike
@@ -172,6 +186,7 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "veLocker", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
@@ -257,6 +272,30 @@ export class VotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     balanceOfLockAt(
       tokenId: BigNumberish,
       timestamp: BigNumberish,
@@ -323,20 +362,6 @@ export class VotingEscrowToken extends Contract {
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    init(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "init(address)"(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    lock(overrides?: CallOverrides): Promise<[string]>;
-
-    "lock()"(overrides?: CallOverrides): Promise<[string]>;
 
     lockPointHistory(
       arg0: BigNumberish,
@@ -455,6 +480,10 @@ export class VotingEscrowToken extends Contract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    veLocker(overrides?: CallOverrides): Promise<[string]>;
+
+    "veLocker()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   allowance(
@@ -485,6 +514,30 @@ export class VotingEscrowToken extends Contract {
 
   "balanceOf(address)"(
     account: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOfAt(
+    account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "balanceOfAt(address,uint256)"(
+    account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  balanceOfAtBlockNum(
+    account: string,
+    blockNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "balanceOfAtBlockNum(address,uint256)"(
+    account: string,
+    blockNum: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -554,20 +607,6 @@ export class VotingEscrowToken extends Contract {
     addedValue: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  init(
-    _lock: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "init(address)"(
-    _lock: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  lock(overrides?: CallOverrides): Promise<string>;
-
-  "lock()"(overrides?: CallOverrides): Promise<string>;
 
   lockPointHistory(
     arg0: BigNumberish,
@@ -687,6 +726,10 @@ export class VotingEscrowToken extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  veLocker(overrides?: CallOverrides): Promise<string>;
+
+  "veLocker()"(overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
     allowance(
       owner: string,
@@ -716,6 +759,30 @@ export class VotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -783,14 +850,6 @@ export class VotingEscrowToken extends Contract {
       addedValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    init(_lock: string, overrides?: CallOverrides): Promise<void>;
-
-    "init(address)"(_lock: string, overrides?: CallOverrides): Promise<void>;
-
-    lock(overrides?: CallOverrides): Promise<string>;
-
-    "lock()"(overrides?: CallOverrides): Promise<string>;
 
     lockPointHistory(
       arg0: BigNumberish,
@@ -909,6 +968,10 @@ export class VotingEscrowToken extends Contract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    veLocker(overrides?: CallOverrides): Promise<string>;
+
+    "veLocker()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -960,6 +1023,30 @@ export class VotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1029,20 +1116,6 @@ export class VotingEscrowToken extends Contract {
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    init(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "init(address)"(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    lock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "lock()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     lockPointHistory(
       arg0: BigNumberish,
@@ -1133,6 +1206,10 @@ export class VotingEscrowToken extends Contract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    veLocker(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "veLocker()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1167,6 +1244,30 @@ export class VotingEscrowToken extends Contract {
 
     "balanceOf(address)"(
       account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfAt(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOfAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    balanceOfAtBlockNum(
+      account: string,
+      blockNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "balanceOfAtBlockNum(address,uint256)"(
+      account: string,
+      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1236,20 +1337,6 @@ export class VotingEscrowToken extends Contract {
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    init(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "init(address)"(
-      _lock: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    lock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "lock()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     lockPointHistory(
       arg0: BigNumberish,
@@ -1340,5 +1427,9 @@ export class VotingEscrowToken extends Contract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    veLocker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "veLocker()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

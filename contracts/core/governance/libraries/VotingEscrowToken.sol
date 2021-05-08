@@ -4,22 +4,20 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/SafeCast.sol";
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
-import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
+import "../../../core/governance/libraries/VotingEscrowLock.sol";
 import "../../../core/governance/interfaces/IVotingEscrowToken.sol";
-import "../../../utils/HasInitializer.sol";
+import "../../../utils/Int128.sol";
 
 /**
  * @dev Voting Escrow Token is the solidity implementation of veCRV
  *      Its original code https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy
  */
 
-contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
-    using SafeCast for uint256;
-    using SafeCast for int256;
+contract VotingEscrowToken is ERC20, IVotingEscrowToken {
+    using Int128 for uint256;
 
-    address public lock;
+    address public veLocker;
 
     uint256 constant MAXTIME = 4 * (365 days);
     uint256 constant MULTIPLIER = 1e18;
@@ -31,16 +29,25 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
     mapping(uint256 => Point[]) public lockPointHistory;
 
     modifier onlyVELock() {
-        require(msg.sender == lock, "Only ve lock contract can call this.");
+        require(msg.sender == veLocker, "Only ve lock contract can call this.");
         _;
     }
 
-    constructor(string memory _name, string memory _symbol)
-        ERC20(_name, _symbol)
-    {}
-
-    function init(address _lock) external initializer {
-        lock = _lock;
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        string memory _uri,
+        address _erc20
+    ) ERC20(_name, _symbol) {
+        VotingEscrowLock _veLocker =
+            new VotingEscrowLock(
+                string(abi.encodePacked(_name, " Locker")),
+                string(abi.encodePacked(_symbol, "_LOCK")),
+                _uri,
+                _erc20,
+                address(this)
+            );
+        veLocker = address(_veLocker);
     }
 
     function checkpoint() external override {
@@ -91,12 +98,44 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
         override(IERC20, ERC20)
         returns (uint256)
     {
-        uint256 numOfLocks = IERC721Enumerable(lock).balanceOf(account);
+        uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
         uint256 balance = 0;
         for (uint256 i = 0; i < numOfLocks; i++) {
             uint256 tokenId =
-                IERC721Enumerable(lock).tokenOfOwnerByIndex(account, i);
+                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
             balance += balanceOfLockAt(tokenId, block.timestamp);
+        }
+        return balance;
+    }
+
+    function balanceOfAt(address account, uint256 timestamp)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
+        uint256 balance = 0;
+        for (uint256 i = 0; i < numOfLocks; i++) {
+            uint256 tokenId =
+                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
+            balance += balanceOfLockAt(tokenId, timestamp);
+        }
+        return balance;
+    }
+
+    function balanceOfAtBlockNum(address account, uint256 blockNum)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
+        uint256 balance = 0;
+        for (uint256 i = 0; i < numOfLocks; i++) {
+            uint256 tokenId =
+                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
+            balance += balanceOfLockAtBlockNum(tokenId, blockNum);
         }
         return balance;
     }
@@ -109,19 +148,23 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
     {
         Point[] memory history = lockPointHistory[tokenId];
         if (history.length == 0) {
+            // lock does not exists
+            return 0;
+        } else if (timestamp < history[0].timestamp) {
+            // timestamp is before the first lock
             return 0;
         } else {
             Point memory lastPoint = history[history.length - 1];
             int128 bal =
                 lastPoint.bias -
                     lastPoint.slope *
-                    (timestamp - lastPoint.timestamp).toInt256().toInt128();
+                    (timestamp.toInt128() - lastPoint.timestamp.toInt128());
             return bal > 0 ? uint256(bal) : 0;
         }
     }
 
     function balanceOfLockAtBlockNum(uint256 tokenId, uint256 blockNum)
-        external
+        public
         view
         override
         returns (uint256)
@@ -129,6 +172,9 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
         require(blockNum <= block.number, "Only past blocks");
         Point[] memory history = lockPointHistory[tokenId];
         if (history.length == 0) {
+            return 0;
+        } else if (blockNum < history[0].blockNum) {
+            // block num is before the first lock
             return 0;
         }
         // binary search
@@ -168,7 +214,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
         int128 bal =
             point.bias -
                 point.slope *
-                (blockTime - point.timestamp).toInt256().toInt128();
+                (blockTime.toInt128() - point.timestamp.toInt128());
         return bal > 0 ? uint256(bal) : 0;
     }
 
@@ -239,7 +285,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
             }
             supply -=
                 slope *
-                (ithWeekTimestamp - timestampCursor).toInt256().toInt128();
+                (ithWeekTimestamp.toInt128() - timestampCursor.toInt128());
             if (ithWeekTimestamp == timestamp) {
                 break;
             }
@@ -282,13 +328,13 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
         )
     {
         if (prevLock.end > block.timestamp && prevLock.amount > 0) {
-            prevPoint.slope = (prevLock.amount / MAXTIME).toInt256().toInt128();
+            prevPoint.slope = (prevLock.amount / MAXTIME).toInt128();
             prevPoint.bias =
                 prevPoint.slope *
-                (prevLock.end - block.timestamp).toInt256().toInt128();
+                (prevLock.end.toInt128() - block.timestamp.toInt128());
         }
         if (newLock.end > block.timestamp && newLock.amount > 0) {
-            newPoint.slope = (newLock.amount / MAXTIME).toInt256().toInt128();
+            newPoint.slope = (newLock.amount.toInt128() / MAXTIME.toInt128());
             newPoint.bias =
                 newPoint.slope *
                 int128((newLock.end - block.timestamp));
@@ -306,11 +352,11 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
     function _recordPointHistory() internal returns (Point memory lastPoint) {
         uint256 currentEpoch = epoch;
         // last_point: Point = Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number})
-        Point memory cursor;
+        Point memory prevLastPoint;
         if (currentEpoch > 0) {
-            cursor = pointHistory[currentEpoch];
+            prevLastPoint = pointHistory[currentEpoch];
         } else {
-            cursor = Point({
+            prevLastPoint = Point({
                 bias: 0,
                 slope: 0,
                 timestamp: block.timestamp,
@@ -318,17 +364,16 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, HasInitializer {
             });
         }
 
-        Point memory prevLastPoint = cursor;
-
         uint256 blockSlope =
-            block.timestamp > cursor.timestamp
-                ? (MULTIPLIER * (block.number - cursor.blockNum)) /
-                    (block.timestamp - cursor.timestamp)
+            block.timestamp > prevLastPoint.timestamp
+                ? (MULTIPLIER * (block.number - prevLastPoint.blockNum)) /
+                    (block.timestamp - prevLastPoint.timestamp)
                 : 0;
 
         // fill history
         uint256 ithWeekTimestamp =
             (prevLastPoint.timestamp / 1 weeks) * 1 weeks;
+        Point memory cursor;
         for (uint256 i = 0; i < 255; i++) {
             // Hopefully it won't happen that this won't get used in 5 years!
             // If it does, users will be able to withdraw but vote weight will be broken
