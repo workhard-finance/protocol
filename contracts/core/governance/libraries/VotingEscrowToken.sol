@@ -2,6 +2,8 @@
 pragma solidity ^0.7.0;
 pragma abicoder v2;
 
+import "hardhat/console.sol";
+
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
@@ -57,35 +59,29 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
 
     function checkpoint(
         uint256 veLockId,
-        Lock calldata prevLock,
+        Lock calldata oldLock,
         Lock calldata newLock
     ) external onlyVELock {
         // Record history
         _recordPointHistory();
 
         // Compute points
-        (
-            Point memory prevLockPoint,
-            Point memory newLockPoint,
-            int128 prevLockSlope,
-            int128 newLockSlope
-        ) = _computeNewPointForLock(prevLock, newLock);
+        (Point memory oldLockPoint, Point memory newLockPoint) =
+            _computePointsFromLocks(oldLock, newLock);
         // // Record history
         // Point memory lastPoint = _recordPointHistory();
 
         // // apply lock updates to the last point
-        // pointHistory[epoch] = _applyLockUpdateToLastPoint(prevPoint, newPoint, lastPoint);
+        // pointHistory[epoch] = _applyLockUpdateToLastPoint(oldPoint, newPoint, lastPoint);
 
-        _updateLastPoint(prevLockPoint, newLockPoint);
+        _updateLastPoint(oldLockPoint, newLockPoint);
 
         _recordLockPointHistory(
             veLockId,
-            prevLock,
+            oldLock,
             newLock,
-            prevLockPoint,
-            newLockPoint,
-            prevLockSlope,
-            newLockSlope
+            oldLockPoint,
+            newLockPoint
         );
     }
 
@@ -194,40 +190,28 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
                 -(_point.slope) * (1 weeks), // delta y
                 slopeChanges[x] // delta slope
             );
+            console.log("slope change is %s ", uint256(slopeChanges[x]));
         }
         y = _point.bias - _point.slope * (timestamp - x).toInt128();
         return y > 0 ? uint256(y) : 0;
     }
 
-    function _computeNewPointForLock(Lock memory prevLock, Lock memory newLock)
+    function _computePointsFromLocks(Lock memory oldLock, Lock memory newLock)
         internal
         view
-        returns (
-            Point memory prevPoint,
-            Point memory newPoint,
-            int128 prevSlope,
-            int128 newSlope
-        )
+        returns (Point memory oldPoint, Point memory newPoint)
     {
-        if (prevLock.end > block.timestamp && prevLock.amount > 0) {
-            prevPoint.slope = (prevLock.amount / MAXTIME).toInt128();
-            prevPoint.bias =
-                prevPoint.slope *
-                (prevLock.end.toInt128() - block.timestamp.toInt128());
+        if (oldLock.end > block.timestamp && oldLock.amount > 0) {
+            oldPoint.slope = (oldLock.amount / MAXTIME).toInt128();
+            oldPoint.bias =
+                oldPoint.slope *
+                int128(oldLock.end - block.timestamp);
         }
         if (newLock.end > block.timestamp && newLock.amount > 0) {
-            newPoint.slope = (newLock.amount.toInt128() / MAXTIME.toInt128());
+            newPoint.slope = (newLock.amount / MAXTIME).toInt128();
             newPoint.bias =
                 newPoint.slope *
                 int128((newLock.end - block.timestamp));
-        }
-        prevSlope = slopeChanges[prevLock.end];
-        if (newLock.end != 0) {
-            if (newLock.end == prevLock.end) {
-                newSlope = prevSlope;
-            } else {
-                newSlope = slopeChanges[newLock.end];
-            }
         }
     }
 
@@ -258,30 +242,38 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
 
     function _recordLockPointHistory(
         uint256 veLockId,
-        Lock memory prevLock,
+        Lock memory oldLock,
         Lock memory newLock,
-        Point memory prevPoint,
-        Point memory newPoint,
-        int128 prevSlope,
-        int128 newSlope
+        Point memory oldPoint,
+        Point memory newPoint
     ) internal {
         require(
-            (prevLock.end / 1 weeks) * 1 weeks == prevLock.end,
+            (oldLock.end / 1 weeks) * 1 weeks == oldLock.end,
             "should be exact epoch timestamp"
         );
         require(
             (newLock.end / 1 weeks) * 1 weeks == newLock.end,
             "should be exact epoch timestamp"
         );
-        if (prevLock.end > block.timestamp) {
-            prevSlope += prevPoint.slope;
-            if (newLock.end == prevLock.end) {
-                prevSlope -= newPoint.slope;
+        int128 oldSlope;
+        int128 newSlope;
+        oldSlope = slopeChanges[oldLock.end];
+        if (newLock.end != 0) {
+            if (newLock.end == oldLock.end) {
+                newSlope = oldSlope;
+            } else {
+                newSlope = slopeChanges[newLock.end];
             }
-            slopeChanges[prevLock.end] = prevSlope;
+        }
+        if (oldLock.end > block.timestamp) {
+            oldSlope += oldPoint.slope;
+            if (newLock.end == oldLock.end) {
+                oldSlope -= newPoint.slope;
+            }
+            slopeChanges[oldLock.end] = oldSlope;
         }
         if (newLock.end > block.timestamp) {
-            if (newLock.end > prevLock.end) {
+            if (newLock.end > oldLock.end) {
                 newSlope -= newPoint.slope;
                 slopeChanges[newLock.end] = newSlope;
             }
@@ -291,7 +283,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     }
 
     function _updateLastPoint(
-        Point memory prevLockPoint,
+        Point memory oldLockPoint,
         Point memory newLockPoint
     ) internal {
         if (pointHistory.length == 0) {
@@ -301,7 +293,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         }
         Point memory newLastPoint =
             _applyLockUpdateToLastPoint(
-                prevLockPoint,
+                oldLockPoint,
                 newLockPoint,
                 pointHistory[pointHistory.length - 1]
             );
@@ -309,13 +301,13 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     }
 
     function _applyLockUpdateToLastPoint(
-        Point memory prevPoint,
+        Point memory oldPoint,
         Point memory newPoint,
         Point memory lastPoint
     ) internal pure returns (Point memory newLastPoint) {
         newLastPoint = lastPoint;
-        newLastPoint.slope += (newPoint.slope - prevPoint.slope);
-        newLastPoint.bias += (newPoint.bias - prevPoint.bias);
+        newLastPoint.slope += (newPoint.slope - oldPoint.slope);
+        newLastPoint.bias += (newPoint.bias - oldPoint.bias);
         if (newLastPoint.slope < 0) {
             newLastPoint.slope = 0;
         }
