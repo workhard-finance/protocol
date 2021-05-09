@@ -79,8 +79,8 @@ contract WorkersUnion is Pausable, Governed {
             1 weeks, // maximum pending for vote
             1 weeks, // minimum voting period
             4 weeks, // maximum voting period
-            0, // minimum votes for proposing
-            0, // minimum votes
+            1 gwei, // minimum votes for proposing
+            10 gwei, // minimum votes
             IVoteCounter(_voteCounter)
         );
         setGovernance(_timelockGov);

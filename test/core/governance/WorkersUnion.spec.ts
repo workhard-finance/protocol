@@ -9,7 +9,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 
-describe.only("WorkersUnion.sol", function () {
+describe("WorkersUnion.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let planter: SignerWithAddress;
@@ -56,8 +56,6 @@ describe.only("WorkersUnion.sol", function () {
     await veLocker.connect(bob).createLock(parseEther("100000"), 20);
     await veLocker.connect(carl).createLock(parseEther("100"), 4);
     await goTo(86400 * 7);
-    console.log(await voteCounter.callStatic.getTotalVotes());
-    console.log(await veVISION.callStatic.totalSupply());
     newMemorandom = [
       3600 * 24 * 2,
       3600 * 24 * 7,
@@ -210,7 +208,7 @@ describe.only("WorkersUnion.sol", function () {
       );
     });
     it("should not execute the tx when its for vote is less than the minimum", async () => {
-      await workersUnion.connect(alice).vote(txHash, true);
+      await workersUnion.connect(carl).vote(txHash, true);
       await goTo(3600 * 24 * 7);
       await expect(
         workersUnion.schedule(...params.slice(0, 5))

@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract } from "ethers";
-import { parseEther } from "ethers/lib/utils";
+import { formatEther, parseEther } from "ethers/lib/utils";
 import { almostEquals, goTo, sqrt } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -108,9 +108,6 @@ describe("SquareRootVoteCounter.sol", function () {
         carlVotes.pow(2).mul(10000).div(carlVeVISION)
       );
       expect(aliceVotes.pow(2).mul(10000).div(aliceVeVISION)).not.eq(0);
-      almostEquals(aliceVotes, bobVotes);
-      almostEquals(aliceVotes, carlVotes);
-      almostEquals(bobVotes, carlVotes)
     });
   });
 });

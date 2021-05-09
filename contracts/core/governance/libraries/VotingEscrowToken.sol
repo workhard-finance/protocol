@@ -6,6 +6,7 @@ import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
+import "@openzeppelin/contracts/math/Math.sol";
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
 import "../../../core/governance/libraries/VotingEscrowLock.sol";
 import "../../../core/governance/interfaces/IVotingEscrowToken.sol";
@@ -18,7 +19,6 @@ import "../../../utils/Int128.sol";
 
 contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     using Int128 for uint256;
-    using VotingEscrowLib for Point;
 
     address public override veLocker;
 
@@ -68,11 +68,6 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         // Compute points
         (Point memory oldLockPoint, Point memory newLockPoint) =
             _computePointsFromLocks(oldLock, newLock);
-        // // Record history
-        // Point memory lastPoint = _recordPointHistory();
-
-        // // apply lock updates to the last point
-        // pointHistory[epoch] = _applyLockUpdateToLastPoint(oldPoint, newPoint, lastPoint);
 
         _updateLastPoint(oldLockPoint, newLockPoint);
 
@@ -179,20 +174,19 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     {
         require(point.timestamp <= timestamp, "scan only to the rightward");
         Point memory _point = point;
-        int128 y;
         uint256 x = (point.timestamp / 1 weeks) * 1 weeks;
 
         // find the closest point
-        while (timestamp > x + 1 weeks) {
-            x = x + 1 weeks;
-            _point = _point.addDelta(
-                1 weeks, // delta x
-                -(_point.slope) * (1 weeks), // delta y
-                slopeChanges[x] // delta slope
-            );
-            console.log("slope change is %s ", uint256(slopeChanges[x]));
-        }
-        y = _point.bias - _point.slope * (timestamp - x).toInt128();
+        do {
+            x = Math.min(x + 1 weeks, timestamp);
+            uint256 delta = Math.min(timestamp - x, 1 weeks);
+            _point.timestamp = x;
+            _point.bias -= (_point.slope) * int128(delta);
+            _point.slope += slopeChanges[x];
+            _point.bias = _point.bias > 0 ? _point.bias : 0;
+            _point.slope = _point.slope > 0 ? _point.slope : 0;
+        } while (timestamp != x);
+        int128 y = _point.bias - _point.slope * (timestamp - x).toInt128();
         return y > 0 ? uint256(y) : 0;
     }
 
@@ -226,18 +220,19 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         }
 
         // fill history
-        uint256 x = (_point.timestamp / 1 weeks) * 1 weeks;
         uint256 timestamp = block.timestamp;
+        uint256 x = (_point.timestamp / 1 weeks) * 1 weeks;
         // record intermediate histories
-        while (timestamp > x + 1 weeks) {
-            x = x + 1 weeks;
-            _point = _point.addDelta(
-                1 weeks, // delta x
-                -(_point.slope) * (1 weeks), // delta y
-                slopeChanges[x] // delta slope
-            );
+        do {
+            x = Math.min(x + 1 weeks, timestamp);
+            uint256 delta = Math.min(timestamp - x, 1 weeks);
+            _point.timestamp = x;
+            _point.bias -= (_point.slope) * int128(delta);
+            _point.slope += slopeChanges[x];
+            _point.bias = _point.bias > 0 ? _point.bias : 0;
+            _point.slope = _point.slope > 0 ? _point.slope : 0;
             pointHistory.push(_point);
-        }
+        } while (timestamp != x);
     }
 
     function _recordLockPointHistory(
@@ -255,9 +250,8 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
             (newLock.end / 1 weeks) * 1 weeks == newLock.end,
             "should be exact epoch timestamp"
         );
-        int128 oldSlope;
+        int128 oldSlope = slopeChanges[oldLock.end];
         int128 newSlope;
-        oldSlope = slopeChanges[oldLock.end];
         if (newLock.end != 0) {
             if (newLock.end == oldLock.end) {
                 newSlope = oldSlope;

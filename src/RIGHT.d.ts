@@ -287,11 +287,7 @@ export class RIGHT extends Contract {
 
     "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      prevLock: {
-        amount: BigNumberish;
-        start: BigNumberish;
-        end: BigNumberish;
-      },
+      oldLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -504,7 +500,7 @@ export class RIGHT extends Contract {
 
   "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
     veLockId: BigNumberish,
-    prevLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
+    oldLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
     newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -717,11 +713,7 @@ export class RIGHT extends Contract {
 
     "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      prevLock: {
-        amount: BigNumberish;
-        start: BigNumberish;
-        end: BigNumberish;
-      },
+      oldLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: CallOverrides
     ): Promise<void>;
@@ -953,11 +945,7 @@ export class RIGHT extends Contract {
 
     "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      prevLock: {
-        amount: BigNumberish;
-        start: BigNumberish;
-        end: BigNumberish;
-      },
+      oldLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1150,11 +1138,7 @@ export class RIGHT extends Contract {
 
     "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      prevLock: {
-        amount: BigNumberish;
-        start: BigNumberish;
-        end: BigNumberish;
-      },
+      oldLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
