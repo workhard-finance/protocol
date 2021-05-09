@@ -54,7 +54,7 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
     "stakeMiningPoolFactory()": FunctionFragment;
     "stakeMiningPools(address)": FunctionFragment;
     "start()": FunctionFragment;
-    "visionToken()": FunctionFragment;
+    "vision()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -171,10 +171,7 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "start", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "visionToken",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "vision", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "DENOMINATOR",
@@ -287,10 +284,7 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "start", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "visionToken",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "vision", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -597,9 +591,9 @@ export class VisionEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    visionToken(overrides?: CallOverrides): Promise<[string]>;
+    vision(overrides?: CallOverrides): Promise<[string]>;
 
-    "visionToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "vision()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -837,9 +831,9 @@ export class VisionEmitter extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  visionToken(overrides?: CallOverrides): Promise<string>;
+  vision(overrides?: CallOverrides): Promise<string>;
 
-  "visionToken()"(overrides?: CallOverrides): Promise<string>;
+  "vision()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1055,9 +1049,9 @@ export class VisionEmitter extends Contract {
 
     "start()"(overrides?: CallOverrides): Promise<void>;
 
-    visionToken(overrides?: CallOverrides): Promise<string>;
+    vision(overrides?: CallOverrides): Promise<string>;
 
-    "visionToken()"(overrides?: CallOverrides): Promise<string>;
+    "vision()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1324,9 +1318,9 @@ export class VisionEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    visionToken(overrides?: CallOverrides): Promise<BigNumber>;
+    vision(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "visionToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "vision()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1584,8 +1578,8 @@ export class VisionEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    visionToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    vision(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "visionToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "vision()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

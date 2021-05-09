@@ -1,11 +1,14 @@
+import { ethers } from "hardhat";
+import chai, { expect } from "chai";
+import { solidity } from "ethereum-waffle";
 import {
   BigNumber,
   BigNumberish,
   Contract,
   PopulatedTransaction,
 } from "ethers";
-import { ethers } from "hardhat";
 
+chai.use(solidity);
 const { keccak256, solidityPack, getAddress } = ethers.utils;
 
 export const setNextBlockTimestamp = async (seconds: number) => {
@@ -82,6 +85,10 @@ export const sqrt = (x: BigNumber) => {
 export const almostEquals = (a: BigNumberish, b: BigNumberish) => {
   const A = BigNumber.from(a);
   const B = BigNumber.from(b);
-  if (A.eq(0)) return B.eq(0);
-  return A.sub(B).mul(100).div(A).eq(0);
+  if (A.eq(0)) {
+    expect(A).eq(B);
+  } else {
+    expect(A.mul(100)).lt(B.mul(103));
+    expect(A.mul(100)).gt(B.mul(97));
+  }
 };

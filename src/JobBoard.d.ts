@@ -33,7 +33,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     "claim(uint256,address,uint256,bytes32,bytes)": FunctionFragment;
     "claimed(bytes32)": FunctionFragment;
     "closeProject(uint256)": FunctionFragment;
-    "commitmentToken()": FunctionFragment;
+    "commitToken()": FunctionFragment;
     "compensate(uint256,address,uint256)": FunctionFragment;
     "createProject(string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
@@ -100,7 +100,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -225,7 +225,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
@@ -500,9 +500,9 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
+    commitToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "commitToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     compensate(
       projectId: BigNumberish,
@@ -841,9 +841,9 @@ export class JobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  commitmentToken(overrides?: CallOverrides): Promise<string>;
+  commitToken(overrides?: CallOverrides): Promise<string>;
 
-  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+  "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
   compensate(
     projectId: BigNumberish,
@@ -1175,9 +1175,9 @@ export class JobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<string>;
+    commitToken(overrides?: CallOverrides): Promise<string>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+    "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
     compensate(
       projectId: BigNumberish,
@@ -1572,9 +1572,9 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
+    commitToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "commitToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     compensate(
       projectId: BigNumberish,
@@ -1908,11 +1908,9 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    commitToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "commitmentToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "commitToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     compensate(
       projectId: BigNumberish,

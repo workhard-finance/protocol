@@ -5,9 +5,9 @@
 import { Signer, Contract, ContractFactory, Overrides } from "ethers";
 import { Provider, TransactionRequest } from "@ethersproject/providers";
 
-import type { Planter } from "../Planter";
+import type { Distributor } from "../Distributor";
 
-export class Planter__factory extends ContractFactory {
+export class Distributor__factory extends ContractFactory {
   constructor(signer?: Signer) {
     super(_abi, _bytecode, signer);
   }
@@ -15,8 +15,8 @@ export class Planter__factory extends ContractFactory {
   deploy(
     _dividendPool: string,
     overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<Planter> {
-    return super.deploy(_dividendPool, overrides || {}) as Promise<Planter>;
+  ): Promise<Distributor> {
+    return super.deploy(_dividendPool, overrides || {}) as Promise<Distributor>;
   }
   getDeployTransaction(
     _dividendPool: string,
@@ -24,17 +24,17 @@ export class Planter__factory extends ContractFactory {
   ): TransactionRequest {
     return super.getDeployTransaction(_dividendPool, overrides || {});
   }
-  attach(address: string): Planter {
-    return super.attach(address) as Planter;
+  attach(address: string): Distributor {
+    return super.attach(address) as Distributor;
   }
-  connect(signer: Signer): Planter__factory {
-    return super.connect(signer) as Planter__factory;
+  connect(signer: Signer): Distributor__factory {
+    return super.connect(signer) as Distributor__factory;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): Planter {
-    return new Contract(address, _abi, signerOrProvider) as Planter;
+  ): Distributor {
+    return new Contract(address, _abi, signerOrProvider) as Distributor;
   }
 }
 
@@ -66,4 +66,4 @@ const _abi = [
 ];
 
 const _bytecode =
-  "0x60a060405234801561001057600080fd5b5060405161011a38038061011a8339818101604052602081101561003357600080fd5b5051606081901b6001600160601b0319166080526001600160a01b031660b661006460003980605e525060b66000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806330d172d514602d575b600080fd5b6033605c565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b7f00000000000000000000000000000000000000000000000000000000000000008156fea2646970667358221220ff462240675ebda26bc9a5e05743fa3c0785c1e7d202ded4be06ec15d625a2fb64736f6c63430007060033";
+  "0x60a060405234801561001057600080fd5b5060405161011a38038061011a8339818101604052602081101561003357600080fd5b5051606081901b6001600160601b0319166080526001600160a01b031660b661006460003980605e525060b66000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c806330d172d514602d575b600080fd5b6033605c565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b7f00000000000000000000000000000000000000000000000000000000000000008156fea264697066735822122092f38c367d75ee734cd8ce51ce2b3ffb2a952d72d0639d8ce102c71916e8594f64736f6c63430007060033";

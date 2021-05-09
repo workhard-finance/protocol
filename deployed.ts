@@ -14,7 +14,7 @@ export type DeployableContracts =
   | "DividendPool"
   | "BurnMining"
   | "StakeMining"
-  | "CommitmentMining"
+  | "CommitMining"
   | "LiquidityMining"
   | "StableReserve"
   | "Marketplace"
@@ -27,7 +27,7 @@ export type DeployableContracts =
 export type MyContracts =
   | "VisionLP"
   | "BaseCurrency"
-  | "CommitmentMining"
+  | "CommitMining"
   | "LiquidityMining";
 
 export type ContractNames = DeployableContracts | MyContracts;

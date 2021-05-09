@@ -1,59 +1,55 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Signer, Contract, BigNumber } from "ethers";
+import { Contract, BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import { goTo, runTimelockTx } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 
+const day = 86400;
+const week = day * 7;
+const year = day * 365;
 describe("DividendPool.sol", function () {
-  let signers: Signer[];
-  let deployer: Signer;
-  let planter: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let carl: Signer;
-  let deployerAddress: string;
-  let planterAddress: string;
-  let aliceAddress: string;
-  let bobAddress: string;
-  let carlAddress: string;
+  let signers: SignerWithAddress[];
+  let deployer: SignerWithAddress;
+  let distributor: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let carl: SignerWithAddress;
   let fixture: MiningFixture;
-  let visionToken: Contract;
+  let vision: Contract;
   let dividendPool: Contract;
+  let veLocker: Contract;
   let timelock: Contract;
   let testingRewardToken: Contract;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
-    planter = signers[1];
+    distributor = signers[1];
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    deployerAddress = await deployer.getAddress();
-    planterAddress = await planter.getAddress();
-    aliceAddress = await alice.getAddress();
-    bobAddress = await bob.getAddress();
-    carlAddress = await carl.getAddress();
     fixture = await getMiningFixture({ skipMinterSetting: true });
-    visionToken = fixture.visionToken;
+    vision = fixture.vision;
     dividendPool = fixture.dividendPool;
+    veLocker = fixture.veLocker;
     timelock = fixture.timelock;
     const ERC20 = await ethers.getContractFactory("ERC20Mock");
     testingRewardToken = await ERC20.deploy();
-    await testingRewardToken.mint(planterAddress, parseEther("10000"));
+    await testingRewardToken.mint(distributor.address, parseEther("10000"));
     await testingRewardToken
-      .connect(planter)
+      .connect(distributor)
       .approve(dividendPool.address, parseEther("10000"));
-    const prepare = async (account: Signer) => {
+    const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
-      await visionToken.mint(addr, parseEther("10000"));
-      await visionToken
+      await vision.mint(addr, parseEther("10000"));
+      await vision
         .connect(account)
-        .approve(dividendPool.address, parseEther("10000"));
+        .approve(veLocker.address, parseEther("10000"));
     };
     await prepare(alice);
     await prepare(bob);
@@ -61,135 +57,60 @@ describe("DividendPool.sol", function () {
   });
   describe("getCurrentEpoch()", async () => {
     it("should start from 0", async () => {
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(0);
+      let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+      const startEpoch = Math.floor(timestamp / week);
+      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(startEpoch);
     });
-    it("should increment by monthly", async () => {
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(0);
-      await goTo(3600 * 24 * 7 * 4);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(1);
-      await goTo(3600 * 24 * 7 * 4);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(2);
-    });
-  });
-  describe("stakeAndLock()", async () => {
-    beforeEach(async () => {
-      await dividendPool.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await dividendPool.connect(bob).stakeAndLock(parseEther("10"), 4);
-      await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 2);
-    });
-    it("maximum lock period is 50", async () => {
-      await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 50);
-      await expect(
-        dividendPool.connect(carl).stakeAndLock(parseEther("100"), 51)
-      ).to.be.reverted;
-    });
-    describe("dispatchableFarmers(epochNum)", async () => {
-      it("should be proportional to the amount of stake and its remaining locked period", async () => {
-        const epoch1aliceDispatchable = await dividendPool.dispatchableFarmers(
-          aliceAddress,
-          1
-        );
-        const epoch1bobDispatchable = await dividendPool.dispatchableFarmers(
-          bobAddress,
-          1
-        );
-        const epoch1carlDispatchable = await dividendPool.dispatchableFarmers(
-          carlAddress,
-          1
-        );
-        expect(epoch1aliceDispatchable.div(10)).eq(epoch1bobDispatchable);
-        expect(epoch1aliceDispatchable.div(2)).eq(epoch1carlDispatchable);
-        const epoch2aliceDispatchable = await dividendPool.dispatchableFarmers(
-          aliceAddress,
-          2
-        );
-        const epoch3aliceDispatchable = await dividendPool.dispatchableFarmers(
-          aliceAddress,
-          3
-        );
-        const epoch4aliceDispatchable = await dividendPool.dispatchableFarmers(
-          aliceAddress,
-          4
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch2aliceDispatchable.div(3)
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch3aliceDispatchable.div(2)
-        );
-        expect(epoch1aliceDispatchable.div(4)).eq(
-          epoch4aliceDispatchable.div(1)
-        );
-      });
-      it("should be unstakeable after its locking period", async () => {
-        await expect(dividendPool.connect(alice).unstake(parseEther("100"))).to
-          .be.reverted;
-        const epochs = 5;
-        await goTo(3600 * 24 * 7 * 4 * epochs);
-        const prevBal = await visionToken.callStatic.balanceOf(aliceAddress);
-        await dividendPool.connect(alice).unstake(parseEther("100"));
-        const updatedBal = await visionToken.callStatic.balanceOf(aliceAddress);
-        expect(updatedBal).eq(prevBal.add(parseEther("100")));
-      });
+    it("should increment by weekly", async () => {
+      let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+      const startEpoch = Math.floor(timestamp / week);
+      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(startEpoch);
+      await goTo(4 * week);
+      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(
+        startEpoch + 4
+      );
+      await goTo(3 * week);
+      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(
+        startEpoch + 7
+      );
     });
   });
-  describe("plantSeeds() & dispatchFarmers() & claim()", async () => {
+  describe("distribute() & claim()", async () => {
     beforeEach(async () => {
+      const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+      await veLocker
+        .connect(alice)
+        .createLockUntil(parseEther("100"), timestamp + 4 * year);
+      await veLocker
+        .connect(bob)
+        .createLockUntil(parseEther("10"), timestamp + 4 * year);
+      await veLocker
+        .connect(carl)
+        .createLockUntil(parseEther("100"), timestamp + 4 * year);
       await runTimelockTx(
         timelock,
-        dividendPool.populateTransaction.addPlanter(planterAddress)
+        dividendPool.populateTransaction.addDistributor(distributor.address)
       );
       await dividendPool
-        .connect(planter)
-        .plantSeeds(testingRewardToken.address, parseEther("100"));
-      await dividendPool.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await dividendPool.connect(bob).stakeAndLock(parseEther("10"), 40);
-      await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 2);
+        .connect(distributor)
+        .distribute(testingRewardToken.address, parseEther("100"));
     });
-    it("batchDispatch() automatically dispatches farmers for the future epochs", async () => {
-      await dividendPool.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await dividendPool.connect(alice).claimAll(1);
-      await expect(dividendPool.connect(alice).withdrawAll())
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(dividendPool.address, aliceAddress, parseEther("100")); // claim for epoch 1
-      await goTo(3600 * 24 * 7 * 4); // go to epoch 3
-      // no seed were planted for epoch 2.
-      await dividendPool.connect(alice).claimAll(2);
-      await expect(dividendPool.connect(alice).withdrawAll()).not.to.emit(
-        testingRewardToken,
-        "Transfer"
-      ); // claim for epoch 2
-    });
-    it("claim()", async () => {
-      await dividendPool.connect(alice).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await dividendPool.connect(bob).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await dividendPool.connect(carl).batchDispatch(); // dispatch farmers for epoch 1 & epoch 2
-      await goTo(3600 * 24 * 7 * 4 * 2); // go to epoch 2
-      await dividendPool.connect(alice).claimAll(1);
-      await expect(dividendPool.connect(alice).withdrawAll())
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          dividendPool.address,
-          aliceAddress,
-          parseEther("100").mul(400).div(1000)
-        ); // alice claims for epoch 1
-      await dividendPool.connect(bob).claimAll(1);
-      await expect(dividendPool.connect(bob).withdrawAll())
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          dividendPool.address,
-          bobAddress,
-          parseEther("100").mul(400).div(1000)
-        ); // bob claims for epoch 1
-      await dividendPool.connect(carl).claimAll(1);
-      await expect(dividendPool.connect(carl).withdrawAll())
-        .to.emit(testingRewardToken, "Transfer")
-        .withArgs(
-          dividendPool.address,
-          carlAddress,
-          parseEther("100").mul(200).div(1000)
-        ); // carl claims for epoch 1
+    describe("claimUpTo()", () => {
+      it("should be reverted since the target timestamp is bein updated", async () => {
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await expect(
+          dividendPool
+            .connect(alice)
+            .claimUpTo(testingRewardToken.address, timestamp)
+        ).to.be.reverted;
+      });
+      it("can claim after the epoch changes", async () => {
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await goTo(1 * week);
+        await dividendPool
+          .connect(alice)
+          .claimUpTo(testingRewardToken.address, timestamp);
+      });
     });
   });
 });

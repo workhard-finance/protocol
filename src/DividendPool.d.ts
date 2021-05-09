@@ -25,8 +25,15 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
     "claim(address)": FunctionFragment;
+    "claimBatch(address[])": FunctionFragment;
+    "claimStartWeek(address,uint256)": FunctionFragment;
+    "claimUpTo(address,uint256)": FunctionFragment;
+    "claimable(address)": FunctionFragment;
     "distribute(address,uint256)": FunctionFragment;
-    "distributedTokens(uint256)": FunctionFragment;
+    "distributedToken(uint256)": FunctionFragment;
+    "distributedTokens()": FunctionFragment;
+    "distributionBalance(address)": FunctionFragment;
+    "distributionOfWeek(address,uint256)": FunctionFragment;
     "distributions(address)": FunctionFragment;
     "epochUnit()": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
@@ -40,6 +47,7 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "removeDistributor(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
+    "totalDistributed(address)": FunctionFragment;
     "veLocker()": FunctionFragment;
     "veVISION()": FunctionFragment;
   };
@@ -55,12 +63,37 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "claim", values: [string]): string;
   encodeFunctionData(
+    functionFragment: "claimBatch",
+    values: [string[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimStartWeek",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimUpTo",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "claimable", values: [string]): string;
+  encodeFunctionData(
     functionFragment: "distribute",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "distributedTokens",
+    functionFragment: "distributedToken",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributedTokens",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributionBalance",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributionOfWeek",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "distributions",
@@ -105,6 +138,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     values: [string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "totalDistributed",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
   encodeFunctionData(functionFragment: "veVISION", values?: undefined): string;
 
@@ -118,9 +155,28 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "claimBatch", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "claimStartWeek",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "claimUpTo", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "distributedToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "distributedTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "distributionBalance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "distributionOfWeek",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -158,6 +214,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setGovernance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalDistributed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "veLocker", data: BytesLike): Result;
@@ -238,21 +298,56 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    claim(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     "claim(address)"(
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "claim(address[])"(
+    claimBatch(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "claim(address,uint256)"(
-      token: string,
-      until: BigNumberish,
+    "claimBatch(address[])"(
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    claimUpTo(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "claimUpTo(address,uint256)"(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    claimable(_token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "claimable(address)"(
+      _token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     distribute(
       _token: string,
@@ -266,15 +361,41 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    distributedTokens(
+    distributedToken(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    "distributedTokens(uint256)"(
+    "distributedToken(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     distributions(
       arg0: string,
@@ -380,6 +501,16 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    totalDistributed(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "totalDistributed(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     veLocker(overrides?: CallOverrides): Promise<[string]>;
 
     "veLocker()"(overrides?: CallOverrides): Promise<[string]>;
@@ -411,21 +542,56 @@ export class DividendPool extends Contract {
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  claim(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   "claim(address)"(
     token: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "claim(address[])"(
+  claimBatch(
     tokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "claim(address,uint256)"(
-    token: string,
-    until: BigNumberish,
+  "claimBatch(address[])"(
+    tokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  claimStartWeek(
+    token: string,
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "claimStartWeek(address,uint256)"(
+    token: string,
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  claimUpTo(
+    token: string,
+    timestamp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "claimUpTo(address,uint256)"(
+    token: string,
+    timestamp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  claimable(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "claimable(address)"(
+    _token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   distribute(
     _token: string,
@@ -439,15 +605,41 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  distributedTokens(
+  distributedToken(
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "distributedTokens(uint256)"(
+  "distributedToken(uint256)"(
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  distributionBalance(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "distributionBalance(address)"(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  distributionOfWeek(
+    token: string,
+    epochNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "distributionOfWeek(address,uint256)"(
+    token: string,
+    epochNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   distributions(
     arg0: string,
@@ -553,6 +745,16 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  totalDistributed(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "totalDistributed(address)"(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   veLocker(overrides?: CallOverrides): Promise<string>;
 
   "veLocker()"(overrides?: CallOverrides): Promise<string>;
@@ -580,18 +782,47 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    claim(token: string, overrides?: CallOverrides): Promise<void>;
+
     "claim(address)"(token: string, overrides?: CallOverrides): Promise<void>;
 
-    "claim(address[])"(
+    claimBatch(tokens: string[], overrides?: CallOverrides): Promise<void>;
+
+    "claimBatch(address[])"(
       tokens: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "claim(address,uint256)"(
+    claimStartWeek(
       token: string,
-      until: BigNumberish,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimUpTo(
+      token: string,
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    "claimUpTo(address,uint256)"(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    claimable(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "claimable(address)"(
+      _token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     distribute(
       _token: string,
@@ -605,15 +836,41 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    distributedTokens(
+    distributedToken(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "distributedTokens(uint256)"(
+    "distributedToken(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     distributions(
       arg0: string,
@@ -712,6 +969,16 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    totalDistributed(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "totalDistributed(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     veLocker(overrides?: CallOverrides): Promise<string>;
 
     "veLocker()"(overrides?: CallOverrides): Promise<string>;
@@ -756,20 +1023,55 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    claim(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     "claim(address)"(
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "claim(address[])"(
+    claimBatch(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "claim(address,uint256)"(
-      token: string,
-      until: BigNumberish,
+    "claimBatch(address[])"(
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimUpTo(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "claimUpTo(address,uint256)"(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    claimable(_token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "claimable(address)"(
+      _token: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     distribute(
@@ -784,13 +1086,39 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    distributedTokens(
+    distributedToken(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "distributedTokens(uint256)"(
+    "distributedToken(uint256)"(
       arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -885,6 +1213,16 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    totalDistributed(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "totalDistributed(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     veLocker(overrides?: CallOverrides): Promise<BigNumber>;
 
     "veLocker()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -917,20 +1255,58 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    claim(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     "claim(address)"(
       token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "claim(address[])"(
+    claimBatch(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "claim(address,uint256)"(
-      token: string,
-      until: BigNumberish,
+    "claimBatch(address[])"(
+      tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    claimUpTo(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "claimUpTo(address,uint256)"(
+      token: string,
+      timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    claimable(
+      _token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "claimable(address)"(
+      _token: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     distribute(
@@ -945,13 +1321,41 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    distributedTokens(
+    distributedToken(
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "distributedTokens(uint256)"(
+    "distributedToken(uint256)"(
       arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "distributedTokens()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1051,6 +1455,16 @@ export class DividendPool extends Contract {
     "setGovernance(address)"(
       _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    totalDistributed(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "totalDistributed(address)"(
+      token: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     veLocker(overrides?: CallOverrides): Promise<PopulatedTransaction>;

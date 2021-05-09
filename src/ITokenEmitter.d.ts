@@ -131,7 +131,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<ContractTransaction>;
 
     setWeight(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -139,7 +139,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<ContractTransaction>;
 
     "setWeight(uint256,uint256,uint256,uint256)"(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -148,13 +148,13 @@ export class ITokenEmitter extends Contract {
 
     start(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "start(address,address)"(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -182,7 +182,7 @@ export class ITokenEmitter extends Contract {
   ): Promise<ContractTransaction>;
 
   setWeight(
-    commitment: BigNumberish,
+    commit: BigNumberish,
     liquidity: BigNumberish,
     dev: BigNumberish,
     caller: BigNumberish,
@@ -190,7 +190,7 @@ export class ITokenEmitter extends Contract {
   ): Promise<ContractTransaction>;
 
   "setWeight(uint256,uint256,uint256,uint256)"(
-    commitment: BigNumberish,
+    commit: BigNumberish,
     liquidity: BigNumberish,
     dev: BigNumberish,
     caller: BigNumberish,
@@ -199,13 +199,13 @@ export class ITokenEmitter extends Contract {
 
   start(
     _liquidityMining: string,
-    _commitmentMining: string,
+    _commitMining: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "start(address,address)"(
     _liquidityMining: string,
-    _commitmentMining: string,
+    _commitMining: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -229,7 +229,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<void>;
 
     setWeight(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -237,7 +237,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<void>;
 
     "setWeight(uint256,uint256,uint256,uint256)"(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -246,13 +246,13 @@ export class ITokenEmitter extends Contract {
 
     start(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "start(address,address)"(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -283,7 +283,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<BigNumber>;
 
     setWeight(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -291,7 +291,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<BigNumber>;
 
     "setWeight(uint256,uint256,uint256,uint256)"(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -300,13 +300,13 @@ export class ITokenEmitter extends Contract {
 
     start(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "start(address,address)"(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -337,7 +337,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<PopulatedTransaction>;
 
     setWeight(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -345,7 +345,7 @@ export class ITokenEmitter extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "setWeight(uint256,uint256,uint256,uint256)"(
-      commitment: BigNumberish,
+      commit: BigNumberish,
       liquidity: BigNumberish,
       dev: BigNumberish,
       caller: BigNumberish,
@@ -354,13 +354,13 @@ export class ITokenEmitter extends Contract {
 
     start(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "start(address,address)"(
       _liquidityMining: string,
-      _commitmentMining: string,
+      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

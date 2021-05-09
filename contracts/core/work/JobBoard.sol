@@ -12,7 +12,7 @@ import "../../core/work/libraries/CommitMinter.sol";
 import "../../core/work/libraries/GrantReceiver.sol";
 import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IProject.sol";
-import "../../core/dividend/libraries/Planter.sol";
+import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../utils/ExchangeLib.sol";
 
@@ -25,7 +25,7 @@ struct Budget {
 contract JobBoard is
     CommitMinter,
     GrantReceiver,
-    Planter,
+    Distributor,
     Governed,
     ReentrancyGuard
 {
@@ -81,7 +81,7 @@ contract JobBoard is
         address _stableReserve,
         address _baseCurrency,
         address _oneInchExchange
-    ) Governed() CommitMinter(_stableReserve) Planter(_dividendPool) {
+    ) Governed() CommitMinter(_stableReserve) Distributor(_dividendPool) {
         baseCurrency = _baseCurrency;
         oneInch = _oneInchExchange;
         project = IProject(_project);
@@ -143,7 +143,7 @@ contract JobBoard is
     {
         // force approve does not allow swap and approve func to prevent
         // exploitation using flash loan attack
-        _convertStableToCommitment(projId, index, taxRateForUndeclared);
+        _convertStableToCommit(projId, index, taxRateForUndeclared);
     }
 
     // Operator functions
@@ -154,7 +154,7 @@ contract JobBoard is
     ) public onlyApprovedProject(projId) {
         address currency = projectBudgets[projId][index].currency;
         if (currency == baseCurrency) {
-            _convertStableToCommitment(projId, index, normalTaxRate);
+            _convertStableToCommit(projId, index, normalTaxRate);
         } else {
             _swapAndAllocateFund(projId, index, normalTaxRate, swapData);
         }
@@ -166,8 +166,8 @@ contract JobBoard is
         bytes calldata data
     ) external override onlyStableReserve returns (bool result) {
         require(
-            currency == commitmentToken,
-            "Only can get $COMMITMENT token for its grant"
+            currency == commitToken,
+            "Only can get $COMMIT token for its grant"
         );
         uint256 projId = abi.decode(data, (uint256));
         require(project.ownerOf(projId) != address(0), "No budget owner");
@@ -183,7 +183,7 @@ contract JobBoard is
     ) public onlyProjectOwner(projectId) {
         require(projectFund[projectId] >= amount);
         projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
-        IERC20(commitmentToken).safeTransfer(to, amount);
+        IERC20(commitToken).safeTransfer(to, amount);
         emit Payed(projectId, to, amount);
     }
 
@@ -202,7 +202,7 @@ contract JobBoard is
         require(project.ownerOf(projectId) == signer, "Invalid signer");
         require(projectFund[projectId] >= amount);
         projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
-        IERC20(commitmentToken).safeTransfer(to, amount);
+        IERC20(commitToken).safeTransfer(to, amount);
         emit Payed(projectId, to, amount);
     }
 
@@ -286,7 +286,7 @@ contract JobBoard is
      * @param projId The project NFT id for this budget.
      * @param taxRate The tax rate to approve the budget.
      */
-    function _convertStableToCommitment(
+    function _convertStableToCommit(
         uint256 projId,
         uint256 index,
         uint256 taxRate
@@ -302,8 +302,8 @@ contract JobBoard is
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        _plant(budget.currency, visionTax);
-        // Mint commitment fund
+        _distribute(budget.currency, visionTax);
+        // Mint commit fund
         _mintCommit(fund);
         projectFund[projId] = projectFund[projId].add(fund);
         emit BudgetExecuted(projId, index);
@@ -324,14 +324,13 @@ contract JobBoard is
         require(budget.transferred == false, "Budget is already transferred.");
         require(
             budget.currency != baseCurrency,
-            "use _convertStableToCommitment instead"
+            "use _convertStableToCommit instead"
         );
         // Mark the budget as transferred
         budget.transferred = true;
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        _plant(budget.currency, visionTax);
         // Swap and allocate fund
         _swapOn1Inch(budget, fund, swapData);
         _mintCommit(fund);
@@ -344,7 +343,7 @@ contract JobBoard is
         uint256 fund,
         bytes calldata swapData
     ) internal {
-        // Swap to stable coin and transfer them to the commitment pool
+        // Swap to stable coin and transfer them to the commit pool
         (
             uint256 amount,
             address srcToken,

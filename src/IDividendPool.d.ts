@@ -21,84 +21,75 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IDividendPoolInterface extends ethers.utils.Interface {
   functions: {
-    "approve(address,uint256)": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "dispatchableFarmers(address,uint256)": FunctionFragment;
-    "getApproved(uint256)": FunctionFragment;
+    "claimStartWeek(address,uint256)": FunctionFragment;
+    "claimable(address)": FunctionFragment;
+    "distribute(address,uint256)": FunctionFragment;
+    "distributedToken(uint256)": FunctionFragment;
+    "distributedTokens()": FunctionFragment;
+    "distributionBalance(address)": FunctionFragment;
+    "distributionOfWeek(address,uint256)": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
-    "isApprovedForAll(address,address)": FunctionFragment;
-    "maximumLock()": FunctionFragment;
-    "ownerOf(uint256)": FunctionFragment;
-    "plantSeeds(address,uint256)": FunctionFragment;
-    "safeTransferFrom(address,address,uint256)": FunctionFragment;
-    "setApprovalForAll(address,bool)": FunctionFragment;
-    "supportsInterface(bytes4)": FunctionFragment;
-    "transferFrom(address,address,uint256)": FunctionFragment;
-    "visionToken()": FunctionFragment;
+    "totalDistributed(address)": FunctionFragment;
+    "veLocker()": FunctionFragment;
+    "veVISION()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "approve",
+    functionFragment: "claimStartWeek",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "claimable", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "dispatchableFarmers",
+    functionFragment: "distribute",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getApproved",
+    functionFragment: "distributedToken",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributedTokens",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributionBalance",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributionOfWeek",
+    values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getCurrentEpoch",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "isApprovedForAll",
-    values: [string, string]
+    functionFragment: "totalDistributed",
+    values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "maximumLock",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "ownerOf",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "plantSeeds",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "safeTransferFrom",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setApprovalForAll",
-    values: [string, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "supportsInterface",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferFrom",
-    values: [string, string, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "visionToken",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
+  encodeFunctionData(functionFragment: "veVISION", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "dispatchableFarmers",
+    functionFragment: "claimStartWeek",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "distributedToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getApproved",
+    functionFragment: "distributedTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "distributionBalance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "distributionOfWeek",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -106,45 +97,13 @@ interface IDividendPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isApprovedForAll",
+    functionFragment: "totalDistributed",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "maximumLock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "plantSeeds", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "safeTransferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setApprovalForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "supportsInterface",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "visionToken",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "veLocker", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "veVISION", data: BytesLike): Result;
 
-  events: {
-    "Approval(address,address,uint256)": EventFragment;
-    "ApprovalForAll(address,address,bool)": EventFragment;
-    "Transfer(address,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  events: {};
 }
 
 export class IDividendPool extends Contract {
@@ -191,488 +150,343 @@ export class IDividendPool extends Contract {
   interface: IDividendPoolInterface;
 
   functions: {
-    approve(
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "approve(address,uint256)"(
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    balanceOf(
-      owner: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { balance: BigNumber }>;
-
-    "balanceOf(address)"(
-      owner: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { balance: BigNumber }>;
-
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    getApproved(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string] & { operator: string }>;
+    claimable(token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getApproved(uint256)"(
-      tokenId: BigNumberish,
+    "claimable(address)"(
+      token: string,
       overrides?: CallOverrides
-    ): Promise<[string] & { operator: string }>;
+    ): Promise<[BigNumber]>;
+
+    distribute(
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "distribute(address,uint256)"(
+      token: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    distributedToken(
+      index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "distributedToken(uint256)"(
+      index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    isApprovedForAll(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "isApprovedForAll(address,address)"(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    maximumLock(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    ownerOf(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string] & { owner: string }>;
-
-    "ownerOf(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string] & { owner: string }>;
-
-    plantSeeds(
+    totalDistributed(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
-    "plantSeeds(address,uint256)"(
+    "totalDistributed(address)"(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setApprovalForAll(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setApprovalForAll(address,bool)"(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    supportsInterface(
-      interfaceId: BytesLike,
       overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    ): Promise<[BigNumber]>;
 
-    "supportsInterface(bytes4)"(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    veLocker(overrides?: CallOverrides): Promise<[string]>;
 
-    transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "veLocker()"(overrides?: CallOverrides): Promise<[string]>;
 
-    "transferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    veVISION(overrides?: CallOverrides): Promise<[string]>;
 
-    visionToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "veVISION()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  approve(
-    to: string,
-    tokenId: BigNumberish,
+  claimStartWeek(
+    token: string,
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "claimStartWeek(address,uint256)"(
+    token: string,
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  claimable(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "claimable(address)"(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  distribute(
+    token: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "approve(address,uint256)"(
-    to: string,
-    tokenId: BigNumberish,
+  "distribute(address,uint256)"(
+    token: string,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "balanceOf(address)"(
-    owner: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  dispatchableFarmers(
-    staker: string,
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "dispatchableFarmers(address,uint256)"(
-    staker: string,
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  getApproved(
-    tokenId: BigNumberish,
+  distributedToken(
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "getApproved(uint256)"(
-    tokenId: BigNumberish,
+  "distributedToken(uint256)"(
+    index: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  distributionBalance(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "distributionBalance(address)"(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  distributionOfWeek(
+    token: string,
+    epochNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "distributionOfWeek(address,uint256)"(
+    token: string,
+    epochNum: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  isApprovedForAll(
-    owner: string,
-    operator: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  "isApprovedForAll(address,address)"(
-    owner: string,
-    operator: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  "ownerOf(uint256)"(
-    tokenId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  plantSeeds(
+  totalDistributed(
     token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-  "plantSeeds(address,uint256)"(
+  "totalDistributed(address)"(
     token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "safeTransferFrom(address,address,uint256)"(
-    from: string,
-    to: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "safeTransferFrom(address,address,uint256,bytes)"(
-    from: string,
-    to: string,
-    tokenId: BigNumberish,
-    data: BytesLike,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setApprovalForAll(
-    operator: string,
-    _approved: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setApprovalForAll(address,bool)"(
-    operator: string,
-    _approved: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  supportsInterface(
-    interfaceId: BytesLike,
     overrides?: CallOverrides
-  ): Promise<boolean>;
+  ): Promise<BigNumber>;
 
-  "supportsInterface(bytes4)"(
-    interfaceId: BytesLike,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
+  veLocker(overrides?: CallOverrides): Promise<string>;
 
-  transferFrom(
-    from: string,
-    to: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "veLocker()"(overrides?: CallOverrides): Promise<string>;
 
-  "transferFrom(address,address,uint256)"(
-    from: string,
-    to: string,
-    tokenId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  veVISION(overrides?: CallOverrides): Promise<string>;
 
-  visionToken(overrides?: CallOverrides): Promise<string>;
-
-  "visionToken()"(overrides?: CallOverrides): Promise<string>;
+  "veVISION()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    approve(
-      to: string,
-      tokenId: BigNumberish,
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimable(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "claimable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distribute(
+      token: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "approve(address,uint256)"(
-      to: string,
-      tokenId: BigNumberish,
+    "distribute(address,uint256)"(
+      token: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "balanceOf(address)"(
-      owner: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getApproved(
-      tokenId: BigNumberish,
+    distributedToken(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "getApproved(uint256)"(
-      tokenId: BigNumberish,
+    "distributedToken(uint256)"(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    distributionBalance(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionBalance(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isApprovedForAll(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "isApprovedForAll(address,address)"(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-    "ownerOf(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    plantSeeds(
+    totalDistributed(
       token: string,
-      amount: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
-    "plantSeeds(address,uint256)"(
+    "totalDistributed(address)"(
       token: string,
-      amount: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
 
-    "safeTransferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    veLocker(overrides?: CallOverrides): Promise<string>;
 
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "veLocker()"(overrides?: CallOverrides): Promise<string>;
 
-    setApprovalForAll(
-      operator: string,
-      _approved: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    veVISION(overrides?: CallOverrides): Promise<string>;
 
-    "setApprovalForAll(address,bool)"(
-      operator: string,
-      _approved: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    supportsInterface(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "supportsInterface(bytes4)"(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "transferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    visionToken(overrides?: CallOverrides): Promise<string>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<string>;
+    "veVISION()"(overrides?: CallOverrides): Promise<string>;
   };
 
-  filters: {
-    Approval(
-      owner: string | null,
-      approved: string | null,
-      tokenId: BigNumberish | null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { owner: string; approved: string; tokenId: BigNumber }
-    >;
-
-    ApprovalForAll(
-      owner: string | null,
-      operator: string | null,
-      approved: null
-    ): TypedEventFilter<
-      [string, string, boolean],
-      { owner: string; operator: string; approved: boolean }
-    >;
-
-    Transfer(
-      from: string | null,
-      to: string | null,
-      tokenId: BigNumberish | null
-    ): TypedEventFilter<
-      [string, string, BigNumber],
-      { from: string; to: string; tokenId: BigNumber }
-    >;
-  };
+  filters: {};
 
   estimateGas: {
-    approve(
-      to: string,
-      tokenId: BigNumberish,
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    claimable(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "claimable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distribute(
+      token: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "approve(address,uint256)"(
-      to: string,
-      tokenId: BigNumberish,
+    "distribute(address,uint256)"(
+      token: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "balanceOf(address)"(
-      owner: string,
+    distributedToken(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    "distributedToken(uint256)"(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    distributionBalance(
+      token: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getApproved(
-      tokenId: BigNumberish,
+    "distributionBalance(address)"(
+      token: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "getApproved(uint256)"(
-      tokenId: BigNumberish,
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -680,142 +494,95 @@ export class IDividendPool extends Contract {
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    isApprovedForAll(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "isApprovedForAll(address,address)"(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    ownerOf(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "ownerOf(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    plantSeeds(
+    totalDistributed(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "plantSeeds(address,uint256)"(
+    "totalDistributed(address)"(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setApprovalForAll(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setApprovalForAll(address,bool)"(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    supportsInterface(
-      interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "supportsInterface(bytes4)"(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    veLocker(overrides?: CallOverrides): Promise<BigNumber>;
 
-    transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "veLocker()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "transferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    veVISION(overrides?: CallOverrides): Promise<BigNumber>;
 
-    visionToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "veVISION()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    approve(
-      to: string,
-      tokenId: BigNumberish,
+    claimStartWeek(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "claimStartWeek(address,uint256)"(
+      token: string,
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    claimable(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "claimable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    distribute(
+      token: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "approve(address,uint256)"(
-      to: string,
-      tokenId: BigNumberish,
+    "distribute(address,uint256)"(
+      token: string,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    balanceOf(
-      owner: string,
+    distributedToken(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "balanceOf(address)"(
-      owner: string,
+    "distributedToken(uint256)"(
+      index: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributedTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "distributedTokens()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    distributionBalance(
+      token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getApproved(
-      tokenId: BigNumberish,
+    "distributionBalance(address)"(
+      token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getApproved(uint256)"(
-      tokenId: BigNumberish,
+    distributionOfWeek(
+      token: string,
+      epochNum: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "distributionOfWeek(address,uint256)"(
+      token: string,
+      epochNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -825,97 +592,22 @@ export class IDividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isApprovedForAll(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isApprovedForAll(address,address)"(
-      owner: string,
-      operator: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    maximumLock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    ownerOf(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "ownerOf(uint256)"(
-      tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    plantSeeds(
+    totalDistributed(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "plantSeeds(address,uint256)"(
+    "totalDistributed(address)"(
       token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "safeTransferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "safeTransferFrom(address,address,uint256,bytes)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setApprovalForAll(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setApprovalForAll(address,bool)"(
-      operator: string,
-      _approved: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    supportsInterface(
-      interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "supportsInterface(bytes4)"(
-      interfaceId: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    veLocker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    transferFrom(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    "veLocker()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "transferFrom(address,address,uint256)"(
-      from: string,
-      to: string,
-      tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    veVISION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    visionToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "veVISION()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

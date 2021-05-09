@@ -35,6 +35,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "getVotingStatus(bytes32)": FunctionFragment;
     "gov()": FunctionFragment;
     "launch()": FunctionFragment;
+    "manualVote(bytes32,uint256[],bool)": FunctionFragment;
     "memorandom()": FunctionFragment;
     "paused()": FunctionFragment;
     "proposals(bytes32)": FunctionFragment;
@@ -98,6 +99,10 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
   encodeFunctionData(functionFragment: "launch", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "manualVote",
+    values: [BytesLike, BigNumberish[], boolean]
+  ): string;
   encodeFunctionData(
     functionFragment: "memorandom",
     values?: undefined
@@ -189,6 +194,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "launch", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "manualVote", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "memorandom", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proposals", data: BytesLike): Result;
@@ -409,6 +415,20 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    manualVote(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "manualVote(bytes32,uint256[],bool)"(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     memorandom(
       overrides?: CallOverrides
     ): Promise<
@@ -583,15 +603,14 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "vote(bytes32,bool)"(
+    vote(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "vote(bytes32,uint256[],bool)"(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
-      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -726,6 +745,20 @@ export class WorkersUnion extends Contract {
   ): Promise<ContractTransaction>;
 
   "launch()"(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  manualVote(
+    txHash: BytesLike,
+    rightIds: BigNumberish[],
+    agree: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "manualVote(bytes32,uint256[],bool)"(
+    txHash: BytesLike,
+    rightIds: BigNumberish[],
+    agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -903,15 +936,14 @@ export class WorkersUnion extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "vote(bytes32,bool)"(
+  vote(
     txHash: BytesLike,
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "vote(bytes32,uint256[],bool)"(
+  "vote(bytes32,bool)"(
     txHash: BytesLike,
-    rightIds: BigNumberish[],
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1036,6 +1068,20 @@ export class WorkersUnion extends Contract {
     launch(overrides?: CallOverrides): Promise<void>;
 
     "launch()"(overrides?: CallOverrides): Promise<void>;
+
+    manualVote(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "manualVote(bytes32,uint256[],bool)"(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     memorandom(
       overrides?: CallOverrides
@@ -1208,15 +1254,14 @@ export class WorkersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "vote(bytes32,bool)"(
+    vote(
       txHash: BytesLike,
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "vote(bytes32,uint256[],bool)"(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
-      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1444,6 +1489,20 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    manualVote(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "manualVote(bytes32,uint256[],bool)"(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     memorandom(overrides?: CallOverrides): Promise<BigNumber>;
 
     "memorandom()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1559,15 +1618,14 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "vote(bytes32,bool)"(
+    vote(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "vote(bytes32,uint256[],bool)"(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
-      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1708,6 +1766,20 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    manualVote(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "manualVote(bytes32,uint256[],bool)"(
+      txHash: BytesLike,
+      rightIds: BigNumberish[],
+      agree: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     memorandom(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "memorandom()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1826,15 +1898,14 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "vote(bytes32,bool)"(
+    vote(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "vote(bytes32,uint256[],bool)"(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
-      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

@@ -54,7 +54,7 @@ const _abi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "commitment",
+        name: "commit",
         type: "uint256",
       },
       {
@@ -87,7 +87,7 @@ const _abi = [
       },
       {
         internalType: "address",
-        name: "_commitmentMining",
+        name: "_commitMining",
         type: "address",
       },
     ],

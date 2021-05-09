@@ -32,7 +32,7 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "commitmentToken",
+    name: "commitToken",
     outputs: [
       {
         internalType: "address",

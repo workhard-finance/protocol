@@ -9,11 +9,11 @@ contract CommitMinter {
     using SafeERC20 for IERC20;
 
     address public immutable stableReserve;
-    address public immutable commitmentToken;
+    address public immutable commitToken;
 
     constructor(address _stableReserve) {
         stableReserve = _stableReserve;
-        commitmentToken = IStableReserve(_stableReserve).commitmentToken();
+        commitToken = IStableReserve(_stableReserve).commitToken();
     }
 
     function _mintCommit(uint256 amount) internal virtual {

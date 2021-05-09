@@ -27,11 +27,13 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     "baseToken()": FunctionFragment;
     "baseURI()": FunctionFragment;
     "createLock(uint256,uint256)": FunctionFragment;
+    "createLockUntil(uint256,uint256)": FunctionFragment;
     "delegate(uint256,address)": FunctionFragment;
     "delegatedRightByIndex(address,uint256)": FunctionFragment;
     "delegatedRights(address)": FunctionFragment;
     "delegateeOf(uint256)": FunctionFragment;
     "extendLock(uint256,uint256)": FunctionFragment;
+    "extendLockUntil(uint256,uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "increaseAmount(uint256,uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
@@ -65,6 +67,10 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "createLockUntil",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "delegate",
     values: [BigNumberish, string]
   ): string;
@@ -82,6 +88,10 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "extendLock",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "extendLockUntil",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -151,6 +161,10 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "createLock", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "createLockUntil",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "delegate", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "delegatedRightByIndex",
@@ -165,6 +179,10 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "extendLock", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "extendLockUntil",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -313,11 +331,23 @@ export class VotingEscrowLock extends Contract {
 
     createLock(
       amount: BigNumberish,
-      lockEnd: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    createLockUntil(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "createLockUntil(uint256,uint256)"(
       amount: BigNumberish,
       lockEnd: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -369,11 +399,23 @@ export class VotingEscrowLock extends Contract {
 
     extendLock(
       veLockId: BigNumberish,
-      end: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "extendLock(uint256,uint256)"(
+      veLockId: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    extendLockUntil(
+      veLockId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "extendLockUntil(uint256,uint256)"(
       veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -416,12 +458,24 @@ export class VotingEscrowLock extends Contract {
     locks(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amount: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
+      }
+    >;
 
     "locks(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amount: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
+      }
+    >;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
@@ -580,11 +634,23 @@ export class VotingEscrowLock extends Contract {
 
   createLock(
     amount: BigNumberish,
-    lockEnd: BigNumberish,
+    epochs: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "createLock(uint256,uint256)"(
+    amount: BigNumberish,
+    epochs: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  createLockUntil(
+    amount: BigNumberish,
+    lockEnd: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "createLockUntil(uint256,uint256)"(
     amount: BigNumberish,
     lockEnd: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -633,11 +699,23 @@ export class VotingEscrowLock extends Contract {
 
   extendLock(
     veLockId: BigNumberish,
-    end: BigNumberish,
+    epochs: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "extendLock(uint256,uint256)"(
+    veLockId: BigNumberish,
+    epochs: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  extendLockUntil(
+    veLockId: BigNumberish,
+    end: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "extendLockUntil(uint256,uint256)"(
     veLockId: BigNumberish,
     end: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -680,12 +758,24 @@ export class VotingEscrowLock extends Contract {
   locks(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber] & {
+      amount: BigNumber;
+      start: BigNumber;
+      end: BigNumber;
+    }
+  >;
 
   "locks(uint256)"(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+  ): Promise<
+    [BigNumber, BigNumber, BigNumber] & {
+      amount: BigNumber;
+      start: BigNumber;
+      end: BigNumber;
+    }
+  >;
 
   name(overrides?: CallOverrides): Promise<string>;
 
@@ -838,11 +928,23 @@ export class VotingEscrowLock extends Contract {
 
     createLock(
       amount: BigNumberish,
-      lockEnd: BigNumberish,
+      epochs: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    createLockUntil(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "createLockUntil(uint256,uint256)"(
       amount: BigNumberish,
       lockEnd: BigNumberish,
       overrides?: CallOverrides
@@ -894,11 +996,23 @@ export class VotingEscrowLock extends Contract {
 
     extendLock(
       veLockId: BigNumberish,
-      end: BigNumberish,
+      epochs: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "extendLock(uint256,uint256)"(
+      veLockId: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    extendLockUntil(
+      veLockId: BigNumberish,
+      end: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "extendLockUntil(uint256,uint256)"(
       veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: CallOverrides
@@ -941,12 +1055,24 @@ export class VotingEscrowLock extends Contract {
     locks(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amount: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
+      }
+    >;
 
     "locks(uint256)"(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber, BigNumber] & { amount: BigNumber; end: BigNumber }>;
+    ): Promise<
+      [BigNumber, BigNumber, BigNumber] & {
+        amount: BigNumber;
+        start: BigNumber;
+        end: BigNumber;
+      }
+    >;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1155,11 +1281,23 @@ export class VotingEscrowLock extends Contract {
 
     createLock(
       amount: BigNumberish,
-      lockEnd: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    createLockUntil(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "createLockUntil(uint256,uint256)"(
       amount: BigNumberish,
       lockEnd: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1211,11 +1349,23 @@ export class VotingEscrowLock extends Contract {
 
     extendLock(
       veLockId: BigNumberish,
-      end: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "extendLock(uint256,uint256)"(
+      veLockId: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    extendLockUntil(
+      veLockId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "extendLockUntil(uint256,uint256)"(
       veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1423,11 +1573,23 @@ export class VotingEscrowLock extends Contract {
 
     createLock(
       amount: BigNumberish,
-      lockEnd: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "createLock(uint256,uint256)"(
+      amount: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    createLockUntil(
+      amount: BigNumberish,
+      lockEnd: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "createLockUntil(uint256,uint256)"(
       amount: BigNumberish,
       lockEnd: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1479,11 +1641,23 @@ export class VotingEscrowLock extends Contract {
 
     extendLock(
       veLockId: BigNumberish,
-      end: BigNumberish,
+      epochs: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "extendLock(uint256,uint256)"(
+      veLockId: BigNumberish,
+      epochs: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    extendLockUntil(
+      veLockId: BigNumberish,
+      end: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "extendLockUntil(uint256,uint256)"(
       veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }

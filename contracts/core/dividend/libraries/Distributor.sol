@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../../../core/dividend/interfaces/IDividendPool.sol";
 
-contract Planter {
+contract Distributor {
     using SafeERC20 for IERC20;
 
     IDividendPool public immutable dividendPool;
@@ -14,8 +14,8 @@ contract Planter {
         dividendPool = IDividendPool(_dividendPool);
     }
 
-    function _plant(address currency, uint256 amount) internal virtual {
+    function _distribute(address currency, uint256 amount) internal virtual {
         IERC20(currency).safeApprove(address(dividendPool), amount);
-        dividendPool.plantSeeds(currency, amount);
+        dividendPool.distribute(currency, amount);
     }
 }

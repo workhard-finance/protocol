@@ -161,17 +161,12 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
-        name: "account",
-        type: "address",
-      },
-      {
         internalType: "uint256",
-        name: "blockNum",
+        name: "veLockId",
         type: "uint256",
       },
     ],
-    name: "balanceOfAtBlockNum",
+    name: "balanceOfLock",
     outputs: [
       {
         internalType: "uint256",
@@ -196,30 +191,6 @@ const _abi = [
       },
     ],
     name: "balanceOfLockAt",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "veLockId",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-    ],
-    name: "balanceOfLockAtBlockNum",
     outputs: [
       {
         internalType: "uint256",
@@ -259,25 +230,6 @@ const _abi = [
       },
     ],
     name: "totalSupplyAt",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "blockNum",
-        type: "uint256",
-      },
-    ],
-    name: "totalSupplyAtBlockNum",
     outputs: [
       {
         internalType: "uint256",

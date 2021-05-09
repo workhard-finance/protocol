@@ -22,7 +22,7 @@ describe("SquareRootVoteCounter.sol", function () {
   let bobAddress: string;
   let carlAddress: string;
   let fixture: MiningFixture;
-  let visionToken: Contract;
+  let vision: Contract;
   let veLocker: Contract;
   let veVISION: Contract;
   let voteCounter: Contract;
@@ -39,14 +39,14 @@ describe("SquareRootVoteCounter.sol", function () {
     bobAddress = await bob.getAddress();
     carlAddress = await carl.getAddress();
     fixture = await getMiningFixture({ skipMinterSetting: true });
-    visionToken = fixture.visionToken;
+    vision = fixture.vision;
     veLocker = fixture.veLocker;
     veVISION = fixture.veVISION;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
-      await visionToken.mint(addr, parseEther("10000"));
-      await visionToken
+      await vision.mint(addr, parseEther("10000"));
+      await vision
         .connect(account)
         .approve(veLocker.address, parseEther("10000"));
     };
@@ -57,12 +57,9 @@ describe("SquareRootVoteCounter.sol", function () {
   describe("getVotes()", async () => {
     beforeEach(async () => {
       const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-      const MAX_LOCK = timestamp + 86400 * 365 * 4;
-      const TWO_YEARS_LOCK = timestamp + 86400 * 365 * 2;
-      const ONE_YEAR_LOCK = timestamp + 86400 * 365 * 1;
-      await veLocker.connect(alice).createLock(parseEther("100"), MAX_LOCK);
-      await veLocker.connect(bob).createLock(parseEther("10"), TWO_YEARS_LOCK);
-      await veLocker.connect(carl).createLock(parseEther("100"), ONE_YEAR_LOCK);
+      await veLocker.connect(alice).createLock(parseEther("100"), 4 * 52);
+      await veLocker.connect(bob).createLock(parseEther("10"), 2 * 52);
+      await veLocker.connect(carl).createLock(parseEther("100"), 1 * 52);
     });
     it("should be proportional to the square root of its staked and locked amount", async () => {
       const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
@@ -102,22 +99,18 @@ describe("SquareRootVoteCounter.sol", function () {
         carlLockId,
         timestamp
       );
-      expect(
-        almostEquals(
-          aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
-          bobVotes.pow(2).mul(10000).div(bobVeVISION)
-        )
-      ).to.be.true;
-      expect(
-        almostEquals(
-          aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
-          carlVotes.pow(2).mul(10000).div(carlVeVISION)
-        )
-      ).to.be.true;
+      almostEquals(
+        aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+        bobVotes.pow(2).mul(10000).div(bobVeVISION)
+      );
+      almostEquals(
+        aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+        carlVotes.pow(2).mul(10000).div(carlVeVISION)
+      );
       expect(aliceVotes.pow(2).mul(10000).div(aliceVeVISION)).not.eq(0);
-      expect(almostEquals(aliceVotes, bobVotes)).not.to.be.true;
-      expect(almostEquals(aliceVotes, carlVotes)).not.to.be.true;
-      expect(almostEquals(bobVotes, carlVotes)).not.to.be.true;
+      almostEquals(aliceVotes, bobVotes);
+      almostEquals(aliceVotes, carlVotes);
+      almostEquals(bobVotes, carlVotes)
     });
   });
 });

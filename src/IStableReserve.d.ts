@@ -22,7 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface IStableReserveInterface extends ethers.utils.Interface {
   functions: {
     "baseCurrency()": FunctionFragment;
-    "commitmentToken()": FunctionFragment;
+    "commitToken()": FunctionFragment;
     "reserveAndMint(uint256)": FunctionFragment;
   };
 
@@ -31,7 +31,7 @@ interface IStableReserveInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -44,7 +44,7 @@ interface IStableReserveInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -103,9 +103,9 @@ export class IStableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<[string]>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
+    commitToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "commitToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     reserveAndMint(
       amount: BigNumberish,
@@ -122,9 +122,9 @@ export class IStableReserve extends Contract {
 
   "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-  commitmentToken(overrides?: CallOverrides): Promise<string>;
+  commitToken(overrides?: CallOverrides): Promise<string>;
 
-  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+  "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
   reserveAndMint(
     amount: BigNumberish,
@@ -141,9 +141,9 @@ export class IStableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<string>;
+    commitToken(overrides?: CallOverrides): Promise<string>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+    "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
     reserveAndMint(
       amount: BigNumberish,
@@ -163,9 +163,9 @@ export class IStableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
+    commitToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "commitToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     reserveAndMint(
       amount: BigNumberish,
@@ -183,11 +183,9 @@ export class IStableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    commitToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "commitmentToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "commitToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     reserveAndMint(
       amount: BigNumberish,

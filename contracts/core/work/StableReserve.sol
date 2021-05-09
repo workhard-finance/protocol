@@ -27,7 +27,7 @@ contract StableReserve is
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address public override commitmentToken;
+    address public override commitToken;
 
     address public immutable override baseCurrency;
 
@@ -43,13 +43,13 @@ contract StableReserve is
 
     constructor(
         address _gov,
-        address _commitmentToken,
+        address _commitToken,
         address _baseCurrency
     ) ERC20Recoverer() Governed() HasInitializer() {
-        commitmentToken = _commitmentToken;
+        commitToken = _commitToken;
         baseCurrency = _baseCurrency;
         ERC20Recoverer.disablePermanently(_baseCurrency);
-        ERC20Recoverer.disablePermanently(_commitmentToken);
+        ERC20Recoverer.disablePermanently(_commitToken);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
         _deployer = msg.sender;
@@ -66,10 +66,10 @@ contract StableReserve is
 
     function redeem(uint256 amount) public {
         require(
-            COMMIT(commitmentToken).balanceOf(msg.sender) >= amount,
+            COMMIT(commitToken).balanceOf(msg.sender) >= amount,
             "Not enough balance"
         );
-        COMMIT(commitmentToken).burnFrom(msg.sender, amount);
+        COMMIT(commitToken).burnFrom(msg.sender, amount);
         IERC20(baseCurrency).transfer(msg.sender, amount);
         emit Redeemed(msg.sender, amount);
     }
@@ -103,7 +103,7 @@ contract StableReserve is
             address(recipient).functionCall(
                 abi.encodeWithSelector(
                     IGrantReceiver(recipient).receiveGrant.selector,
-                    commitmentToken,
+                    commitToken,
                     amount,
                     data
                 ),
@@ -124,7 +124,7 @@ contract StableReserve is
     }
 
     function mintable() public view returns (uint256) {
-        uint256 currentSupply = COMMIT(commitmentToken).totalSupply();
+        uint256 currentSupply = COMMIT(commitToken).totalSupply();
         uint256 currentRedeemable =
             IERC20(baseCurrency).balanceOf(address(this));
         return currentRedeemable.sub(currentSupply);
@@ -132,7 +132,7 @@ contract StableReserve is
 
     function _mintCOMMIT(address to, uint256 amount) internal {
         require(amount <= mintable(), "Out of budget");
-        COMMIT(commitmentToken).mint(to, amount);
+        COMMIT(commitToken).mint(to, amount);
     }
 
     function _setMinter(address minter, bool active) internal {

@@ -17,7 +17,7 @@ describe("Marketplace.sol", function () {
   let fixture: AppFixture;
   let marketplace: Contract;
   let stableReserve: Contract;
-  let commitmentToken: Contract;
+  let commitToken: Contract;
   let baseCurrency: Contract;
   let dividendPool: Contract;
   let timelock: Contract;
@@ -29,7 +29,7 @@ describe("Marketplace.sol", function () {
     bob = signers[2];
     fixture = await getAppFixture();
     baseCurrency = fixture.baseCurrency;
-    commitmentToken = fixture.commitmentToken;
+    commitToken = fixture.commitToken;
     marketplace = fixture.marketplace;
     stableReserve = fixture.stableReserve;
     dividendPool = fixture.dividendPool;
@@ -44,7 +44,7 @@ describe("Marketplace.sol", function () {
       await stableReserve
         .connect(account)
         .payInsteadOfWorking(parseEther("100"));
-      commitmentToken
+      commitToken
         .connect(account)
         .approve(marketplace.address, parseEther("10000"));
     };
@@ -53,8 +53,8 @@ describe("Marketplace.sol", function () {
     await prepare(bob);
   });
   describe("launchNewProduct()", async () => {
-    it("anyone can buy the NFT by paying Commitment token", async () => {
-      const PRICE_IN_COMMITMENT_TOKEN = parseEther("1");
+    it("anyone can buy the NFT by paying Commit token", async () => {
+      const PRICE_IN_COMMIT_TOKEN = parseEther("1");
       const PROFIT_FOR_MANUFACTURER = 1000;
       const BASE_URI = "ipfscid";
       const PROJ_ID = BigNumber.from(
@@ -65,11 +65,7 @@ describe("Marketplace.sol", function () {
       await expect(
         marketplace
           .connect(alice)
-          .manufacture(
-            BASE_URI,
-            PROFIT_FOR_MANUFACTURER,
-            PRICE_IN_COMMITMENT_TOKEN
-          )
+          .manufacture(BASE_URI, PROFIT_FOR_MANUFACTURER, PRICE_IN_COMMIT_TOKEN)
       )
         .to.emit(marketplace, "NewProduct")
         .withArgs(PROJ_ID, alice.address, BASE_URI);

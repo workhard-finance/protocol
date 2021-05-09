@@ -29,7 +29,7 @@ async function main() {
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed()[network];
   if (
-    !deployed.CommitmentMining ||
+    !deployed.CommitMining ||
     !deployed.LiquidityMining ||
     !deployed.VisionEmitter ||
     !deployed.TimelockedGovernance
@@ -38,8 +38,8 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
 
-  const commitmentMining: BurnMining = BurnMining__factory.connect(
-    deployed.CommitmentMining,
+  const commitMining: BurnMining = BurnMining__factory.connect(
+    deployed.CommitMining,
     signer
   );
 
@@ -48,7 +48,7 @@ async function main() {
     signer
   );
 
-  const visionTokenEmitter: VisionEmitter = VisionEmitter__factory.connect(
+  const visionEmitter: VisionEmitter = VisionEmitter__factory.connect(
     deployed.VisionEmitter,
     signer
   );
@@ -60,18 +60,18 @@ async function main() {
 
   /** set initial emissions **/
   const initialEmission = [
-    [commitmentMining.address, liquidityMining.address],
+    [commitMining.address, liquidityMining.address],
     [4745, 4745],
     500,
     10,
   ];
 
-  const tx = await visionTokenEmitter.populateTransaction.setEmission(
+  const tx = await visionEmitter.populateTransaction.setEmission(
     // @ts-ignore
     ...initialEmission
   );
   const timelockTxParams = [
-    visionTokenEmitter.address,
+    visionEmitter.address,
     0,
     tx.data,
     constants.HashZero,
@@ -84,9 +84,9 @@ async function main() {
   await timeLockGovernance.execute(...timelockTxParams);
 
   /** start **/
-  const startTx = await visionTokenEmitter.populateTransaction.start();
+  const startTx = await visionEmitter.populateTransaction.start();
   const startTxTimelockTxParams = [
-    visionTokenEmitter.address,
+    visionEmitter.address,
     0,
     startTx.data,
     constants.HashZero,
@@ -100,7 +100,7 @@ async function main() {
 
   /** distribute **/
   await goToNextWeek();
-  await visionTokenEmitter.distribute();
+  await visionEmitter.distribute();
 }
 
 main()

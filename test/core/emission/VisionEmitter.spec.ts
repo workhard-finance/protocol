@@ -8,7 +8,7 @@ import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("VisionEmitter.sol", function () {
+describe.skip("VisionEmitter.sol", function () {
   let signers: Signer[];
   let deployer: Signer;
   let dev: Signer;
@@ -17,9 +17,9 @@ describe("VisionEmitter.sol", function () {
   let deployerAddress: string;
   let devAddress: string;
   let fixture: MiningFixture;
-  let visionToken: Contract;
-  let visionTokenEmitter: Contract;
-  let commitmentMining: Contract;
+  let vision: Contract;
+  let visionEmitter: Contract;
+  let commitMining: Contract;
   let liquidityMining: Contract;
   let timelock: Contract;
   let initialEmission;
@@ -33,33 +33,33 @@ describe("VisionEmitter.sol", function () {
     deployerAddress = await deployer.getAddress();
     devAddress = await dev.getAddress();
     fixture = await getMiningFixture();
-    visionToken = fixture.visionToken;
-    visionTokenEmitter = fixture.visionTokenEmitter;
+    vision = fixture.vision;
+    visionEmitter = fixture.visionEmitter;
     timelock = fixture.timelock;
-    commitmentMining = fixture.commitmentMining;
+    commitMining = fixture.commitMining;
     liquidityMining = fixture.liquidityMining;
     initialEmission = [
-      [commitmentMining.address, liquidityMining.address],
+      [commitMining.address, liquidityMining.address],
       [4745, 4745],
       500,
       10,
     ];
   });
   it("VisionEmitter should be governed by the timelock contract at first", async function () {
-    expect(await visionTokenEmitter.gov()).eq(timelock.address);
+    expect(await visionEmitter.gov()).eq(timelock.address);
   });
 
   describe("setEmission", async () => {
     it("should revert tx from unauthenticated addresses", async () => {
-      await expect(visionTokenEmitter.setEmission(...initialEmission)).to.be
+      await expect(visionEmitter.setEmission(...initialEmission)).to.be
         .reverted;
     });
     it("should set the emission from the authenticated timelock contract", async () => {
-      const tx = await visionTokenEmitter.populateTransaction.setEmission(
+      const tx = await visionEmitter.populateTransaction.setEmission(
         ...initialEmission
       );
       const timelockTxParams = [
-        visionTokenEmitter.address, // target
+        visionEmitter.address, // target
         0, // value
         tx.data, // msg.data
         constants.HashZero, // predecessor
@@ -69,20 +69,16 @@ describe("VisionEmitter.sol", function () {
       await expect(timelock.execute(...timelockTxParams)).to.be.reverted;
       await goTo(86401);
       await expect(timelock.execute(...timelockTxParams))
-        .to.emit(visionTokenEmitter, "EmissionWeightUpdated")
+        .to.emit(visionEmitter, "EmissionWeightUpdated")
         .withArgs(2);
-      expect(await visionTokenEmitter.callStatic.pools(0)).to.be.eq(
-        commitmentMining.address
+      expect(await visionEmitter.callStatic.pools(0)).to.be.eq(
+        commitMining.address
       );
-      expect(await visionTokenEmitter.callStatic.pools(1)).to.be.eq(
+      expect(await visionEmitter.callStatic.pools(1)).to.be.eq(
         liquidityMining.address
       );
-      expect(await visionTokenEmitter.callStatic.getPoolWeight(0)).to.be.eq(
-        4745
-      );
-      expect(await visionTokenEmitter.callStatic.getPoolWeight(1)).to.be.eq(
-        4745
-      );
+      expect(await visionEmitter.callStatic.getPoolWeight(0)).to.be.eq(4745);
+      expect(await visionEmitter.callStatic.getPoolWeight(1)).to.be.eq(4745);
     });
   });
   describe("newBurnMiningPool & newStakeMiningPool", async () => {
@@ -97,39 +93,27 @@ describe("VisionEmitter.sol", function () {
       testingBurnToken = await COMMIT.deploy();
     });
     it("newBurnMiningPool", async () => {
-      const burnMiningPoolFactoryAddr = await visionTokenEmitter.callStatic.burnMiningPoolFactory();
+      const burnMiningPoolFactoryAddr = await visionEmitter.callStatic.burnMiningPoolFactory();
       const BurnMining = await ethers.getContractFactory("BurnMining");
       const newBurnMiningPoolAddr = getCreate2Address(
         burnMiningPoolFactoryAddr,
-        [
-          visionToken.address,
-          visionTokenEmitter.address,
-          testingBurnToken.address,
-        ],
+        [vision.address, visionEmitter.address, testingBurnToken.address],
         BurnMining.bytecode
       );
-      await expect(
-        visionTokenEmitter.newBurnMiningPool(testingBurnToken.address)
-      )
-        .to.emit(visionTokenEmitter, "NewBurnMiningPool")
+      await expect(visionEmitter.newBurnMiningPool(testingBurnToken.address))
+        .to.emit(visionEmitter, "NewBurnMiningPool")
         .withArgs(testingBurnToken.address, newBurnMiningPoolAddr);
     });
     it("newStakeMiningPool", async () => {
-      const stakeMiningPoolFactoryAddr = await visionTokenEmitter.callStatic.stakeMiningPoolFactory();
+      const stakeMiningPoolFactoryAddr = await visionEmitter.callStatic.stakeMiningPoolFactory();
       const StakeMining = await ethers.getContractFactory("StakeMining");
       const newStakeMiningPoolAddr = getCreate2Address(
         stakeMiningPoolFactoryAddr,
-        [
-          visionToken.address,
-          visionTokenEmitter.address,
-          testingStakeToken.address,
-        ],
+        [vision.address, visionEmitter.address, testingStakeToken.address],
         StakeMining.bytecode
       );
-      await expect(
-        visionTokenEmitter.newStakeMiningPool(testingStakeToken.address)
-      )
-        .to.emit(visionTokenEmitter, "NewStakeMiningPool")
+      await expect(visionEmitter.newStakeMiningPool(testingStakeToken.address))
+        .to.emit(visionEmitter, "NewStakeMiningPool")
         .withArgs(testingStakeToken.address, newStakeMiningPoolAddr);
     });
   });
@@ -143,29 +127,27 @@ describe("VisionEmitter.sol", function () {
       const COMMIT = await ethers.getContractFactory("COMMIT");
       testingStakeToken = await VISION.deploy();
       testingBurnToken = await COMMIT.deploy();
-      await visionTokenEmitter.newBurnMiningPool(testingBurnToken.address);
-      await visionTokenEmitter.newStakeMiningPool(testingStakeToken.address);
+      await visionEmitter.newBurnMiningPool(testingBurnToken.address);
+      await visionEmitter.newStakeMiningPool(testingStakeToken.address);
       testingBurnMiningPool = await ethers.getContractAt(
         "BurnMining",
-        await visionTokenEmitter.callStatic.burnMiningPools(
-          testingBurnToken.address
-        )
+        await visionEmitter.callStatic.burnMiningPools(testingBurnToken.address)
       );
       testingStakeMiningPool = await ethers.getContractAt(
         "BurnMining",
-        await visionTokenEmitter.callStatic.stakeMiningPools(
+        await visionEmitter.callStatic.stakeMiningPools(
           testingStakeToken.address
         )
       );
     });
     it("distribute() should fail before it starts", async () => {
-      await expect(visionTokenEmitter.distribute()).to.be.reverted;
+      await expect(visionEmitter.distribute()).to.be.reverted;
     });
     describe("after start() executed", async () => {
       beforeEach(async () => {
-        const startTx = await visionTokenEmitter.populateTransaction.start();
+        const startTx = await visionEmitter.populateTransaction.start();
         const startTxParams = [
-          visionTokenEmitter.address, // target
+          visionEmitter.address, // target
           0, // value
           startTx.data, // msg.data
           constants.HashZero, // predecessor
@@ -177,11 +159,11 @@ describe("VisionEmitter.sol", function () {
           500,
           10,
         ];
-        const setEmissionTx = await visionTokenEmitter.populateTransaction.setEmission(
+        const setEmissionTx = await visionEmitter.populateTransaction.setEmission(
           ...testEmissionRate
         );
         const setEmissionTxParams = [
-          visionTokenEmitter.address, // target
+          visionEmitter.address, // target
           0, // value
           setEmissionTx.data, // msg.data
           constants.HashZero, // predecessor
@@ -195,14 +177,14 @@ describe("VisionEmitter.sol", function () {
       });
       describe("distribute()", async () => {
         it("should fail when if the emission rate is not set properly", async () => {
-          await expect(visionTokenEmitter.distribute()).to.be.reverted;
+          await expect(visionEmitter.distribute()).to.be.reverted;
         });
         it("should allocate rewards properly after 7 days", async () => {
           await goToNextWeek();
-          await expect(visionTokenEmitter.distribute())
-            .to.emit(visionTokenEmitter, "TokenEmission")
+          await expect(visionEmitter.distribute())
+            .to.emit(visionEmitter, "TokenEmission")
             .withArgs(INITIAL_EMISSION_AMOUNT);
-          expect(await visionToken.callStatic.totalSupply()).to.eq(
+          expect(await vision.callStatic.totalSupply()).to.eq(
             INITIAL_EMISSION_AMOUNT
           );
         });
@@ -245,13 +227,13 @@ describe("VisionEmitter.sol", function () {
             // await testingStakeMiningPool.connect(alice).stake();
             for (let w = 0; w < weekNum; w++) {
               await goToNextWeek();
-              await visionTokenEmitter.distribute();
+              await visionEmitter.distribute();
             }
             await goToNextWeek();
-            await expect(visionTokenEmitter.distribute())
-              .to.emit(visionTokenEmitter, "TokenEmission")
+            await expect(visionEmitter.distribute())
+              .to.emit(visionEmitter, "TokenEmission")
               .withArgs(stat.emission);
-            expect(await visionToken.totalSupply()).to.eq(stat.totalSupply);
+            expect(await vision.totalSupply()).to.eq(stat.totalSupply);
           });
         }
       });

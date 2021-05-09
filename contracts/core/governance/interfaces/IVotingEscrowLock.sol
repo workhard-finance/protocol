@@ -9,13 +9,21 @@ interface IVotingEscrowLock is IERC721 {
     function locks(uint256 veLockId)
         external
         view
-        returns (uint256 amount, uint256 end);
+        returns (
+            uint256 amount,
+            uint256 start,
+            uint256 end
+        );
 
-    function createLock(uint256 amount, uint256 lockEnd) external;
+    function createLock(uint256 amount, uint256 epochs) external;
+
+    function createLockUntil(uint256 amount, uint256 lockEnd) external;
 
     function increaseAmount(uint256 veLockId, uint256 amount) external;
 
-    function extendLock(uint256 veLockId, uint256 end) external;
+    function extendLock(uint256 veLockId, uint256 epochs) external;
+
+    function extendLockUntil(uint256 veLockId, uint256 end) external;
 
     function withdraw(uint256 veLockId) external;
 

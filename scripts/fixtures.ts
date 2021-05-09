@@ -19,8 +19,8 @@ const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
 
 export interface TokenFixture {
   baseCurrency: Contract;
-  visionToken: Contract;
-  commitmentToken: Contract;
+  vision: Contract;
+  commitToken: Contract;
   projectToken: Contract;
   visionLP: Contract;
   veVISION: Contract;
@@ -36,8 +36,8 @@ export interface GovernanceFixture extends TokenFixture {
 }
 
 export interface MiningFixture extends GovernanceFixture {
-  visionTokenEmitter: Contract;
-  commitmentMining: Contract;
+  visionEmitter: Contract;
+  commitMining: Contract;
   liquidityMining: Contract;
 }
 
@@ -53,25 +53,25 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   const baseCurrency = await getBaseCurrency(deployer.address);
   record(hre.network.name as MyNetwork, "BaseCurrency", baseCurrency.address);
   // 2. Deploy vision token
-  const visionToken = await autoDeploy("VISION");
-  // 3. Deploy commitment token
-  const commitmentToken = await autoDeploy("COMMIT");
+  const vision = await autoDeploy("VISION");
+  // 3. Deploy commit token
+  const commitToken = await autoDeploy("COMMIT");
   // 4. Deploy uniswap pair
   const project = await autoDeploy("Project");
   // 5. Deploy uniswap pair
-  const visionLP = await deployUniswapLP(visionToken.address, WETH);
+  const visionLP = await deployUniswapLP(vision.address, WETH);
   // 6. Deploy RIGHT
   const veVISION = await autoDeploy(
     "RIGHT",
     "https://workhard.finance/RIGHT/",
-    visionToken.address
+    vision.address
   );
   record(hre.network.name as MyNetwork, "VisionLP", visionLP.address);
   return {
     baseCurrency,
-    visionToken,
+    vision,
     veVISION,
-    commitmentToken,
+    commitToken,
     projectToken: project,
     visionLP,
   };
@@ -80,7 +80,7 @@ export async function getTokenFixture(): Promise<TokenFixture> {
 export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
-  const { visionToken, veVISION } = tokenFixture;
+  const { vision, veVISION } = tokenFixture;
   // 6. Deploy team share
   const teamShare = await autoDeploy("TeamShare");
   // 7. Deploy timelock contract
@@ -130,28 +130,27 @@ export async function getMiningFixture(option?: {
   const {
     teamShare,
     timelock,
-    visionToken,
+    vision,
     visionLP,
-    commitmentToken,
-    baseCurrency,
+    commitToken,
   } = governanceFixture;
   // 12. Deploy Burn Mining Factory
   const burnMiningFactory = await autoDeploy("BurnMiningPoolFactory");
   // 13. Deploy Stake Mining Factory
   const stakeMiningFactory = await autoDeploy("StakeMiningPoolFactory");
   // 14. Deploy Vision Token Emitter
-  const visionTokenEmitter = await autoDeploy(
+  const visionEmitter = await autoDeploy(
     "VisionEmitter",
     teamShare.address,
     timelock.address,
     timelock.address,
-    visionToken.address,
+    vision.address,
     burnMiningFactory.address,
     stakeMiningFactory.address
   );
   // 15. Launch the visionLP liquidity mining pool
   const liquidityMining = await launchStakeMiningPool(
-    visionTokenEmitter,
+    visionEmitter,
     visionLP.address
   );
   record(
@@ -159,24 +158,20 @@ export async function getMiningFixture(option?: {
     "LiquidityMining",
     liquidityMining.address
   );
-  // 16. Launch the commitment burn mining pool
-  const commitmentMining = await launchBurnMiningPool(
-    visionTokenEmitter,
-    commitmentToken.address
+  // 16. Launch the commit burn mining pool
+  const commitMining = await launchBurnMiningPool(
+    visionEmitter,
+    commitToken.address
   );
   const [deployer] = await ethers.getSigners();
-  record(
-    hre.network.name as MyNetwork,
-    "CommitmentMining",
-    commitmentMining.address
-  );
+  record(hre.network.name as MyNetwork, "CommitMining", commitMining.address);
   if (!option?.skipMinterSetting) {
-    await visionToken.connect(deployer).setMinter(visionTokenEmitter.address);
+    await vision.connect(deployer).setMinter(visionEmitter.address);
   }
   return {
     ...governanceFixture,
-    visionTokenEmitter,
-    commitmentMining,
+    visionEmitter,
+    commitMining,
     liquidityMining,
   };
 }
@@ -187,18 +182,18 @@ export async function getAppFixture(): Promise<AppFixture> {
   const {
     timelock,
     projectToken,
-    commitmentToken,
+    commitToken,
     baseCurrency,
     dividendPool,
   } = miningFixture;
   const stableReserve = await autoDeploy(
     "StableReserve",
     timelock.address,
-    commitmentToken.address,
+    commitToken.address,
     baseCurrency.address
   );
   // 18. Move Minter Permission to StableReserve
-  await commitmentToken.setMinter(stableReserve.address);
+  await commitToken.setMinter(stableReserve.address);
   // 19. Deploy Project Manager
   const jobBoard = await autoDeploy(
     "JobBoard",
@@ -213,7 +208,7 @@ export async function getAppFixture(): Promise<AppFixture> {
   const marketplace = await autoDeploy(
     "Marketplace",
     timelock.address,
-    commitmentToken.address,
+    commitToken.address,
     dividendPool.address
   );
   // 21. Initialize Labor Market

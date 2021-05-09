@@ -25,13 +25,11 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "balanceOfAt(address,uint256)": FunctionFragment;
-    "balanceOfAtBlockNum(address,uint256)": FunctionFragment;
+    "balanceOfLock(uint256)": FunctionFragment;
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
-    "balanceOfLockAtBlockNum(uint256,uint256)": FunctionFragment;
     "checkpoint()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "totalSupplyAt(uint256)": FunctionFragment;
-    "totalSupplyAtBlockNum(uint256)": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
     "veLocker()": FunctionFragment;
@@ -51,15 +49,11 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "balanceOfAtBlockNum",
-    values: [string, BigNumberish]
+    functionFragment: "balanceOfLock",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOfLockAt",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "balanceOfLockAtBlockNum",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
@@ -72,10 +66,6 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupplyAt",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "totalSupplyAtBlockNum",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -96,15 +86,11 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "balanceOfAtBlockNum",
+    functionFragment: "balanceOfLock",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfLockAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "balanceOfLockAtBlockNum",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "checkpoint", data: BytesLike): Result;
@@ -114,10 +100,6 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupplyAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupplyAtBlockNum",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
@@ -223,15 +205,13 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -242,18 +222,6 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<[BigNumber]>;
 
     "balanceOfLockAt(uint256,uint256)"(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    balanceOfLockAtBlockNum(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
       veLockId: BigNumberish,
       timestamp: BigNumberish,
       overrides?: CallOverrides
@@ -278,16 +246,6 @@ export class IVotingEscrowToken extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -365,15 +323,13 @@ export class IVotingEscrowToken extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  balanceOfAtBlockNum(
-    account: string,
-    blockNum: BigNumberish,
+  balanceOfLock(
+    veLockId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "balanceOfAtBlockNum(address,uint256)"(
-    account: string,
-    blockNum: BigNumberish,
+  "balanceOfLock(uint256)"(
+    veLockId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -384,18 +340,6 @@ export class IVotingEscrowToken extends Contract {
   ): Promise<BigNumber>;
 
   "balanceOfLockAt(uint256,uint256)"(
-    veLockId: BigNumberish,
-    timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  balanceOfLockAtBlockNum(
-    veLockId: BigNumberish,
-    timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "balanceOfLockAtBlockNum(uint256,uint256)"(
     veLockId: BigNumberish,
     timestamp: BigNumberish,
     overrides?: CallOverrides
@@ -420,16 +364,6 @@ export class IVotingEscrowToken extends Contract {
 
   "totalSupplyAt(uint256)"(
     timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  totalSupplyAtBlockNum(
-    blockNum: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "totalSupplyAtBlockNum(uint256)"(
-    blockNum: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -507,15 +441,13 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -526,18 +458,6 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<BigNumber>;
 
     "balanceOfLockAt(uint256,uint256)"(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    balanceOfLockAtBlockNum(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
       veLockId: BigNumberish,
       timestamp: BigNumberish,
       overrides?: CallOverrides
@@ -558,16 +478,6 @@ export class IVotingEscrowToken extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -666,15 +576,13 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -685,18 +593,6 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<BigNumber>;
 
     "balanceOfLockAt(uint256,uint256)"(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    balanceOfLockAtBlockNum(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
       veLockId: BigNumberish,
       timestamp: BigNumberish,
       overrides?: CallOverrides
@@ -721,16 +617,6 @@ export class IVotingEscrowToken extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -812,15 +698,13 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -831,18 +715,6 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "balanceOfLockAt(uint256,uint256)"(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    balanceOfLockAtBlockNum(
-      veLockId: BigNumberish,
-      timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
       veLockId: BigNumberish,
       timestamp: BigNumberish,
       overrides?: CallOverrides
@@ -867,16 +739,6 @@ export class IVotingEscrowToken extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

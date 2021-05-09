@@ -20,12 +20,12 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CommitMinterInterface extends ethers.utils.Interface {
   functions: {
-    "commitmentToken()": FunctionFragment;
+    "commitToken()": FunctionFragment;
     "stableReserve()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -34,7 +34,7 @@ interface CommitMinterInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -89,27 +89,27 @@ export class CommitMinter extends Contract {
   interface: CommitMinterInterface;
 
   functions: {
-    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
+    commitToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "commitToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     stableReserve(overrides?: CallOverrides): Promise<[string]>;
 
     "stableReserve()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  commitmentToken(overrides?: CallOverrides): Promise<string>;
+  commitToken(overrides?: CallOverrides): Promise<string>;
 
-  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+  "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
   stableReserve(overrides?: CallOverrides): Promise<string>;
 
   "stableReserve()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    commitmentToken(overrides?: CallOverrides): Promise<string>;
+    commitToken(overrides?: CallOverrides): Promise<string>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+    "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
     stableReserve(overrides?: CallOverrides): Promise<string>;
 
@@ -119,9 +119,9 @@ export class CommitMinter extends Contract {
   filters: {};
 
   estimateGas: {
-    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
+    commitToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "commitToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     stableReserve(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -129,11 +129,9 @@ export class CommitMinter extends Contract {
   };
 
   populateTransaction: {
-    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    commitToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "commitmentToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "commitToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     stableReserve(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

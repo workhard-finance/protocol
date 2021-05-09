@@ -25,8 +25,8 @@ describe("MiningPool.sol", function () {
   let bobAddress: string;
   let carlAddress: string;
   let fixture: MiningFixture;
-  let visionToken: Contract;
-  let visionTokenEmitter: Contract;
+  let vision: Contract;
+  let visionEmitter: Contract;
   let timelock: Contract;
   let testingStakeToken: Contract;
   let testingBurnToken: Contract;
@@ -46,24 +46,24 @@ describe("MiningPool.sol", function () {
     bobAddress = await bob.getAddress();
     carlAddress = await carl.getAddress();
     fixture = await getMiningFixture();
-    visionToken = fixture.visionToken;
-    visionTokenEmitter = fixture.visionTokenEmitter;
+    vision = fixture.vision;
+    visionEmitter = fixture.visionEmitter;
     timelock = fixture.timelock;
     const VISION = await ethers.getContractFactory("VISION");
     const COMMIT = await ethers.getContractFactory("COMMIT");
     testingStakeToken = await VISION.deploy();
     testingBurnToken = await COMMIT.deploy();
-    await visionTokenEmitter.newBurnMiningPool(testingBurnToken.address);
-    await visionTokenEmitter.newStakeMiningPool(testingStakeToken.address);
+    await visionEmitter.newBurnMiningPool(testingBurnToken.address);
+    await visionEmitter.newStakeMiningPool(testingStakeToken.address);
     burnMiningPool = await ethers.getContractAt(
       "BurnMining",
-      await visionTokenEmitter.callStatic.burnMiningPools(
+      await visionEmitter.callStatic.burnMiningPools(
         testingBurnToken.address
       )
     );
     stakeMiningPool = await ethers.getContractAt(
       "StakeMining",
-      await visionTokenEmitter.callStatic.stakeMiningPools(
+      await visionEmitter.callStatic.stakeMiningPools(
         testingStakeToken.address
       )
     );
@@ -82,9 +82,9 @@ describe("MiningPool.sol", function () {
     await prepare(bob);
     await prepare(carl);
 
-    const startTx = await visionTokenEmitter.populateTransaction.start();
+    const startTx = await visionEmitter.populateTransaction.start();
     const startTxParams = [
-      visionTokenEmitter.address, // target
+      visionEmitter.address, // target
       0, // value
       startTx.data, // msg.data
       constants.HashZero, // predecessor
@@ -96,11 +96,11 @@ describe("MiningPool.sol", function () {
       500,
       10,
     ];
-    const setEmissionTx = await visionTokenEmitter.populateTransaction.setEmission(
+    const setEmissionTx = await visionEmitter.populateTransaction.setEmission(
       ...testEmissionRate
     );
     const setEmissionTxParams = [
-      visionTokenEmitter.address, // target
+      visionEmitter.address, // target
       0, // value
       setEmissionTx.data, // msg.data
       constants.HashZero, // predecessor
@@ -115,19 +115,19 @@ describe("MiningPool.sol", function () {
   describe("distribute()", async () => {
     beforeEach(async () => {
       await goToNextWeek();
-      await visionTokenEmitter.distribute();
+      await visionEmitter.distribute();
     });
     describe("Stake Mining Pool", async () => {
       it("should return the value depending on the staking period", async () => {
-        const bal0 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal0 = await vision.callStatic.balanceOf(aliceAddress);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(10000);
         await stakeMiningPool.connect(alice).exit();
-        const bal1 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal1 = await vision.callStatic.balanceOf(aliceAddress);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(20000);
         await stakeMiningPool.connect(alice).exit();
-        const bal2 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal2 = await vision.callStatic.balanceOf(aliceAddress);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of stake", async () => {
@@ -142,11 +142,11 @@ describe("MiningPool.sol", function () {
         await stakeMiningPool.connect(bob).exit();
         await stakeMiningPool.connect(carl).exit();
 
-        const aliceReward = await visionToken.callStatic.balanceOf(
+        const aliceReward = await vision.callStatic.balanceOf(
           aliceAddress
         );
-        const bobReward = await visionToken.callStatic.balanceOf(bobAddress);
-        const carlReward = await visionToken.callStatic.balanceOf(carlAddress);
+        const bobReward = await vision.callStatic.balanceOf(bobAddress);
+        const carlReward = await vision.callStatic.balanceOf(carlAddress);
         expect(aliceReward.div(1833333333333).div(1e9)).eq(
           bobReward.div(833333333333).div(1e9)
         );
@@ -157,15 +157,15 @@ describe("MiningPool.sol", function () {
     });
     describe("Burn Mining Pool", async () => {
       it("should return the value depending on the burned period", async () => {
-        const bal0 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal0 = await vision.callStatic.balanceOf(aliceAddress);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(10000);
         await burnMiningPool.connect(alice).exit();
-        const bal1 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal1 = await vision.callStatic.balanceOf(aliceAddress);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(20000);
         await burnMiningPool.connect(alice).exit();
-        const bal2 = await visionToken.callStatic.balanceOf(aliceAddress);
+        const bal2 = await vision.callStatic.balanceOf(aliceAddress);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of burn", async () => {
@@ -180,11 +180,11 @@ describe("MiningPool.sol", function () {
         await burnMiningPool.connect(bob).exit();
         await burnMiningPool.connect(carl).exit();
 
-        const aliceReward = await visionToken.callStatic.balanceOf(
+        const aliceReward = await vision.callStatic.balanceOf(
           aliceAddress
         );
-        const bobReward = await visionToken.callStatic.balanceOf(bobAddress);
-        const carlReward = await visionToken.callStatic.balanceOf(carlAddress);
+        const bobReward = await vision.callStatic.balanceOf(bobAddress);
+        const carlReward = await vision.callStatic.balanceOf(carlAddress);
         expect(aliceReward.div(1833333333333).div(1e9)).eq(
           bobReward.div(833333333333).div(1e9)
         );

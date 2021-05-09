@@ -25,13 +25,11 @@ interface RIGHTInterface extends ethers.utils.Interface {
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "balanceOfAt(address,uint256)": FunctionFragment;
-    "balanceOfAtBlockNum(address,uint256)": FunctionFragment;
+    "balanceOfLock(uint256)": FunctionFragment;
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
-    "balanceOfLockAtBlockNum(uint256,uint256)": FunctionFragment;
     "checkpoint(uint256,tuple,tuple)": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
-    "epoch()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "lockPointHistory(uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
@@ -40,7 +38,6 @@ interface RIGHTInterface extends ethers.utils.Interface {
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "totalSupplyAt(uint256)": FunctionFragment;
-    "totalSupplyAtBlockNum(uint256)": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
     "veLocker()": FunctionFragment;
@@ -60,23 +57,19 @@ interface RIGHTInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "balanceOfAtBlockNum",
-    values: [string, BigNumberish]
+    functionFragment: "balanceOfLock",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOfLockAt",
     values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "balanceOfLockAtBlockNum",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "checkpoint",
     values: [
       BigNumberish,
-      { amount: BigNumberish; end: BigNumberish },
-      { amount: BigNumberish; end: BigNumberish }
+      { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
+      { amount: BigNumberish; start: BigNumberish; end: BigNumberish }
     ]
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
@@ -84,7 +77,6 @@ interface RIGHTInterface extends ethers.utils.Interface {
     functionFragment: "decreaseAllowance",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "epoch", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
@@ -112,10 +104,6 @@ interface RIGHTInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "totalSupplyAtBlockNum",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "transfer",
     values: [string, BigNumberish]
   ): string;
@@ -133,15 +121,11 @@ interface RIGHTInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "balanceOfAtBlockNum",
+    functionFragment: "balanceOfLock",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfLockAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "balanceOfLockAtBlockNum",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "checkpoint", data: BytesLike): Result;
@@ -150,7 +134,6 @@ interface RIGHTInterface extends ethers.utils.Interface {
     functionFragment: "decreaseAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "epoch", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
@@ -175,10 +158,6 @@ interface RIGHTInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalSupplyAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalSupplyAtBlockNum",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "transfer", data: BytesLike): Result;
@@ -284,15 +263,13 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -308,22 +285,14 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    balanceOfLockAtBlockNum(
+    "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
-      veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "checkpoint(uint256,(uint256,uint256),(uint256,uint256))"(
-      veLockId: BigNumberish,
-      prevLock: { amount: BigNumberish; end: BigNumberish },
-      newLock: { amount: BigNumberish; end: BigNumberish },
+      prevLock: {
+        amount: BigNumberish;
+        start: BigNumberish;
+        end: BigNumberish;
+      },
+      newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -347,10 +316,6 @@ export class RIGHT extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    epoch(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "epoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -368,11 +333,10 @@ export class RIGHT extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -381,11 +345,10 @@ export class RIGHT extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -397,11 +360,10 @@ export class RIGHT extends Contract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -409,11 +371,10 @@ export class RIGHT extends Contract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -442,16 +403,6 @@ export class RIGHT extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -529,15 +480,13 @@ export class RIGHT extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  balanceOfAtBlockNum(
-    account: string,
-    blockNum: BigNumberish,
+  balanceOfLock(
+    veLockId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "balanceOfAtBlockNum(address,uint256)"(
-    account: string,
-    blockNum: BigNumberish,
+  "balanceOfLock(uint256)"(
+    veLockId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -553,22 +502,10 @@ export class RIGHT extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  balanceOfLockAtBlockNum(
+  "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
     veLockId: BigNumberish,
-    blockNum: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "balanceOfLockAtBlockNum(uint256,uint256)"(
-    veLockId: BigNumberish,
-    blockNum: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "checkpoint(uint256,(uint256,uint256),(uint256,uint256))"(
-    veLockId: BigNumberish,
-    prevLock: { amount: BigNumberish; end: BigNumberish },
-    newLock: { amount: BigNumberish; end: BigNumberish },
+    prevLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
+    newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -592,10 +529,6 @@ export class RIGHT extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  epoch(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
@@ -613,11 +546,10 @@ export class RIGHT extends Contract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       bias: BigNumber;
       slope: BigNumber;
       timestamp: BigNumber;
-      blockNum: BigNumber;
     }
   >;
 
@@ -626,11 +558,10 @@ export class RIGHT extends Contract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       bias: BigNumber;
       slope: BigNumber;
       timestamp: BigNumber;
-      blockNum: BigNumber;
     }
   >;
 
@@ -642,11 +573,10 @@ export class RIGHT extends Contract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       bias: BigNumber;
       slope: BigNumber;
       timestamp: BigNumber;
-      blockNum: BigNumber;
     }
   >;
 
@@ -654,11 +584,10 @@ export class RIGHT extends Contract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       bias: BigNumber;
       slope: BigNumber;
       timestamp: BigNumber;
-      blockNum: BigNumber;
     }
   >;
 
@@ -687,16 +616,6 @@ export class RIGHT extends Contract {
 
   "totalSupplyAt(uint256)"(
     timestamp: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  totalSupplyAtBlockNum(
-    blockNum: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  "totalSupplyAtBlockNum(uint256)"(
-    blockNum: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -774,15 +693,13 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -798,22 +715,14 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfLockAtBlockNum(
+    "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
-      veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "checkpoint(uint256,(uint256,uint256),(uint256,uint256))"(
-      veLockId: BigNumberish,
-      prevLock: { amount: BigNumberish; end: BigNumberish },
-      newLock: { amount: BigNumberish; end: BigNumberish },
+      prevLock: {
+        amount: BigNumberish;
+        start: BigNumberish;
+        end: BigNumberish;
+      },
+      newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -835,10 +744,6 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    epoch(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
@@ -856,11 +761,10 @@ export class RIGHT extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -869,11 +773,10 @@ export class RIGHT extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -885,11 +788,10 @@ export class RIGHT extends Contract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -897,11 +799,10 @@ export class RIGHT extends Contract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         bias: BigNumber;
         slope: BigNumber;
         timestamp: BigNumber;
-        blockNum: BigNumber;
       }
     >;
 
@@ -930,16 +831,6 @@ export class RIGHT extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1038,15 +929,13 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1062,22 +951,14 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    balanceOfLockAtBlockNum(
+    "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
-      veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "checkpoint(uint256,(uint256,uint256),(uint256,uint256))"(
-      veLockId: BigNumberish,
-      prevLock: { amount: BigNumberish; end: BigNumberish },
-      newLock: { amount: BigNumberish; end: BigNumberish },
+      prevLock: {
+        amount: BigNumberish;
+        start: BigNumberish;
+        end: BigNumberish;
+      },
+      newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1100,10 +981,6 @@ export class RIGHT extends Contract {
       subtractedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    epoch(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "epoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     increaseAllowance(
       spender: string,
@@ -1168,16 +1045,6 @@ export class RIGHT extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1259,15 +1126,13 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    balanceOfAtBlockNum(
-      account: string,
-      blockNum: BigNumberish,
+    balanceOfLock(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "balanceOfAtBlockNum(address,uint256)"(
-      account: string,
-      blockNum: BigNumberish,
+    "balanceOfLock(uint256)"(
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1283,22 +1148,14 @@ export class RIGHT extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    balanceOfLockAtBlockNum(
+    "checkpoint(uint256,(uint256,uint256,uint256),(uint256,uint256,uint256))"(
       veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "balanceOfLockAtBlockNum(uint256,uint256)"(
-      veLockId: BigNumberish,
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "checkpoint(uint256,(uint256,uint256),(uint256,uint256))"(
-      veLockId: BigNumberish,
-      prevLock: { amount: BigNumberish; end: BigNumberish },
-      newLock: { amount: BigNumberish; end: BigNumberish },
+      prevLock: {
+        amount: BigNumberish;
+        start: BigNumberish;
+        end: BigNumberish;
+      },
+      newLock: { amount: BigNumberish; start: BigNumberish; end: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1321,10 +1178,6 @@ export class RIGHT extends Contract {
       subtractedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    epoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "epoch()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     increaseAllowance(
       spender: string,
@@ -1389,16 +1242,6 @@ export class RIGHT extends Contract {
 
     "totalSupplyAt(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    totalSupplyAtBlockNum(
-      blockNum: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "totalSupplyAtBlockNum(uint256)"(
-      blockNum: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

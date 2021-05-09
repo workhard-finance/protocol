@@ -2,11 +2,10 @@
 pragma solidity ^0.7.0;
 
 interface ITokenEmitter {
-    function start(address _liquidityMining, address _commitmentMining)
-        external;
+    function start(address _liquidityMining, address _commitMining) external;
 
     function setWeight(
-        uint256 commitment,
+        uint256 commit,
         uint256 liquidity,
         uint256 dev,
         uint256 caller

@@ -6,5 +6,5 @@ interface IStableReserve {
 
     function baseCurrency() external view returns (address);
 
-    function commitmentToken() external view returns (address);
+    function commitToken() external view returns (address);
 }

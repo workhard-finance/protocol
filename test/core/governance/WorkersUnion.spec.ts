@@ -1,15 +1,15 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, constants, PopulatedTransaction, providers } from "ethers";
-import { parseEther, parseUnits } from "ethers/lib/utils";
+import { Contract, constants, PopulatedTransaction } from "ethers";
+import { parseEther } from "ethers/lib/utils";
 import { goTo } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
 
-describe("WorkersUnion.sol", function () {
+describe.only("WorkersUnion.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let planter: SignerWithAddress;
@@ -17,11 +17,12 @@ describe("WorkersUnion.sol", function () {
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
   let fixture: MiningFixture;
-  let visionToken: Contract;
-  let dividendPool: Contract;
+  let vision: Contract;
+  let veLocker: Contract;
   let workersUnion: Contract;
   let timelock: Contract;
   let voteCounter: Contract;
+  let veVISION: Contract;
   let newMemorandom: any[];
   let pTx: PopulatedTransaction;
   let params: any[];
@@ -34,31 +35,36 @@ describe("WorkersUnion.sol", function () {
     bob = signers[3];
     carl = signers[4];
     fixture = await getMiningFixture({ skipMinterSetting: true });
-    visionToken = fixture.visionToken;
-    dividendPool = fixture.dividendPool;
+    vision = fixture.vision;
+    veLocker = fixture.veLocker;
+    veVISION = fixture.veVISION;
+    voteCounter = fixture.voteCounter;
     workersUnion = fixture.workersUnion;
     timelock = fixture.timelock;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
-      await visionToken.mint(addr, parseEther("1000000"));
-      await visionToken
+      await vision.mint(addr, parseEther("1000000"));
+      await vision
         .connect(account)
-        .approve(dividendPool.address, parseEther("1000000"));
+        .approve(veLocker.address, parseEther("1000000"));
     };
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
-    await dividendPool.connect(alice).stakeAndLock(parseEther("1000"), 40);
-    await dividendPool.connect(bob).stakeAndLock(parseEther("100000"), 20);
-    await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 4);
+    await veLocker.connect(alice).createLock(parseEther("1000"), 40);
+    await veLocker.connect(bob).createLock(parseEther("100000"), 20);
+    await veLocker.connect(carl).createLock(parseEther("100"), 4);
+    await goTo(86400 * 7);
+    console.log(await voteCounter.callStatic.getTotalVotes());
+    console.log(await veVISION.callStatic.totalSupply());
     newMemorandom = [
       3600 * 24 * 2,
       3600 * 24 * 7,
       3600 * 24 * 2,
       3600 * 24 * 7,
-      parseUnits("100", "gwei"),
-      parseUnits("1000", "gwei"),
+      0,
+      0,
       voteCounter.address,
     ];
     pTx = await workersUnion.populateTransaction.changeMemorandom(

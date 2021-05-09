@@ -2,11 +2,11 @@ import { ethers } from "hardhat";
 import { Contract } from "ethers";
 
 export async function launchBurnMiningPool(
-  visionTokenEmitter: Contract,
+  visionEmitter: Contract,
   burnToken: string,
 ): Promise<Contract> {
-  await visionTokenEmitter.newBurnMiningPool(burnToken)
-  const poolAddr = await visionTokenEmitter.callStatic.burnMiningPools(burnToken)
+  await visionEmitter.newBurnMiningPool(burnToken)
+  const poolAddr = await visionEmitter.callStatic.burnMiningPools(burnToken)
   const contract = await ethers.getContractAt("BurnMining", poolAddr)
   return contract
 }

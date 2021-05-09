@@ -17,7 +17,7 @@ contract VisionEmitter is Governed {
     uint256 public minEmissionRatePerWeek = 60; // 0.006 per week ~= 36% yearly inflation
     uint256 public emissionCutRate = 3000; // 30%
 
-    VISION public visionToken;
+    VISION public vision;
 
     IMiningPoolFactory public burnMiningPoolFactory;
     IMiningPoolFactory public stakeMiningPoolFactory;
@@ -66,12 +66,12 @@ contract VisionEmitter is Governed {
         address _devShares,
         address _protocolFund,
         address _gov,
-        address _visionToken,
+        address _vision,
         address _burnMiningPoolFactory,
         address _stakeMiningPoolFactory
     ) Governed() {
         setProtocolFund(_protocolFund);
-        visionToken = VISION(_visionToken);
+        vision = VISION(_vision);
         burnMiningPoolFactory = IMiningPoolFactory(_burnMiningPoolFactory);
         stakeMiningPoolFactory = IMiningPoolFactory(_stakeMiningPoolFactory);
         dev = newBurnMiningPool(_devShares);
@@ -81,7 +81,7 @@ contract VisionEmitter is Governed {
     function newBurnMiningPool(address _burningToken) public returns (address) {
         address _pool =
             burnMiningPoolFactory.newPool(
-                address(visionToken),
+                address(vision),
                 address(this),
                 _burningToken,
                 gov
@@ -97,7 +97,7 @@ contract VisionEmitter is Governed {
     {
         address _pool =
             stakeMiningPoolFactory.newPool(
-                address(visionToken),
+                address(vision),
                 address(this),
                 _stakingToken,
                 gov
@@ -187,7 +187,7 @@ contract VisionEmitter is Governed {
         emissionWeekNum = weekNum;
         // allocate to mining pools
         uint256 weightSum = emissionWeight.sum;
-        uint256 prevSupply = visionToken.totalSupply();
+        uint256 prevSupply = vision.totalSupply();
         for (uint256 i = 0; i < emissionWeight.pools.length; i++) {
             require(i < pools.length, "out of index");
             uint256 weighted =
@@ -196,19 +196,19 @@ contract VisionEmitter is Governed {
         }
 
         // Protocol fund(protocol treasury)
-        visionToken.mint(
+        vision.mint(
             protocolFund,
             emissionWeight.protocolFund.mul(emission).div(weightSum)
         );
         // Caller
-        visionToken.mint(
+        vision.mint(
             msg.sender,
             emissionWeight.caller.mul(emission).div(weightSum)
         );
         // Frontier
         _mintAndNotifyAllocation(
             IMiningPool(dev),
-            emission - (visionToken.totalSupply() - prevSupply)
+            emission - (vision.totalSupply() - prevSupply)
         );
         emit TokenEmission(emission);
         _updateEmission();
@@ -225,7 +225,7 @@ contract VisionEmitter is Governed {
     function _mintAndNotifyAllocation(IMiningPool _miningPool, uint256 _amount)
         private
     {
-        visionToken.mint(address(_miningPool), _amount);
+        vision.mint(address(_miningPool), _amount);
         _miningPool.allocate(_amount);
     }
 
@@ -233,9 +233,7 @@ contract VisionEmitter is Governed {
         if (emissionWeekNum == 0) return 0;
         // Minimum emission 0.05% per week will make 2.63% of inflation per year
         uint256 minEmission =
-            visionToken.totalSupply().mul(minEmissionRatePerWeek).div(
-                DENOMINATOR
-            );
+            vision.totalSupply().mul(minEmissionRatePerWeek).div(DENOMINATOR);
         // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
         uint256 cutEmission =
             emission.mul(DENOMINATOR - emissionCutRate).div(DENOMINATOR);

@@ -24,7 +24,7 @@ interface StableReserveInterface extends ethers.utils.Interface {
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
     "baseCurrency()": FunctionFragment;
-    "commitmentToken()": FunctionFragment;
+    "commitToken()": FunctionFragment;
     "disable(address)": FunctionFragment;
     "disablePermanently(address)": FunctionFragment;
     "enable(address)": FunctionFragment;
@@ -59,7 +59,7 @@ interface StableReserveInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "disable", values: [string]): string;
@@ -140,7 +140,7 @@ interface StableReserveInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "commitmentToken",
+    functionFragment: "commitToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "disable", data: BytesLike): Result;
@@ -277,9 +277,9 @@ export class StableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<[string]>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<[string]>;
+    commitToken(overrides?: CallOverrides): Promise<[string]>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<[string]>;
+    "commitToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     disable(
       _contract: string,
@@ -488,9 +488,9 @@ export class StableReserve extends Contract {
 
   "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-  commitmentToken(overrides?: CallOverrides): Promise<string>;
+  commitToken(overrides?: CallOverrides): Promise<string>;
 
-  "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+  "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
   disable(
     _contract: string,
@@ -692,9 +692,9 @@ export class StableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<string>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<string>;
+    commitToken(overrides?: CallOverrides): Promise<string>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<string>;
+    "commitToken()"(overrides?: CallOverrides): Promise<string>;
 
     disable(_contract: string, overrides?: CallOverrides): Promise<void>;
 
@@ -908,9 +908,9 @@ export class StableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<BigNumber>;
+    commitToken(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "commitmentToken()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "commitToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     disable(
       _contract: string,
@@ -1120,11 +1120,9 @@ export class StableReserve extends Contract {
 
     "baseCurrency()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    commitmentToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    commitToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "commitmentToken()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    "commitToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     disable(
       _contract: string,

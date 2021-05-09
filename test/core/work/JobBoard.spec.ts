@@ -2,14 +2,9 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, BigNumber, Signer, BigNumberish } from "ethers";
-import {
-  keccak256,
-  parseEther,
-  solidityKeccak256,
-  solidityPack,
-} from "ethers/lib/utils";
+import { parseEther, solidityKeccak256 } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { runTimelockTx } from "../../utils/utilities";
+import { goTo, runTimelockTx } from "../../utils/utilities";
 import { getAppFixture, AppFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
@@ -23,7 +18,7 @@ describe("JobBoard.sol", function () {
   let fixture: AppFixture;
   let jobBoard: Contract;
   let stableReserve: Contract;
-  let commitmentToken: Contract;
+  let commitToken: Contract;
   let projectToken: Contract;
   let baseCurrency: Contract;
   let dividendPool: Contract;
@@ -47,7 +42,7 @@ describe("JobBoard.sol", function () {
     fixture = await getAppFixture();
     baseCurrency = fixture.baseCurrency;
     jobBoard = fixture.jobBoard;
-    commitmentToken = fixture.commitmentToken;
+    commitToken = fixture.commitToken;
     stableReserve = fixture.stableReserve;
     projectToken = fixture.projectToken;
     dividendPool = fixture.dividendPool;
@@ -62,7 +57,7 @@ describe("JobBoard.sol", function () {
       await baseCurrency
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
-      await commitmentToken
+      await commitToken
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
     };
@@ -172,14 +167,14 @@ describe("JobBoard.sol", function () {
         .to.emit(jobBoard, "BudgetExecuted")
         .withArgs(project.id, 0);
     });
-    it("should send the 80% of the fund to the labor market and mint commitment token", async () => {
+    it("should send the 80% of the fund to the labor market and mint commit token", async () => {
       await runTimelockTx(
         timelock,
         jobBoard.populateTransaction.approveProject(project.id)
       );
-      const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
+      const prevTotalSupply: BigNumber = await commitToken.callStatic.totalSupply();
       await jobBoard.connect(projOwner).executeBudget(project.id, 0, []);
-      const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
+      const updatedTotalSupply: BigNumber = await commitToken.callStatic.totalSupply();
       expect(
         await baseCurrency.callStatic.balanceOf(stableReserve.address)
       ).to.eq(parseEther("80"));
@@ -191,12 +186,12 @@ describe("JobBoard.sol", function () {
         jobBoard.populateTransaction.approveProject(project.id)
       );
       await jobBoard.connect(projOwner).executeBudget(project.id, 0, []);
-      const currentEpoch = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.getClaimableCrops(
-        currentEpoch + 1
+      const weekNum = await dividendPool.callStatic.getCurrentEpoch();
+      const result = await dividendPool.callStatic.distributionOfWeek(
+        baseCurrency.address,
+        weekNum
       );
-      expect(result.tokens).to.deep.eq([baseCurrency.address]);
-      expect(result.amounts).to.deep.eq([parseEther("20")]);
+      expect(result).to.eq(parseEther("20"));
     });
   });
   describe("forceExecuteBudget()", async () => {
@@ -227,19 +222,19 @@ describe("JobBoard.sol", function () {
         .withArgs(project.id, 0);
     });
     it("should take 50% of the fund for the fee.", async () => {
-      const prevTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
+      const prevTotalSupply: BigNumber = await commitToken.callStatic.totalSupply();
       await jobBoard.connect(projOwner).forceExecuteBudget(project.id, 0, []);
-      const updatedTotalSupply: BigNumber = await commitmentToken.callStatic.totalSupply();
+      const updatedTotalSupply: BigNumber = await commitToken.callStatic.totalSupply();
       expect(
         await baseCurrency.callStatic.balanceOf(stableReserve.address)
       ).to.eq(parseEther("50"));
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
-      const currentEpoch = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.getClaimableCrops(
-        currentEpoch + 1
+      const weekNum = await dividendPool.callStatic.getCurrentEpoch();
+      const result = await dividendPool.callStatic.distributionOfWeek(
+        baseCurrency.address,
+        weekNum
       );
-      expect(result.tokens).to.deep.eq([baseCurrency.address]);
-      expect(result.amounts).to.deep.eq([parseEther("50")]);
+      expect(result).to.eq(parseEther("50"));
     });
   });
   describe("addBudget(): should allow project owners add new budgets and governance approves them", async () => {
@@ -275,7 +270,7 @@ describe("JobBoard.sol", function () {
         await jobBoard.connect(projOwner).forceExecuteBudget(project.id, 0);
       });
       it("the budget owner can execute the budget", async () => {
-        const bal0: BigNumber = await commitmentToken.callStatic.balanceOf(
+        const bal0: BigNumber = await commitToken.callStatic.balanceOf(
           alice.address
         );
         await expect(
@@ -285,7 +280,7 @@ describe("JobBoard.sol", function () {
         )
           .to.emit(jobBoard, "Payed")
           .withArgs(project.id, alice.address, parseEther("1"));
-        const bal1: BigNumber = await commitmentToken.callStatic.balanceOf(
+        const bal1: BigNumber = await commitToken.callStatic.balanceOf(
           alice.address
         );
         expect(bal1.sub(bal0)).eq(parseEther("1"));

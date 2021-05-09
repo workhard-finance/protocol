@@ -79,8 +79,8 @@ contract WorkersUnion is Pausable, Governed {
             1 weeks, // maximum pending for vote
             1 weeks, // minimum voting period
             4 weeks, // maximum voting period
-            100 gwei, // minimum votes for proposing
-            1000 gwei, // minimum votes
+            0, // minimum votes for proposing
+            0, // minimum votes
             IVoteCounter(_voteCounter)
         );
         setGovernance(_timelockGov);
@@ -193,7 +193,7 @@ contract WorkersUnion is Pausable, Governed {
     function vote(bytes32 txHash, bool agree) public {
         uint256[] memory votingRights =
             memorandom.voteCounter.votingRights(msg.sender);
-        vote(txHash, votingRights, agree);
+        manualVote(txHash, votingRights, agree);
     }
 
     /**
@@ -202,7 +202,7 @@ contract WorkersUnion is Pausable, Governed {
      *      To have more detail information about how voting power is computed,
      *      Please go to the QVCounter.sol.
      */
-    function vote(
+    function manualVote(
         bytes32 txHash,
         uint256[] memory rightIds,
         bool agree

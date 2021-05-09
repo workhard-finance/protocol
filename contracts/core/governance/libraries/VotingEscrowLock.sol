@@ -65,12 +65,19 @@ contract VotingEscrowLock is
         veToken = _veToken;
     }
 
-    function createLock(uint256 amount, uint256 lockEnd) public override {
+    function createLock(uint256 amount, uint256 epochs) public override {
+        uint256 until = block.timestamp + epochs * 1 weeks;
+        createLockUntil(amount, until);
+    }
+
+    function createLockUntil(uint256 amount, uint256 lockEnd) public override {
         require(amount > 0, "should be greater than zero");
         uint256 roundedEnd = (lockEnd / 1 weeks) * 1 weeks;
 
         uint256 veLockId =
             uint256(keccak256(abi.encodePacked(block.number, msg.sender)));
+        require(!_exists(veLockId), "Already exists");
+        locks[veLockId].start = block.timestamp;
         _safeMint(msg.sender, veLockId);
         _updateLock(veLockId, amount, roundedEnd);
         emit LockCreated(veLockId);
@@ -82,7 +89,16 @@ contract VotingEscrowLock is
         _updateLock(veLockId, newAmount, locks[veLockId].end);
     }
 
-    function extendLock(uint256 veLockId, uint256 end)
+    function extendLock(uint256 veLockId, uint256 epochs)
+        public
+        override
+        onlyOwner(veLockId)
+    {
+        uint256 until = block.timestamp + epochs * 1 weeks;
+        extendLockUntil(veLockId, until);
+    }
+
+    function extendLockUntil(uint256 veLockId, uint256 end)
         public
         override
         onlyOwner(veLockId)
@@ -97,7 +113,7 @@ contract VotingEscrowLock is
         // transfer
         IERC20(baseToken).safeTransfer(msg.sender, lock.amount);
         totalLockedSupply -= lock.amount;
-        VotingEscrowToken(veToken).checkpoint(veLockId, lock, Lock(0, 0));
+        VotingEscrowToken(veToken).checkpoint(veLockId, lock, Lock(0, 0, 0));
         locks[veLockId].amount = 0;
         emit Withdraw(veLockId, lock.amount);
     }
@@ -155,7 +171,7 @@ contract VotingEscrowLock is
         uint256 end
     ) internal nonReentrant {
         Lock memory prevLock = locks[veLockId];
-        Lock memory newLock = Lock(amount, end);
+        Lock memory newLock = Lock(amount, prevLock.start, end);
         require(_exists(veLockId), "Lock does not exist.");
         require(
             prevLock.end == 0 || prevLock.end > block.timestamp,

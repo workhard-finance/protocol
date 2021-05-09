@@ -7,13 +7,13 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
 import "../../utils/ERC20Recoverer.sol";
-import "../../core/dividend/libraries/Planter.sol";
+import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../core/governance/Governed.sol";
 import "../../apps/marketplace/interfaces/IMarketplace.sol";
 
 contract Marketplace is
-    Planter,
+    Distributor,
     ERC20Recoverer,
     Governed,
     ReentrancyGuard,
@@ -33,7 +33,7 @@ contract Marketplace is
     using SafeERC20 for ERC20Burnable;
     using SafeMath for uint256;
 
-    ERC20Burnable immutable commitmentToken;
+    ERC20Burnable immutable commitToken;
 
     uint256 public taxRate = 2000; // denominator is 10,000
 
@@ -51,10 +51,10 @@ contract Marketplace is
 
     constructor(
         address _gov,
-        address _commitmentToken,
+        address _commitToken,
         address _dividendPool
-    ) ERC20Recoverer() Governed() Planter(_dividendPool) ERC1155("") {
-        commitmentToken = ERC20Burnable(_commitmentToken);
+    ) ERC20Recoverer() Governed() Distributor(_dividendPool) ERC1155("") {
+        commitToken = ERC20Burnable(_commitToken);
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
     }
@@ -79,14 +79,14 @@ contract Marketplace is
         uint256 forManufacturer =
             postTax.mul(product.profitRate).div(RATE_DENOMINATOR);
         uint256 amountToBurn = postTax.sub(forManufacturer);
-        commitmentToken.safeTransferFrom(msg.sender, address(this), visionTax);
-        commitmentToken.safeTransferFrom(
+        commitToken.safeTransferFrom(msg.sender, address(this), visionTax);
+        commitToken.safeTransferFrom(
             msg.sender,
             product.manufacturer,
             forManufacturer
         );
-        commitmentToken.burnFrom(msg.sender, amountToBurn);
-        _plant(address(commitmentToken), visionTax);
+        commitToken.burnFrom(msg.sender, amountToBurn);
+        _distribute(address(commitToken), visionTax);
         // mint & give
         _mint(to, id, amount, "");
     }

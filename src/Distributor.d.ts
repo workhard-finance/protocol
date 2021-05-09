@@ -18,7 +18,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface PlanterInterface extends ethers.utils.Interface {
+interface DistributorInterface extends ethers.utils.Interface {
   functions: {
     "dividendPool()": FunctionFragment;
   };
@@ -36,7 +36,7 @@ interface PlanterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class Planter extends Contract {
+export class Distributor extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -77,7 +77,7 @@ export class Planter extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: PlanterInterface;
+  interface: DistributorInterface;
 
   functions: {
     dividendPool(overrides?: CallOverrides): Promise<[string]>;

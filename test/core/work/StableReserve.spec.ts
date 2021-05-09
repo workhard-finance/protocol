@@ -24,7 +24,7 @@ describe("StableReserve.sol", function () {
   let fixture: AppFixture;
   let jobBoard: Contract;
   let stableReserve: Contract;
-  let commitmentToken: Contract;
+  let commitToken: Contract;
   let dividendPool: Contract;
   let timelock: Contract;
   let baseCurrency: Contract;
@@ -49,7 +49,7 @@ describe("StableReserve.sol", function () {
     fixture = await getAppFixture();
     baseCurrency = fixture.baseCurrency;
     jobBoard = fixture.jobBoard;
-    commitmentToken = fixture.commitmentToken;
+    commitToken = fixture.commitToken;
     stableReserve = fixture.stableReserve;
     dividendPool = fixture.dividendPool;
     timelock = fixture.timelock;
@@ -63,7 +63,7 @@ describe("StableReserve.sol", function () {
       await baseCurrency
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
-      await commitmentToken
+      await commitToken
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
     };
@@ -97,14 +97,14 @@ describe("StableReserve.sol", function () {
         .connect(projOwner)
         .compensate(project.id, alice.address, parseEther("1"));
     });
-    it("should return the base currency and burn the commitment token", async () => {
+    it("should return the base currency and burn the commit token", async () => {
       const base0 = await baseCurrency.callStatic.balanceOf(alice.address);
-      const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
+      const comm0 = await commitToken.callStatic.balanceOf(alice.address);
       expect(stableReserve.connect(alice).redeem(parseEther("1")))
         .to.emit(stableReserve, "Redeemed")
         .withArgs(alice.address, parseEther("1"));
       const base1 = await baseCurrency.callStatic.balanceOf(alice.address);
-      const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
+      const comm1 = await commitToken.callStatic.balanceOf(alice.address);
       expect(base1.sub(base0)).eq(comm0.sub(comm1));
     });
     it("should not change the remaining budget", async () => {
@@ -115,19 +115,19 @@ describe("StableReserve.sol", function () {
     });
   });
   describe("payInsteadOfWorking()", async () => {
-    it("should mint commitment tokens when someone pays twice", async () => {
-      const supply0 = await commitmentToken.callStatic.totalSupply();
+    it("should mint commit tokens when someone pays twice", async () => {
+      const supply0 = await commitToken.callStatic.totalSupply();
       const base0 = await baseCurrency.callStatic.balanceOf(alice.address);
-      const comm0 = await commitmentToken.callStatic.balanceOf(alice.address);
+      const comm0 = await commitToken.callStatic.balanceOf(alice.address);
       await stableReserve.connect(alice).payInsteadOfWorking(parseEther("1"));
-      const supply1 = await commitmentToken.callStatic.totalSupply();
+      const supply1 = await commitToken.callStatic.totalSupply();
       const base1 = await baseCurrency.callStatic.balanceOf(alice.address);
-      const comm1 = await commitmentToken.callStatic.balanceOf(alice.address);
+      const comm1 = await commitToken.callStatic.balanceOf(alice.address);
       expect(base0.sub(base1)).eq(parseEther("2"));
       expect(comm1.sub(comm0)).eq(parseEther("1"));
       expect(supply1.sub(supply0)).eq(parseEther("1"));
     });
-    it("should increase the commitment token budget", async () => {
+    it("should increase the commit token budget", async () => {
       const remaining0 = await stableReserve.callStatic.mintable();
       await stableReserve.connect(alice).payInsteadOfWorking(parseEther("1"));
       const remaining1 = await stableReserve.callStatic.mintable();
@@ -135,7 +135,7 @@ describe("StableReserve.sol", function () {
     });
   });
   describe("grant()", async () => {
-    it("should grant commitment token for project", async () => {
+    it("should grant commit token for project", async () => {
       await stableReserve.connect(bob).payInsteadOfWorking(parseEther("1"));
       const remaining0 = await stableReserve.callStatic.mintable();
       expect(remaining0).not.eq(BigNumber.from(0));
