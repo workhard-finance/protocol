@@ -1,4 +1,9 @@
-import { BigNumber, Contract, PopulatedTransaction } from "ethers";
+import {
+  BigNumber,
+  BigNumberish,
+  Contract,
+  PopulatedTransaction,
+} from "ethers";
 import { ethers } from "hardhat";
 
 const { keccak256, solidityPack, getAddress } = ethers.utils;
@@ -72,4 +77,11 @@ export const sqrt = (x: BigNumber) => {
     z = x.div(z).add(z).div(TWO);
   }
   return y;
+};
+
+export const almostEquals = (a: BigNumberish, b: BigNumberish) => {
+  const A = BigNumber.from(a);
+  const B = BigNumber.from(b);
+  if (A.eq(0)) return B.eq(0);
+  return A.sub(B).mul(100).div(A).eq(0);
 };

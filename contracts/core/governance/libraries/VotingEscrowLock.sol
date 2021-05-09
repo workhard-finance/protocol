@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/EnumerableMap.sol";
 
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
 import "../../../core/governance/libraries/VotingEscrowToken.sol";
@@ -25,6 +27,8 @@ contract VotingEscrowLock is
     HasInitializer
 {
     using SafeERC20 for IERC20;
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.UintToAddressMap;
 
     address public override baseToken;
     address public override veToken;
@@ -33,13 +37,17 @@ contract VotingEscrowLock is
 
     mapping(uint256 => Lock) public override locks;
 
-    event LockCreated(uint256 tokenId);
-    event LockUpdate(uint256 tokenId, uint256 amount, uint256 end);
-    event Withdraw(uint256 tokenId, uint256 amount);
+    mapping(address => EnumerableSet.UintSet) private _delegated;
+    EnumerableMap.UintToAddressMap private _rightOwners;
 
-    modifier onlyOwner(uint256 tokenId) {
+    event LockCreated(uint256 veLockId);
+    event LockUpdate(uint256 veLockId, uint256 amount, uint256 end);
+    event Withdraw(uint256 veLockId, uint256 amount);
+    event VoteDelegated(uint256 veLockId, address to);
+
+    modifier onlyOwner(uint256 veLockId) {
         require(
-            ownerOf(tokenId) == msg.sender,
+            ownerOf(veLockId) == msg.sender,
             "Only the owner can call this function"
         );
         _;
@@ -61,47 +69,94 @@ contract VotingEscrowLock is
         require(amount > 0, "should be greater than zero");
         uint256 roundedEnd = (lockEnd / 1 weeks) * 1 weeks;
 
-        uint256 tokenId =
+        uint256 veLockId =
             uint256(keccak256(abi.encodePacked(block.number, msg.sender)));
-        _safeMint(msg.sender, tokenId);
-        _updateLock(tokenId, amount, roundedEnd);
-        emit LockCreated(tokenId);
+        _safeMint(msg.sender, veLockId);
+        _updateLock(veLockId, amount, roundedEnd);
+        emit LockCreated(veLockId);
     }
 
-    function increaseAmount(uint256 tokenId, uint256 amount) public override {
+    function increaseAmount(uint256 veLockId, uint256 amount) public override {
         require(amount > 0, "should be greater than zero");
-        uint256 newAmount = locks[tokenId].amount + amount;
-        _updateLock(tokenId, newAmount, locks[tokenId].end);
+        uint256 newAmount = locks[veLockId].amount + amount;
+        _updateLock(veLockId, newAmount, locks[veLockId].end);
     }
 
-    function extendLock(uint256 tokenId, uint256 end)
+    function extendLock(uint256 veLockId, uint256 end)
         public
         override
-        onlyOwner(tokenId)
+        onlyOwner(veLockId)
     {
         uint256 roundedEnd = (end / 1 weeks) * 1 weeks;
-        _updateLock(tokenId, locks[tokenId].amount, roundedEnd);
+        _updateLock(veLockId, locks[veLockId].amount, roundedEnd);
     }
 
-    function withdraw(uint256 tokenId) public override onlyOwner(tokenId) {
-        Lock memory lock = locks[tokenId];
+    function withdraw(uint256 veLockId) public override onlyOwner(veLockId) {
+        Lock memory lock = locks[veLockId];
         require(block.timestamp >= lock.end, "Locked.");
         // transfer
         IERC20(baseToken).safeTransfer(msg.sender, lock.amount);
         totalLockedSupply -= lock.amount;
-        VotingEscrowToken(veToken).checkpoint(tokenId, lock, Lock(0, 0));
-        locks[tokenId].amount = 0;
-        emit Withdraw(tokenId, lock.amount);
+        VotingEscrowToken(veToken).checkpoint(veLockId, lock, Lock(0, 0));
+        locks[veLockId].amount = 0;
+        emit Withdraw(veLockId, lock.amount);
+    }
+
+    function delegate(uint256 veLockId, address to) external override {
+        require(
+            ownerOf(veLockId) == msg.sender,
+            "Only owner can decide the delegatee"
+        );
+        _delegate(veLockId, to);
+    }
+
+    function delegateeOf(uint256 veLockId)
+        public
+        view
+        override
+        returns (address)
+    {
+        if (!_exists(veLockId)) {
+            return address(0);
+        }
+        (bool delegated, address delegatee) = _rightOwners.tryGet(veLockId);
+        return delegated ? delegatee : ownerOf(veLockId);
+    }
+
+    function delegatedRights(address voter)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        require(
+            voter != address(0),
+            "VotingEscrowLock: delegate query for the zero address"
+        );
+        return _delegated[voter].length();
+    }
+
+    function delegatedRightByIndex(address voter, uint256 idx)
+        public
+        view
+        override
+        returns (uint256 veLockId)
+    {
+        require(
+            voter != address(0),
+            "VotingEscrowLock: delegate query for the zero address"
+        );
+        return _delegated[voter].at(idx);
     }
 
     function _updateLock(
-        uint256 tokenId,
+        uint256 veLockId,
         uint256 amount,
         uint256 end
     ) internal nonReentrant {
-        Lock memory prevLock = locks[tokenId];
+        Lock memory prevLock = locks[veLockId];
         Lock memory newLock = Lock(amount, end);
-        require(_exists(tokenId), "Lock does not exist.");
+        require(_exists(veLockId), "Lock does not exist.");
         require(
             prevLock.end == 0 || prevLock.end > block.timestamp,
             "Cannot update expired. Create a new lock."
@@ -137,10 +192,26 @@ contract VotingEscrowLock is
 
         // 3. increase locked amount
         totalLockedSupply += increment;
-        locks[tokenId] = newLock;
+        locks[veLockId] = newLock;
 
         // 4. updateCheckpoint
-        VotingEscrowToken(veToken).checkpoint(tokenId, prevLock, newLock);
-        emit LockUpdate(tokenId, amount, end);
+        VotingEscrowToken(veToken).checkpoint(veLockId, prevLock, newLock);
+        emit LockUpdate(veLockId, amount, end);
+    }
+
+    function _delegate(uint256 veLockId, address to) internal {
+        address _voter = delegateeOf(veLockId);
+        _delegated[_voter].remove(veLockId);
+        _delegated[to].add(veLockId);
+        _rightOwners.set(veLockId, to);
+        emit VoteDelegated(veLockId, to);
+    }
+
+    function _beforeTokenTransfer(
+        address,
+        address to,
+        uint256 veLockId
+    ) internal override {
+        _delegate(veLockId, to);
     }
 }

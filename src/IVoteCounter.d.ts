@@ -20,12 +20,39 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IVoteCounterInterface extends ethers.utils.Interface {
   functions: {
-    "getVotes(address)": FunctionFragment;
+    "getTotalVotes()": FunctionFragment;
+    "getVotes(uint256,uint256)": FunctionFragment;
+    "voterOf(uint256)": FunctionFragment;
+    "votingRights(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getTotalVotes",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVotes",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "voterOf",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "votingRights",
+    values: [string]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "getTotalVotes",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "voterOf", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "votingRights",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
@@ -74,49 +101,185 @@ export class IVoteCounter extends Contract {
   interface: IVoteCounterInterface;
 
   functions: {
-    getVotes(token: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    getTotalVotes(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    "getVotes(address)"(
-      token: string,
+    "getTotalVotes()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getVotes(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    "getVotes(uint256,uint256)"(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    voterOf(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "voterOf(uint256)"(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    votingRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { rights: BigNumber[] }>;
+
+    "votingRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber[]] & { rights: BigNumber[] }>;
   };
 
-  getVotes(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+  getTotalVotes(overrides?: CallOverrides): Promise<BigNumber>;
 
-  "getVotes(address)"(
-    token: string,
+  "getTotalVotes()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getVotes(
+    votingRightId: BigNumberish,
+    timestamp: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  callStatic: {
-    getVotes(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+  "getVotes(uint256,uint256)"(
+    votingRightId: BigNumberish,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
-    "getVotes(address)"(
-      token: string,
+  voterOf(
+    votingRightId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "voterOf(uint256)"(
+    votingRightId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  votingRights(voter: string, overrides?: CallOverrides): Promise<BigNumber[]>;
+
+  "votingRights(address)"(
+    voter: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber[]>;
+
+  callStatic: {
+    getTotalVotes(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getTotalVotes()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVotes(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    "getVotes(uint256,uint256)"(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    voterOf(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "voterOf(uint256)"(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    votingRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
+
+    "votingRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber[]>;
   };
 
   filters: {};
 
   estimateGas: {
-    getVotes(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+    getTotalVotes(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "getVotes(address)"(
-      token: string,
+    "getTotalVotes()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getVotes(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getVotes(uint256,uint256)"(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    voterOf(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "voterOf(uint256)"(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    votingRights(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "votingRights(address)"(
+      voter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    getTotalVotes(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getTotalVotes()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getVotes(
-      token: string,
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getVotes(address)"(
-      token: string,
+    "getVotes(uint256,uint256)"(
+      votingRightId: BigNumberish,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    voterOf(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "voterOf(uint256)"(
+      votingRightId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    votingRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "votingRights(address)"(
+      voter: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

@@ -26,12 +26,12 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
     "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
-    "dividendPool()": FunctionFragment;
     "execute(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
-    "getVotes(address)": FunctionFragment;
+    "getVotesAt(address,uint256)": FunctionFragment;
+    "getVotesFor(address,bytes32)": FunctionFragment;
     "getVotingStatus(bytes32)": FunctionFragment;
     "gov()": FunctionFragment;
     "launch()": FunctionFragment;
@@ -69,10 +69,6 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "dividendPool",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "execute",
     values: [string, BigNumberish, BytesLike, BytesLike, BytesLike]
   ): string;
@@ -88,7 +84,14 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     functionFragment: "forceAnarchizeAt",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "getVotesAt",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getVotesFor",
+    values: [string, BytesLike]
+  ): string;
   encodeFunctionData(
     functionFragment: "getVotingStatus",
     values: [BytesLike]
@@ -162,10 +165,6 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     functionFragment: "changeMemorandom",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "dividendPool",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "executeBatch",
@@ -179,7 +178,11 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     functionFragment: "forceAnarchizeAt",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getVotesAt", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getVotesFor",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getVotingStatus",
     data: BytesLike
@@ -312,10 +315,6 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    dividendPool(overrides?: CallOverrides): Promise<[string]>;
-
-    "dividendPool()"(overrides?: CallOverrides): Promise<[string]>;
-
     execute(
       target: string,
       value: BigNumberish,
@@ -364,10 +363,27 @@ export class WorkersUnion extends Contract {
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getVotes(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "getVotes(address)"(
+    getVotesAt(
       account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getVotesAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    getVotesFor(
+      account: string,
+      txHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getVotesFor(address,bytes32)"(
+      account: string,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
@@ -567,14 +583,15 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    vote(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "vote(bytes32,bool)"(
+    "vote(bytes32,uint256[],bool)"(
       txHash: BytesLike,
+      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -617,10 +634,6 @@ export class WorkersUnion extends Contract {
     voteCounter: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  dividendPool(overrides?: CallOverrides): Promise<string>;
-
-  "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
   execute(
     target: string,
@@ -670,10 +683,27 @@ export class WorkersUnion extends Contract {
 
   "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getVotes(address)"(
+  getVotesAt(
     account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getVotesAt(address,uint256)"(
+    account: string,
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  getVotesFor(
+    account: string,
+    txHash: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getVotesFor(address,bytes32)"(
+    account: string,
+    txHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -873,14 +903,15 @@ export class WorkersUnion extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  vote(
+  "vote(bytes32,bool)"(
     txHash: BytesLike,
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "vote(bytes32,bool)"(
+  "vote(bytes32,uint256[],bool)"(
     txHash: BytesLike,
+    rightIds: BigNumberish[],
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -919,10 +950,6 @@ export class WorkersUnion extends Contract {
       voteCounter: string,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    dividendPool(overrides?: CallOverrides): Promise<string>;
-
-    "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
     execute(
       target: string,
@@ -968,10 +995,27 @@ export class WorkersUnion extends Contract {
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getVotes(address)"(
+    getVotesAt(
       account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getVotesAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVotesFor(
+      account: string,
+      txHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getVotesFor(address,bytes32)"(
+      account: string,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1164,14 +1208,15 @@ export class WorkersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    vote(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "vote(bytes32,bool)"(
+    "vote(bytes32,uint256[],bool)"(
       txHash: BytesLike,
+      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1305,10 +1350,6 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    dividendPool(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "dividendPool()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     execute(
       target: string,
       value: BigNumberish,
@@ -1357,10 +1398,27 @@ export class WorkersUnion extends Contract {
 
     "forceAnarchizeAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getVotes(account: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getVotes(address)"(
+    getVotesAt(
       account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getVotesAt(address,uint256)"(
+      account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getVotesFor(
+      account: string,
+      txHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getVotesFor(address,bytes32)"(
+      account: string,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1501,14 +1559,15 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    vote(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "vote(bytes32,bool)"(
+    "vote(bytes32,uint256[],bool)"(
       txHash: BytesLike,
+      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1552,10 +1611,6 @@ export class WorkersUnion extends Contract {
       voteCounter: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    dividendPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "dividendPool()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     execute(
       target: string,
@@ -1607,13 +1662,27 @@ export class WorkersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVotes(
+    getVotesAt(
       account: string,
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "getVotes(address)"(
+    "getVotesAt(address,uint256)"(
       account: string,
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getVotesFor(
+      account: string,
+      txHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getVotesFor(address,bytes32)"(
+      account: string,
+      txHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1757,14 +1826,15 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    vote(
+    "vote(bytes32,bool)"(
       txHash: BytesLike,
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "vote(bytes32,bool)"(
+    "vote(bytes32,uint256[],bool)"(
       txHash: BytesLike,
+      rightIds: BigNumberish[],
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

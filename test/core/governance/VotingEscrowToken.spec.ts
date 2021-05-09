@@ -3,17 +3,10 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract, BigNumber, BigNumberish } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { goTo } from "../../utils/utilities";
+import { almostEquals, goTo } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(solidity);
-
-const almostEquals = (a: BigNumberish, b: BigNumberish) => {
-  const A = BigNumber.from(a);
-  const B = BigNumber.from(b);
-  if (A.eq(0)) return B.eq(0);
-  return A.sub(B).mul(100).div(A).eq(0);
-};
 
 describe("VotingEscrowToken.sol", function () {
   let signers: SignerWithAddress[];

@@ -5,6 +5,7 @@ export type MyNetwork = "mainnet" | "rinkeby" | "hardhat" | "localhost";
 export type DeployableContracts =
   | "VISION"
   | "COMMIT"
+  | "RIGHT"
   | "WorkersUnion"
   | "SquareRootVoteCounter"
   | "BurnMiningPoolFactory"

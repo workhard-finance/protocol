@@ -17,7 +17,7 @@ import "../../../utils/Int128.sol";
 contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     using Int128 for uint256;
 
-    address public veLocker;
+    address public override veLocker;
 
     uint256 constant MAXTIME = 4 * (365 days);
     uint256 constant MULTIPLIER = 1e18;
@@ -57,7 +57,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     }
 
     function checkpoint(
-        uint256 tokenId,
+        uint256 veLockId,
         Lock calldata prevLock,
         Lock calldata newLock
     ) external onlyVELock {
@@ -80,7 +80,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         _updateLastPoint(prevLockPoint, newLockPoint);
 
         _recordLockPointHistory(
-            tokenId,
+            veLockId,
             prevLock,
             newLock,
             prevLockPoint,
@@ -101,9 +101,9 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
         uint256 balance = 0;
         for (uint256 i = 0; i < numOfLocks; i++) {
-            uint256 tokenId =
+            uint256 veLockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
-            balance += balanceOfLockAt(tokenId, block.timestamp);
+            balance += balanceOfLockAt(veLockId, block.timestamp);
         }
         return balance;
     }
@@ -117,9 +117,9 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
         uint256 balance = 0;
         for (uint256 i = 0; i < numOfLocks; i++) {
-            uint256 tokenId =
+            uint256 veLockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
-            balance += balanceOfLockAt(tokenId, timestamp);
+            balance += balanceOfLockAt(veLockId, timestamp);
         }
         return balance;
     }
@@ -133,20 +133,20 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         uint256 numOfLocks = IERC721Enumerable(veLocker).balanceOf(account);
         uint256 balance = 0;
         for (uint256 i = 0; i < numOfLocks; i++) {
-            uint256 tokenId =
+            uint256 veLockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
-            balance += balanceOfLockAtBlockNum(tokenId, blockNum);
+            balance += balanceOfLockAtBlockNum(veLockId, blockNum);
         }
         return balance;
     }
 
-    function balanceOfLockAt(uint256 tokenId, uint256 timestamp)
+    function balanceOfLockAt(uint256 veLockId, uint256 timestamp)
         public
         view
         override
         returns (uint256)
     {
-        Point[] memory history = lockPointHistory[tokenId];
+        Point[] memory history = lockPointHistory[veLockId];
         if (history.length == 0) {
             // lock does not exists
             return 0;
@@ -163,14 +163,14 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         }
     }
 
-    function balanceOfLockAtBlockNum(uint256 tokenId, uint256 blockNum)
+    function balanceOfLockAtBlockNum(uint256 veLockId, uint256 blockNum)
         public
         view
         override
         returns (uint256)
     {
         require(blockNum <= block.number, "Only past blocks");
-        Point[] memory history = lockPointHistory[tokenId];
+        Point[] memory history = lockPointHistory[veLockId];
         if (history.length == 0) {
             return 0;
         } else if (blockNum < history[0].blockNum) {
@@ -413,7 +413,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     }
 
     function _recordLockPointHistory(
-        uint256 tokenId,
+        uint256 veLockId,
         Lock memory prevLock,
         Lock memory newLock,
         Point memory prevPoint,
@@ -436,7 +436,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         }
         newPoint.timestamp = block.timestamp;
         newPoint.blockNum = block.number;
-        lockPointHistory[tokenId].push(newPoint);
+        lockPointHistory[veLockId].push(newPoint);
     }
 
     function _updateLastPoint(

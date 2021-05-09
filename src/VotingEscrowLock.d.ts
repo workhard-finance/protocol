@@ -27,6 +27,10 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     "baseToken()": FunctionFragment;
     "baseURI()": FunctionFragment;
     "createLock(uint256,uint256)": FunctionFragment;
+    "delegate(uint256,address)": FunctionFragment;
+    "delegatedRightByIndex(address,uint256)": FunctionFragment;
+    "delegatedRights(address)": FunctionFragment;
+    "delegateeOf(uint256)": FunctionFragment;
     "extendLock(uint256,uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "increaseAmount(uint256,uint256)": FunctionFragment;
@@ -59,6 +63,22 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "createLock",
     values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "delegate",
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "delegatedRightByIndex",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "delegatedRights",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "delegateeOf",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "extendLock",
@@ -131,6 +151,19 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "createLock", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "delegate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "delegatedRightByIndex",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "delegatedRights",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "delegateeOf",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "extendLock", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
@@ -190,6 +223,7 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     "LockCreated(uint256)": EventFragment;
     "LockUpdate(uint256,uint256,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "VoteDelegated(uint256,address)": EventFragment;
     "Withdraw(uint256,uint256)": EventFragment;
   };
 
@@ -198,6 +232,7 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "LockCreated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "LockUpdate"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "VoteDelegated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
@@ -288,14 +323,58 @@ export class VotingEscrowLock extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    delegate(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "delegate(uint256,address)"(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    delegatedRightByIndex(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { veLockId: BigNumber }>;
+
+    "delegatedRightByIndex(address,uint256)"(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { veLockId: BigNumber }>;
+
+    delegatedRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "delegatedRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    delegateeOf(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    "delegateeOf(uint256)"(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
     extendLock(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "extendLock(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -311,13 +390,13 @@ export class VotingEscrowLock extends Contract {
     ): Promise<[string]>;
 
     increaseAmount(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "increaseAmount(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -458,12 +537,12 @@ export class VotingEscrowLock extends Contract {
     "veToken()"(overrides?: CallOverrides): Promise<[string]>;
 
     withdraw(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     "withdraw(uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
@@ -511,14 +590,55 @@ export class VotingEscrowLock extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  delegate(
+    veLockId: BigNumberish,
+    to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "delegate(uint256,address)"(
+    veLockId: BigNumberish,
+    to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  delegatedRightByIndex(
+    voter: string,
+    idx: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "delegatedRightByIndex(address,uint256)"(
+    voter: string,
+    idx: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  delegatedRights(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  "delegatedRights(address)"(
+    voter: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  delegateeOf(
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
+  "delegateeOf(uint256)"(
+    veLockId: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   extendLock(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     end: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "extendLock(uint256,uint256)"(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     end: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -534,13 +654,13 @@ export class VotingEscrowLock extends Contract {
   ): Promise<string>;
 
   increaseAmount(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "increaseAmount(uint256,uint256)"(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -675,12 +795,12 @@ export class VotingEscrowLock extends Contract {
   "veToken()"(overrides?: CallOverrides): Promise<string>;
 
   withdraw(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   "withdraw(uint256)"(
-    tokenId: BigNumberish,
+    veLockId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -728,14 +848,58 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    delegate(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "delegate(uint256,address)"(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    delegatedRightByIndex(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "delegatedRightByIndex(address,uint256)"(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegatedRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "delegatedRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegateeOf(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    "delegateeOf(uint256)"(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
     extendLock(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "extendLock(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -751,13 +915,13 @@ export class VotingEscrowLock extends Contract {
     ): Promise<string>;
 
     increaseAmount(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     "increaseAmount(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -891,10 +1055,10 @@ export class VotingEscrowLock extends Contract {
 
     "veToken()"(overrides?: CallOverrides): Promise<string>;
 
-    withdraw(tokenId: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    withdraw(veLockId: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     "withdraw(uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -919,16 +1083,16 @@ export class VotingEscrowLock extends Contract {
     >;
 
     LockCreated(
-      tokenId: null
-    ): TypedEventFilter<[BigNumber], { tokenId: BigNumber }>;
+      veLockId: null
+    ): TypedEventFilter<[BigNumber], { veLockId: BigNumber }>;
 
     LockUpdate(
-      tokenId: null,
+      veLockId: null,
       amount: null,
       end: null
     ): TypedEventFilter<
       [BigNumber, BigNumber, BigNumber],
-      { tokenId: BigNumber; amount: BigNumber; end: BigNumber }
+      { veLockId: BigNumber; amount: BigNumber; end: BigNumber }
     >;
 
     Transfer(
@@ -940,12 +1104,20 @@ export class VotingEscrowLock extends Contract {
       { from: string; to: string; tokenId: BigNumber }
     >;
 
+    VoteDelegated(
+      veLockId: null,
+      to: null
+    ): TypedEventFilter<
+      [BigNumber, string],
+      { veLockId: BigNumber; to: string }
+    >;
+
     Withdraw(
-      tokenId: null,
+      veLockId: null,
       amount: null
     ): TypedEventFilter<
       [BigNumber, BigNumber],
-      { tokenId: BigNumber; amount: BigNumber }
+      { veLockId: BigNumber; amount: BigNumber }
     >;
   };
 
@@ -993,14 +1165,58 @@ export class VotingEscrowLock extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    delegate(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "delegate(uint256,address)"(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    delegatedRightByIndex(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "delegatedRightByIndex(address,uint256)"(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegatedRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "delegatedRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    delegateeOf(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "delegateeOf(uint256)"(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     extendLock(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "extendLock(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1016,13 +1232,13 @@ export class VotingEscrowLock extends Contract {
     ): Promise<BigNumber>;
 
     increaseAmount(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "increaseAmount(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1160,12 +1376,12 @@ export class VotingEscrowLock extends Contract {
     "veToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     withdraw(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     "withdraw(uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
@@ -1217,14 +1433,58 @@ export class VotingEscrowLock extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    delegate(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "delegate(uint256,address)"(
+      veLockId: BigNumberish,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    delegatedRightByIndex(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "delegatedRightByIndex(address,uint256)"(
+      voter: string,
+      idx: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    delegatedRights(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "delegatedRights(address)"(
+      voter: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    delegateeOf(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "delegateeOf(uint256)"(
+      veLockId: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     extendLock(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "extendLock(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       end: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1240,13 +1500,13 @@ export class VotingEscrowLock extends Contract {
     ): Promise<PopulatedTransaction>;
 
     increaseAmount(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "increaseAmount(uint256,uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1389,12 +1649,12 @@ export class VotingEscrowLock extends Contract {
     "veToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     withdraw(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     "withdraw(uint256)"(
-      tokenId: BigNumberish,
+      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

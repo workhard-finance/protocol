@@ -6,18 +6,20 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Lock} from "../../../core/governance/libraries/VotingEscrowLib.sol";
 
 interface IVotingEscrowLock is IERC721 {
-    function locks(uint256 tokenId)
+    function locks(uint256 veLockId)
         external
         view
         returns (uint256 amount, uint256 end);
 
     function createLock(uint256 amount, uint256 lockEnd) external;
 
-    function increaseAmount(uint256 tokenId, uint256 amount) external;
+    function increaseAmount(uint256 veLockId, uint256 amount) external;
 
-    function extendLock(uint256 tokenId, uint256 end) external;
+    function extendLock(uint256 veLockId, uint256 end) external;
 
-    function withdraw(uint256 tokenId) external;
+    function withdraw(uint256 veLockId) external;
+
+    function delegate(uint256 veLockId, address to) external;
 
     function totalLockedSupply() external view returns (uint256);
 
@@ -26,4 +28,13 @@ interface IVotingEscrowLock is IERC721 {
     function baseToken() external view returns (address);
 
     function veToken() external view returns (address);
+
+    function delegateeOf(uint256 veLockId) external view returns (address);
+
+    function delegatedRights(address delegatee) external view returns (uint256);
+
+    function delegatedRightByIndex(address delegatee, uint256 idx)
+        external
+        view
+        returns (uint256 veLockId);
 }

@@ -17,8 +17,8 @@ struct Proposal {
     uint256 end;
     uint256 totalForVotes;
     uint256 totalAgainstVotes;
-    mapping(address => uint256) forVotes;
-    mapping(address => uint256) againstVotes;
+    mapping(uint256 => uint256) forVotes; // votingRightId => for vote amount
+    mapping(uint256 => uint256) againstVotes; // votingRightId => against vote amount
 }
 
 struct Memorandom {
@@ -35,7 +35,6 @@ struct Memorandom {
  * @notice referenced openzeppelin's TimelockController.sol
  */
 contract WorkersUnion is Pausable, Governed {
-    IDividendPool public dividendPool;
     using SafeMath for uint256;
     using Sqrt for uint256;
 
@@ -74,12 +73,7 @@ contract WorkersUnion is Pausable, Governed {
     event Vote(bytes32 txHash, address voter, bool forVote);
     event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
-    constructor(
-        address _dividendPool,
-        address _voteCounter,
-        address _timelockGov
-    ) {
-        dividendPool = IDividendPool(_dividendPool);
+    constructor(address _voteCounter, address _timelockGov) {
         memorandom = Memorandom(
             1 days, // minimum pending for vote
             1 weeks, // maximum pending for vote
@@ -113,17 +107,18 @@ contract WorkersUnion is Pausable, Governed {
         uint256 minimumVotes,
         IVoteCounter voteCounter
     ) public governed {
-        uint256 maxLock = dividendPool.maximumLock();
-        uint256 totalSupply = IERC20(dividendPool.visionToken()).totalSupply();
-        uint256 c = totalSupply.mul(maxLock).sqrt();
+        uint256 totalVotes = voteCounter.getTotalVotes();
         require(minimumPendingPeriod <= maximumPendingPeriod, "invalid arg");
         require(minimumVotingPeriod <= maximumVotingPeriod, "invalid arg");
         require(minimumVotingPeriod >= 1 days, "too short");
         require(minimumPendingPeriod >= 1 days, "too short");
         require(maximumVotingPeriod <= 30 days, "too long");
         require(maximumPendingPeriod <= 30 days, "too long");
-        require(minimumVotesForProposing <= c.div(100), "too large number");
-        require(minimumVotes <= c.div(10), "too large number");
+        require(
+            minimumVotesForProposing <= totalVotes.div(10),
+            "too large number"
+        );
+        require(minimumVotes <= totalVotes.div(2), "too large number");
         require(address(voteCounter) != address(0), "null address");
         memorandom = Memorandom(
             minimumPendingPeriod,
@@ -193,36 +188,55 @@ contract WorkersUnion is Pausable, Governed {
     }
 
     /**
+     * @notice Should use vote(bytes32, uint256[], bool) when too many voting rights are delegated to avoid out of gas.
+     */
+    function vote(bytes32 txHash, bool agree) public {
+        uint256[] memory votingRights =
+            memorandom.voteCounter.votingRights(msg.sender);
+        vote(txHash, votingRights, agree);
+    }
+
+    /**
      * @notice The voting will be updated if the voter already voted. Please
      *      note that the voting power may change by the locking period or others.
      *      To have more detail information about how voting power is computed,
      *      Please go to the QVCounter.sol.
      */
-    function vote(bytes32 txHash, bool agree) public {
+    function vote(
+        bytes32 txHash,
+        uint256[] memory rightIds,
+        bool agree
+    ) public {
         Proposal storage proposal = proposals[txHash];
+        uint256 timestamp = proposal.start;
         require(
             getVotingStatus(txHash) == VotingState.Voting,
             "Not in the voting period"
         );
-        uint256 prevForVotes = proposal.forVotes[msg.sender];
-        uint256 prevAgainstVotes = proposal.againstVotes[msg.sender];
-        uint256 votes = memorandom.voteCounter.getVotes(msg.sender);
-        proposal.forVotes[msg.sender] = agree ? votes : 0;
-        proposal.againstVotes[msg.sender] = agree ? 0 : votes;
-        proposal.totalForVotes = proposal
-            .totalForVotes
-            .add(agree ? votes : 0)
-            .sub(prevForVotes);
-        proposal.totalAgainstVotes = proposal
-            .totalAgainstVotes
-            .add(agree ? 0 : votes)
-            .sub(prevAgainstVotes);
+        uint256 totalForVotes = proposal.totalForVotes;
+        uint256 totalAgainstVotes = proposal.totalAgainstVotes;
+        for (uint256 i = 0; i < rightIds.length; i++) {
+            uint256 id = rightIds[i];
+            require(
+                memorandom.voteCounter.voterOf(id) == msg.sender,
+                "not the voting right owner"
+            );
+            uint256 prevForVotes = proposal.forVotes[id];
+            uint256 prevAgainstVotes = proposal.againstVotes[id];
+            uint256 votes = memorandom.voteCounter.getVotes(id, timestamp);
+            proposal.forVotes[id] = agree ? votes : 0;
+            proposal.againstVotes[id] = agree ? 0 : votes;
+            totalForVotes = totalForVotes.add(agree ? votes : 0).sub(
+                prevForVotes
+            );
+            totalAgainstVotes = totalAgainstVotes.add(agree ? 0 : votes).sub(
+                prevAgainstVotes
+            );
+        }
+        proposal.totalForVotes = totalForVotes;
+        proposal.totalAgainstVotes = totalAgainstVotes;
         emit Vote(txHash, msg.sender, agree);
-        emit VoteUpdated(
-            txHash,
-            proposal.totalForVotes,
-            proposal.totalAgainstVotes
-        );
+        emit VoteUpdated(txHash, totalForVotes, totalAgainstVotes);
     }
 
     function getVotingStatus(bytes32 txHash) public view returns (VotingState) {
@@ -239,8 +253,29 @@ contract WorkersUnion is Pausable, Governed {
         else return VotingState.Rejected;
     }
 
-    function getVotes(address account) public view returns (uint256) {
-        return memorandom.voteCounter.getVotes(account);
+    function getVotesFor(address account, bytes32 txHash)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 timestamp = proposals[txHash].start;
+        return getVotesAt(account, timestamp);
+    }
+
+    function getVotesAt(address account, uint256 timestamp)
+        public
+        view
+        returns (uint256)
+    {
+        uint256[] memory votingRights =
+            memorandom.voteCounter.votingRights(account);
+        uint256 votes;
+        for (uint256 i = 0; i < votingRights.length; i++) {
+            votes = votes.add(
+                memorandom.voteCounter.getVotes(votingRights[i], timestamp)
+            );
+        }
+        return votes;
     }
 
     function schedule(
@@ -367,7 +402,7 @@ contract WorkersUnion is Pausable, Governed {
         private
         view
     {
-        uint256 votes = memorandom.voteCounter.getVotes(msg.sender);
+        uint256 votes = getVotesAt(msg.sender, block.timestamp);
         require(
             memorandom.minimumVotesForProposing <= votes,
             "Not enough votes for proposing."

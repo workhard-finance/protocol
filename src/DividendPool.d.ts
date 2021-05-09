@@ -21,84 +21,52 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface DividendPoolInterface extends ethers.utils.Interface {
   functions: {
-    "addPlanter(address)": FunctionFragment;
+    "addDistributor(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "balanceOf(address)": FunctionFragment;
-    "batchDispatch()": FunctionFragment;
-    "claim(uint256,address[])": FunctionFragment;
-    "claimAll(uint256)": FunctionFragment;
-    "dispatchFarmers(uint256)": FunctionFragment;
-    "dispatchableFarmers(address,uint256)": FunctionFragment;
-    "dispatchedFarmers(address,uint256)": FunctionFragment;
+    "claim(address)": FunctionFragment;
+    "distribute(address,uint256)": FunctionFragment;
+    "distributedTokens(uint256)": FunctionFragment;
+    "distributions(address)": FunctionFragment;
     "epochUnit()": FunctionFragment;
-    "farms(uint256)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "genesis()": FunctionFragment;
-    "getAllClaimableCropsFor(uint256,address)": FunctionFragment;
-    "getAllClaimedCropsOf(address)": FunctionFragment;
-    "getClaimableCrops(uint256)": FunctionFragment;
-    "getClaimableCropsFor(uint256,address,address[])": FunctionFragment;
-    "getClaimedCropsOf(address,address[])": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
+    "getEpoch(uint256)": FunctionFragment;
     "getNextEpoch()": FunctionFragment;
     "gov()": FunctionFragment;
     "init(address,address)": FunctionFragment;
-    "isClaimable(uint256)": FunctionFragment;
-    "lock(uint256)": FunctionFragment;
-    "maximumLock()": FunctionFragment;
-    "minimumLock()": FunctionFragment;
-    "plantSeeds(address,uint256)": FunctionFragment;
-    "planted(address)": FunctionFragment;
-    "plantedTokens(uint256)": FunctionFragment;
-    "remainingLocks(address)": FunctionFragment;
-    "removePlanter(address)": FunctionFragment;
+    "removeDistributor(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
-    "setWithdrawTo(address,address)": FunctionFragment;
-    "stake(uint256)": FunctionFragment;
-    "stakeAndLock(uint256,uint256)": FunctionFragment;
-    "stakings(address)": FunctionFragment;
-    "unstake(uint256)": FunctionFragment;
-    "visionToken()": FunctionFragment;
-    "withdraw(address[])": FunctionFragment;
-    "withdrawAll()": FunctionFragment;
+    "veLocker()": FunctionFragment;
+    "veVISION()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "addPlanter", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "addDistributor",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "anarchizedAt",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "claim", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "batchDispatch",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "claim",
-    values: [BigNumberish, string[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "claimAll",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "dispatchFarmers",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "dispatchableFarmers",
+    functionFragment: "distribute",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "dispatchedFarmers",
-    values: [string, BigNumberish]
+    functionFragment: "distributedTokens",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "distributions",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "epochUnit", values?: undefined): string;
-  encodeFunctionData(functionFragment: "farms", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "forceAnarchize",
     values?: undefined
@@ -109,28 +77,12 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "genesis", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "getAllClaimableCropsFor",
-    values: [BigNumberish, string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAllClaimedCropsOf",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getClaimableCrops",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getClaimableCropsFor",
-    values: [BigNumberish, string, string[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getClaimedCropsOf",
-    values: [string, string[]]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getCurrentEpoch",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getEpoch",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getNextEpoch",
@@ -142,33 +94,7 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "isClaimable",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "lock", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "maximumLock",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "minimumLock",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "plantSeeds",
-    values: [string, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "planted", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "plantedTokens",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "remainingLocks",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removePlanter",
+    functionFragment: "removeDistributor",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -179,57 +105,29 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     values: [string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setWithdrawTo",
-    values: [string, string]
-  ): string;
-  encodeFunctionData(functionFragment: "stake", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "stakeAndLock",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(functionFragment: "stakings", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "unstake",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "visionToken",
-    values?: undefined
-  ): string;
-  encodeFunctionData(functionFragment: "withdraw", values: [string[]]): string;
-  encodeFunctionData(
-    functionFragment: "withdrawAll",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
+  encodeFunctionData(functionFragment: "veVISION", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "addPlanter", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "addDistributor",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "anarchizedAt",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "batchDispatch",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "claim", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "claimAll", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "dispatchFarmers",
+    functionFragment: "distributedTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "dispatchableFarmers",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "dispatchedFarmers",
+    functionFragment: "distributions",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "epochUnit", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "farms", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchize",
     data: BytesLike
@@ -240,29 +138,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "genesis", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "getAllClaimableCropsFor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getAllClaimedCropsOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getClaimableCrops",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getClaimableCropsFor",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getClaimedCropsOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getCurrentEpoch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getEpoch", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getNextEpoch",
     data: BytesLike
@@ -270,30 +149,7 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isClaimable",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "lock", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "maximumLock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "minimumLock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "plantSeeds", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "planted", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "plantedTokens",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "remainingLocks",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "removePlanter",
+    functionFragment: "removeDistributor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -304,26 +160,8 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "setGovernance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "setWithdrawTo",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "stake", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "stakeAndLock",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "stakings", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "unstake", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "visionToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "withdrawAll",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "veLocker", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "veVISION", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -378,13 +216,13 @@ export class DividendPool extends Contract {
   interface: DividendPoolInterface;
 
   functions: {
-    addPlanter(
-      planter: string,
+    addDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "addPlanter(address)"(
-      planter: string,
+    "addDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -400,90 +238,67 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    balanceOf(farmer: string, overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "balanceOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    batchDispatch(
+    "claim(address)"(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "batchDispatch()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    claim(
-      epoch: BigNumberish,
+    "claim(address[])"(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "claim(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
+    "claim(address,uint256)"(
+      token: string,
+      until: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    claimAll(
-      epoch: BigNumberish,
+    distribute(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "claimAll(uint256)"(
-      epoch: BigNumberish,
+    "distribute(address,uint256)"(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    dispatchFarmers(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "dispatchFarmers(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributedTokens(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[string]>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributedTokens(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<[string]>;
 
-    dispatchedFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributions(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        totalDistribution: BigNumber;
+        balance: BigNumber;
+      }
+    >;
 
-    "dispatchedFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributions(address)"(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        totalDistribution: BigNumber;
+        balance: BigNumber;
+      }
+    >;
 
     epochUnit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    farms(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { totalFarmers: BigNumber }>;
-
-    "farms(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { totalFarmers: BigNumber }>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -501,79 +316,19 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getAllClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getAllClaimableCropsFor(uint256,address)"(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getAllClaimedCropsOf(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getAllClaimedCropsOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getClaimableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getClaimableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    "getClaimableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    getClaimedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
-    "getClaimedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<[BigNumber[]] & { amounts: BigNumber[] }>;
-
     getCurrentEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    getEpoch(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    "getEpoch(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -595,80 +350,13 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    isClaimable(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    "isClaimable(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    lock(
-      epochs: BigNumberish,
+    removeDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "lock(uint256)"(
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    maximumLock(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    minimumLock(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "minimumLock()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    plantSeeds(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "plantSeeds(address,uint256)"(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    planted(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
-
-    "planted(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
-    plantedTokens(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "plantedTokens(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    remainingLocks(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    "remainingLocks(address)"(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
-    removePlanter(
-      planter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "removePlanter(address)"(
-      planter: string,
+    "removeDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -692,102 +380,22 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setWithdrawTo(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    veLocker(overrides?: CallOverrides): Promise<[string]>;
 
-    "setWithdrawTo(address,address)"(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "veLocker()"(overrides?: CallOverrides): Promise<[string]>;
 
-    stake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    veVISION(overrides?: CallOverrides): Promise<[string]>;
 
-    "stake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    stakeAndLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "stakeAndLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    stakings(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, string] & {
-        amount: BigNumber;
-        locked: BigNumber;
-        withdrawTo: string;
-      }
-    >;
-
-    "stakings(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, string] & {
-        amount: BigNumber;
-        locked: BigNumber;
-        withdrawTo: string;
-      }
-    >;
-
-    unstake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "unstake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    visionToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    withdraw(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "withdraw(address[])"(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    withdrawAll(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "withdrawAll()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "veVISION()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  addPlanter(
-    planter: string,
+  addDistributor(
+    distributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "addPlanter(address)"(
-    planter: string,
+  "addDistributor(address)"(
+    distributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -803,87 +411,67 @@ export class DividendPool extends Contract {
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "balanceOf(address)"(
-    farmer: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  batchDispatch(
+  "claim(address)"(
+    token: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "batchDispatch()"(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  claim(
-    epoch: BigNumberish,
+  "claim(address[])"(
     tokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "claim(uint256,address[])"(
-    epoch: BigNumberish,
-    tokens: string[],
+  "claim(address,uint256)"(
+    token: string,
+    until: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  claimAll(
-    epoch: BigNumberish,
+  distribute(
+    _token: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "claimAll(uint256)"(
-    epoch: BigNumberish,
+  "distribute(address,uint256)"(
+    _token: string,
+    _amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  dispatchFarmers(
-    epoch: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "dispatchFarmers(uint256)"(
-    epoch: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  dispatchableFarmers(
-    staker: string,
-    epoch: BigNumberish,
+  distributedTokens(
+    arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<string>;
 
-  "dispatchableFarmers(address,uint256)"(
-    staker: string,
-    epoch: BigNumberish,
+  "distributedTokens(uint256)"(
+    arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<string>;
 
-  dispatchedFarmers(
-    staker: string,
-    epoch: BigNumberish,
+  distributions(
+    arg0: string,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<
+    [BigNumber, BigNumber] & {
+      totalDistribution: BigNumber;
+      balance: BigNumber;
+    }
+  >;
 
-  "dispatchedFarmers(address,uint256)"(
-    staker: string,
-    epoch: BigNumberish,
+  "distributions(address)"(
+    arg0: string,
     overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  ): Promise<
+    [BigNumber, BigNumber] & {
+      totalDistribution: BigNumber;
+      balance: BigNumber;
+    }
+  >;
 
   epochUnit(overrides?: CallOverrides): Promise<BigNumber>;
 
   "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  farms(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "farms(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
 
   forceAnarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -901,79 +489,19 @@ export class DividendPool extends Contract {
 
   "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getAllClaimableCropsFor(
-    epoch: BigNumberish,
-    staker: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  "getAllClaimableCropsFor(uint256,address)"(
-    epoch: BigNumberish,
-    staker: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  getAllClaimedCropsOf(
-    farmer: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  "getAllClaimedCropsOf(address)"(
-    farmer: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  getClaimableCrops(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  "getClaimableCrops(uint256)"(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-  >;
-
-  getClaimableCropsFor(
-    epoch: BigNumberish,
-    staker: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getClaimableCropsFor(uint256,address,address[])"(
-    epoch: BigNumberish,
-    staker: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  getClaimedCropsOf(
-    farmer: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
-  "getClaimedCropsOf(address,address[])"(
-    farmer: string,
-    tokens: string[],
-    overrides?: CallOverrides
-  ): Promise<BigNumber[]>;
-
   getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+  getEpoch(
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  "getEpoch(uint256)"(
+    timestamp: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -995,68 +523,13 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  isClaimable(epoch: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
-
-  "isClaimable(uint256)"(
-    epoch: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
-  lock(
-    epochs: BigNumberish,
+  removeDistributor(
+    distributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "lock(uint256)"(
-    epochs: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  minimumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "minimumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-  plantSeeds(
-    token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "plantSeeds(address,uint256)"(
-    token: string,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  planted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "planted(address)"(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  plantedTokens(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
-  "plantedTokens(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  remainingLocks(staker: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "remainingLocks(address)"(
-    staker: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  removePlanter(
-    planter: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "removePlanter(address)"(
-    planter: string,
+  "removeDistributor(address)"(
+    distributor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1080,99 +553,22 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setWithdrawTo(
-    staker: string,
-    withdrawTo: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  veLocker(overrides?: CallOverrides): Promise<string>;
 
-  "setWithdrawTo(address,address)"(
-    staker: string,
-    withdrawTo: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "veLocker()"(overrides?: CallOverrides): Promise<string>;
 
-  stake(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  veVISION(overrides?: CallOverrides): Promise<string>;
 
-  "stake(uint256)"(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  stakeAndLock(
-    amount: BigNumberish,
-    epochs: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "stakeAndLock(uint256,uint256)"(
-    amount: BigNumberish,
-    epochs: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  stakings(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, string] & {
-      amount: BigNumber;
-      locked: BigNumber;
-      withdrawTo: string;
-    }
-  >;
-
-  "stakings(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, string] & {
-      amount: BigNumber;
-      locked: BigNumber;
-      withdrawTo: string;
-    }
-  >;
-
-  unstake(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "unstake(uint256)"(
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  visionToken(overrides?: CallOverrides): Promise<string>;
-
-  "visionToken()"(overrides?: CallOverrides): Promise<string>;
-
-  withdraw(
-    tokens: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "withdraw(address[])"(
-    tokens: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  withdrawAll(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "withdrawAll()"(
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "veVISION()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    addPlanter(planter: string, overrides?: CallOverrides): Promise<void>;
+    addDistributor(
+      distributor: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "addPlanter(address)"(
-      planter: string,
+    "addDistributor(address)"(
+      distributor: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1184,80 +580,64 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
+    "claim(address)"(token: string, overrides?: CallOverrides): Promise<void>;
 
-    "balanceOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    batchDispatch(overrides?: CallOverrides): Promise<void>;
-
-    "batchDispatch()"(overrides?: CallOverrides): Promise<void>;
-
-    claim(
-      epoch: BigNumberish,
+    "claim(address[])"(
       tokens: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "claim(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
+    "claim(address,uint256)"(
+      token: string,
+      until: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    claimAll(epoch: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "claimAll(uint256)"(
-      epoch: BigNumberish,
+    distribute(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    dispatchFarmers(
-      epoch: BigNumberish,
+    "distribute(address,uint256)"(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "dispatchFarmers(uint256)"(
-      epoch: BigNumberish,
+    distributedTokens(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
 
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    "distributedTokens(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<string>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    distributions(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        totalDistribution: BigNumber;
+        balance: BigNumber;
+      }
+    >;
 
-    dispatchedFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    "distributions(address)"(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "dispatchedFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    ): Promise<
+      [BigNumber, BigNumber] & {
+        totalDistribution: BigNumber;
+        balance: BigNumber;
+      }
+    >;
 
     epochUnit(overrides?: CallOverrides): Promise<BigNumber>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    farms(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "farms(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     forceAnarchize(overrides?: CallOverrides): Promise<void>;
 
@@ -1271,79 +651,19 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAllClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getAllClaimableCropsFor(uint256,address)"(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getAllClaimedCropsOf(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getAllClaimedCropsOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getClaimableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    "getClaimableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [string[], BigNumber[]] & { tokens: string[]; amounts: BigNumber[] }
-    >;
-
-    getClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getClaimableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    getClaimedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
-    "getClaimedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber[]>;
-
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getEpoch(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getEpoch(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1365,74 +685,13 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    isClaimable(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    "isClaimable(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    lock(epochs: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "lock(uint256)"(
-      epochs: BigNumberish,
+    removeDistributor(
+      distributor: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minimumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minimumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    plantSeeds(
-      token: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "plantSeeds(address,uint256)"(
-      token: string,
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    planted(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-    "planted(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    plantedTokens(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "plantedTokens(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    remainingLocks(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "remainingLocks(address)"(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    removePlanter(planter: string, overrides?: CallOverrides): Promise<void>;
-
-    "removePlanter(address)"(
-      planter: string,
+    "removeDistributor(address)"(
+      distributor: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1453,80 +712,13 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setWithdrawTo(
-      staker: string,
-      withdrawTo: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    veLocker(overrides?: CallOverrides): Promise<string>;
 
-    "setWithdrawTo(address,address)"(
-      staker: string,
-      withdrawTo: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "veLocker()"(overrides?: CallOverrides): Promise<string>;
 
-    stake(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+    veVISION(overrides?: CallOverrides): Promise<string>;
 
-    "stake(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    stakeAndLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "stakeAndLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    stakings(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, string] & {
-        amount: BigNumber;
-        locked: BigNumber;
-        withdrawTo: string;
-      }
-    >;
-
-    "stakings(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, string] & {
-        amount: BigNumber;
-        locked: BigNumber;
-        withdrawTo: string;
-      }
-    >;
-
-    unstake(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "unstake(uint256)"(
-      amount: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    visionToken(overrides?: CallOverrides): Promise<string>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<string>;
-
-    withdraw(tokens: string[], overrides?: CallOverrides): Promise<void>;
-
-    "withdraw(address[])"(
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    withdrawAll(overrides?: CallOverrides): Promise<void>;
-
-    "withdrawAll()"(overrides?: CallOverrides): Promise<void>;
+    "veVISION()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1542,13 +734,13 @@ export class DividendPool extends Contract {
   };
 
   estimateGas: {
-    addPlanter(
-      planter: string,
+    addDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "addPlanter(address)"(
-      planter: string,
+    "addDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1564,87 +756,54 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    balanceOf(farmer: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "balanceOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    batchDispatch(
+    "claim(address)"(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "batchDispatch()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    claim(
-      epoch: BigNumberish,
+    "claim(address[])"(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "claim(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
+    "claim(address,uint256)"(
+      token: string,
+      until: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    claimAll(
-      epoch: BigNumberish,
+    distribute(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "claimAll(uint256)"(
-      epoch: BigNumberish,
+    "distribute(address,uint256)"(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    dispatchFarmers(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "dispatchFarmers(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributedTokens(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributedTokens(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    dispatchedFarmers(
-      staker: string,
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    distributions(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "dispatchedFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributions(address)"(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     epochUnit(overrides?: CallOverrides): Promise<BigNumber>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    farms(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "farms(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1662,67 +821,19 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getAllClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getAllClaimableCropsFor(uint256,address)"(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getAllClaimedCropsOf(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getAllClaimedCropsOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getClaimableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getClaimableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getClaimableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    getClaimedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "getClaimedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     getCurrentEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getEpoch(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "getEpoch(uint256)"(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getNextEpoch(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1744,80 +855,13 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    isClaimable(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "isClaimable(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    lock(
-      epochs: BigNumberish,
+    removeDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "lock(uint256)"(
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    maximumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    minimumLock(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "minimumLock()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    plantSeeds(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "plantSeeds(address,uint256)"(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    planted(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "planted(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    plantedTokens(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "plantedTokens(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    remainingLocks(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "remainingLocks(address)"(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    removePlanter(
-      planter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "removePlanter(address)"(
-      planter: string,
+    "removeDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1841,88 +885,23 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setWithdrawTo(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    veLocker(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "setWithdrawTo(address,address)"(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "veLocker()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    stake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    veVISION(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "stake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    stakeAndLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "stakeAndLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    stakings(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "stakings(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    unstake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "unstake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    visionToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "withdraw(address[])"(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    withdrawAll(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "withdrawAll()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    "veVISION()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addPlanter(
-      planter: string,
+    addDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "addPlanter(address)"(
-      planter: string,
+    "addDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1938,93 +917,57 @@ export class DividendPool extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    balanceOf(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "balanceOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    batchDispatch(
+    "claim(address)"(
+      token: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "batchDispatch()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    claim(
-      epoch: BigNumberish,
+    "claim(address[])"(
       tokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "claim(uint256,address[])"(
-      epoch: BigNumberish,
-      tokens: string[],
+    "claim(address,uint256)"(
+      token: string,
+      until: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    claimAll(
-      epoch: BigNumberish,
+    distribute(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "claimAll(uint256)"(
-      epoch: BigNumberish,
+    "distribute(address,uint256)"(
+      _token: string,
+      _amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    dispatchFarmers(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "dispatchFarmers(uint256)"(
-      epoch: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    dispatchableFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributedTokens(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "dispatchableFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributedTokens(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    dispatchedFarmers(
-      staker: string,
-      epoch: BigNumberish,
+    distributions(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "dispatchedFarmers(address,uint256)"(
-      staker: string,
-      epoch: BigNumberish,
+    "distributions(address)"(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     epochUnit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    farms(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "farms(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -2044,67 +987,19 @@ export class DividendPool extends Contract {
 
     "genesis()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    getAllClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getAllClaimableCropsFor(uint256,address)"(
-      epoch: BigNumberish,
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getAllClaimedCropsOf(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getAllClaimedCropsOf(address)"(
-      farmer: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getClaimableCrops(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getClaimableCrops(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getClaimableCropsFor(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getClaimableCropsFor(uint256,address,address[])"(
-      epoch: BigNumberish,
-      staker: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getClaimedCropsOf(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getClaimedCropsOf(address,address[])"(
-      farmer: string,
-      tokens: string[],
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     getCurrentEpoch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getCurrentEpoch()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getEpoch(
+      timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getEpoch(uint256)"(
+      timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -2128,83 +1023,13 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    isClaimable(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "isClaimable(uint256)"(
-      epoch: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    lock(
-      epochs: BigNumberish,
+    removeDistributor(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "lock(uint256)"(
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    maximumLock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "maximumLock()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    minimumLock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "minimumLock()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    plantSeeds(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "plantSeeds(address,uint256)"(
-      token: string,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    planted(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "planted(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    plantedTokens(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "plantedTokens(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    remainingLocks(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "remainingLocks(address)"(
-      staker: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    removePlanter(
-      planter: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "removePlanter(address)"(
-      planter: string,
+    "removeDistributor(address)"(
+      distributor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -2228,80 +1053,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setWithdrawTo(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    veLocker(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "setWithdrawTo(address,address)"(
-      staker: string,
-      withdrawTo: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    "veLocker()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    stake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    veVISION(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "stake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakeAndLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "stakeAndLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    stakings(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "stakings(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    unstake(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "unstake(uint256)"(
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    visionToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "visionToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "withdraw(address[])"(
-      tokens: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    withdrawAll(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "withdrawAll()"(
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    "veVISION()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

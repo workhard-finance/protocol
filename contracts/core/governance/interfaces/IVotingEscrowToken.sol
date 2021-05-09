@@ -6,6 +6,8 @@ import {Point} from "../../../core/governance/libraries/VotingEscrowLib.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IVotingEscrowToken is IERC20 {
+    function veLocker() external view returns (address);
+
     function checkpoint() external;
 
     function totalSupplyAt(uint256 timestamp) external view returns (uint256);
@@ -20,7 +22,7 @@ interface IVotingEscrowToken is IERC20 {
         view
         returns (uint256);
 
-    function balanceOfLockAt(uint256 tokenId, uint256 timestamp)
+    function balanceOfLockAt(uint256 veLockId, uint256 timestamp)
         external
         view
         returns (uint256);
@@ -30,7 +32,7 @@ interface IVotingEscrowToken is IERC20 {
         view
         returns (uint256);
 
-    function balanceOfLockAtBlockNum(uint256 tokenId, uint256 timestamp)
+    function balanceOfLockAtBlockNum(uint256 veLockId, uint256 timestamp)
         external
         view
         returns (uint256);

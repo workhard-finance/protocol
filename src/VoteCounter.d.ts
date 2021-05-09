@@ -18,7 +18,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface SquareRootVoteCounterInterface extends ethers.utils.Interface {
+interface VoteCounterInterface extends ethers.utils.Interface {
   functions: {
     "getTotalVotes()": FunctionFragment;
     "getVotes(uint256,uint256)": FunctionFragment;
@@ -57,7 +57,7 @@ interface SquareRootVoteCounterInterface extends ethers.utils.Interface {
   events: {};
 }
 
-export class SquareRootVoteCounter extends Contract {
+export class VoteCounter extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -98,7 +98,7 @@ export class SquareRootVoteCounter extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: SquareRootVoteCounterInterface;
+  interface: VoteCounterInterface;
 
   functions: {
     getTotalVotes(overrides?: CallOverrides): Promise<[BigNumber]>;

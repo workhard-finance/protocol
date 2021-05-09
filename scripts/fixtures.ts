@@ -23,9 +23,11 @@ export interface TokenFixture {
   commitmentToken: Contract;
   projectToken: Contract;
   visionLP: Contract;
+  veVISION: Contract;
 }
 
 export interface GovernanceFixture extends TokenFixture {
+  veLocker: Contract;
   workersUnion: Contract;
   voteCounter: Contract;
   timelock: Contract;
@@ -58,10 +60,17 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   const project = await autoDeploy("Project");
   // 5. Deploy uniswap pair
   const visionLP = await deployUniswapLP(visionToken.address, WETH);
+  // 6. Deploy RIGHT
+  const veVISION = await autoDeploy(
+    "RIGHT",
+    "https://workhard.finance/RIGHT/",
+    visionToken.address
+  );
   record(hre.network.name as MyNetwork, "VisionLP", visionLP.address);
   return {
     baseCurrency,
     visionToken,
+    veVISION,
     commitmentToken,
     projectToken: project,
     visionLP,
@@ -71,26 +80,29 @@ export async function getTokenFixture(): Promise<TokenFixture> {
 export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
-  const { visionToken } = tokenFixture;
+  const { visionToken, veVISION } = tokenFixture;
   // 6. Deploy team share
   const teamShare = await autoDeploy("TeamShare");
   // 7. Deploy timelock contract
   const timelock = await autoDeploy("TimelockedGovernance", [deployer.address]);
-  // 8. Deploy vision farm
+  const veLocker = await ethers.getContractAt(
+    "VotingEscrowLock",
+    await veVISION.callStatic.veLocker()
+  );
+  // 9. Deploy dividend pool
   const dividendPool = await autoDeploy(
     "DividendPool",
     timelock.address,
-    visionToken.address
+    veVISION.address
   );
   // 9. Deploy vote counter
   const voteCounter = await autoDeploy(
     "SquareRootVoteCounter",
-    dividendPool.address
+    veVISION.address
   );
   // 10. Deploy farmers union
   const workersUnion = await autoDeploy(
     "WorkersUnion",
-    dividendPool.address,
     voteCounter.address,
     timelock.address
   );
@@ -105,6 +117,7 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
     teamShare,
     workersUnion,
     voteCounter,
+    veLocker,
     timelock,
     dividendPool,
   };

@@ -18,11 +18,29 @@ export class IVoteCounter__factory {
 
 const _abi = [
   {
+    inputs: [],
+    name: "getTotalVotes",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
-        internalType: "address",
-        name: "token",
-        type: "address",
+        internalType: "uint256",
+        name: "votingRightId",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256",
       },
     ],
     name: "getVotes",
@@ -31,6 +49,44 @@ const _abi = [
         internalType: "uint256",
         name: "",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "votingRightId",
+        type: "uint256",
+      },
+    ],
+    name: "voterOf",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "voter",
+        type: "address",
+      },
+    ],
+    name: "votingRights",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "rights",
+        type: "uint256[]",
       },
     ],
     stateMutability: "view",

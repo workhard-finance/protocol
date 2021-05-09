@@ -3,7 +3,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { Contract } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { goTo, sqrt } from "../../utils/utilities";
+import { almostEquals, goTo, sqrt } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
@@ -23,7 +23,8 @@ describe("SquareRootVoteCounter.sol", function () {
   let carlAddress: string;
   let fixture: MiningFixture;
   let visionToken: Contract;
-  let dividendPool: Contract;
+  let veLocker: Contract;
+  let veVISION: Contract;
   let voteCounter: Contract;
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -39,14 +40,15 @@ describe("SquareRootVoteCounter.sol", function () {
     carlAddress = await carl.getAddress();
     fixture = await getMiningFixture({ skipMinterSetting: true });
     visionToken = fixture.visionToken;
-    dividendPool = fixture.dividendPool;
+    veLocker = fixture.veLocker;
+    veVISION = fixture.veVISION;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
       await visionToken.mint(addr, parseEther("10000"));
       await visionToken
         .connect(account)
-        .approve(dividendPool.address, parseEther("10000"));
+        .approve(veLocker.address, parseEther("10000"));
     };
     await prepare(alice);
     await prepare(bob);
@@ -54,30 +56,68 @@ describe("SquareRootVoteCounter.sol", function () {
   });
   describe("getVotes()", async () => {
     beforeEach(async () => {
-      await dividendPool.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await dividendPool.connect(bob).stakeAndLock(parseEther("10"), 40);
-      await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 2);
+      const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+      const MAX_LOCK = timestamp + 86400 * 365 * 4;
+      const TWO_YEARS_LOCK = timestamp + 86400 * 365 * 2;
+      const ONE_YEAR_LOCK = timestamp + 86400 * 365 * 1;
+      await veLocker.connect(alice).createLock(parseEther("100"), MAX_LOCK);
+      await veLocker.connect(bob).createLock(parseEther("10"), TWO_YEARS_LOCK);
+      await veLocker.connect(carl).createLock(parseEther("100"), ONE_YEAR_LOCK);
     });
-    it("should be proportional to the square root of its dispachable farmers", async () => {
-      const epoch = await dividendPool.callStatic.getCurrentEpoch();
-      const aliceDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
+    it("should be proportional to the square root of its staked and locked amount", async () => {
+      const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+      const aliceLockId = await veLocker.callStatic.tokenOfOwnerByIndex(
         alice.address,
-        epoch.add(1)
+        0
       );
-      const bobDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
+      const aliceVeVISION = await veVISION.callStatic.balanceOfAt(
+        alice.address,
+        timestamp
+      );
+      const bobLockId = await veLocker.callStatic.tokenOfOwnerByIndex(
         bob.address,
-        epoch.add(1)
+        0
       );
-      const carlDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
+      const bobVeVISION = await veVISION.callStatic.balanceOfAt(
+        bob.address,
+        timestamp
+      );
+      const carlLockId = await veLocker.callStatic.tokenOfOwnerByIndex(
         carl.address,
-        epoch.add(1)
+        0
       );
-      const aliceVotes = await voteCounter.callStatic.getVotes(alice.address);
-      const bobVotes = await voteCounter.callStatic.getVotes(bob.address);
-      const carlVotes = await voteCounter.callStatic.getVotes(carl.address);
-      expect(aliceVotes).eq(sqrt(aliceDispatchableFarmersForNextEpoch));
-      expect(bobVotes).eq(sqrt(bobDispatchableFarmersForNextEpoch));
-      expect(carlVotes).eq(sqrt(carlDispatchableFarmersForNextEpoch));
+      const carlVeVISION = await veVISION.callStatic.balanceOfAt(
+        carl.address,
+        timestamp
+      );
+      const aliceVotes = await voteCounter.callStatic.getVotes(
+        aliceLockId,
+        timestamp
+      );
+      const bobVotes = await voteCounter.callStatic.getVotes(
+        bobLockId,
+        timestamp
+      );
+      const carlVotes = await voteCounter.callStatic.getVotes(
+        carlLockId,
+        timestamp
+      );
+      expect(
+        almostEquals(
+          aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+          bobVotes.pow(2).mul(10000).div(bobVeVISION)
+        )
+      ).to.be.true;
+      expect(
+        almostEquals(
+          aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+          carlVotes.pow(2).mul(10000).div(carlVeVISION)
+        )
+      ).to.be.true;
+      expect(aliceVotes.pow(2).mul(10000).div(aliceVeVISION)).not.eq(0);
+      expect(almostEquals(aliceVotes, bobVotes)).not.to.be.true;
+      expect(almostEquals(aliceVotes, carlVotes)).not.to.be.true;
+      expect(almostEquals(bobVotes, carlVotes)).not.to.be.true;
     });
   });
 });
