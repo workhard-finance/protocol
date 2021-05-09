@@ -8,7 +8,7 @@ import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe.skip("VisionEmitter.sol", function () {
+describe("VisionEmitter.sol", function () {
   let signers: Signer[];
   let deployer: Signer;
   let dev: Signer;
