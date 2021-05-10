@@ -53,10 +53,11 @@ contract StableReserve is
         ERC20Recoverer.setRecoverer(_gov);
         Governed.setGovernance(_gov);
         _deployer = msg.sender;
+        _setMinter(gov, true);
     }
 
     modifier onlyMinter() {
-        require(minters[msg.sender] || msg.sender == gov, "Not authorized");
+        require(minters[msg.sender], "Not authorized");
         _;
     }
 
