@@ -28,7 +28,7 @@ contract VisionTokenEmitter is Governed {
 
     address public protocolFund;
 
-    uint256 public emissionPeriod = 1 weeks; // default is 1 week
+    uint256 public constant emissionPeriod = 1 weeks;
 
     IMiningPool[] public pools;
 
@@ -58,7 +58,6 @@ contract VisionTokenEmitter is Governed {
     event TokenEmission(uint256 amount);
     event EmissionCutRateUpdated(uint256 rate);
     event EmissionRateUpdated(uint256 rate);
-    event EmissionPeriodUpdated(uint256 newPeriod);
     event EmissionWeightUpdated(uint256 numberOfPools);
     event NewStakeMiningPool(address baseToken, address pool);
     event NewBurnMiningPool(address baseToken, address pool);
@@ -173,12 +172,6 @@ contract VisionTokenEmitter is Governed {
         );
         minEmissionRatePerWeek = rate;
         emit EmissionRateUpdated(rate);
-    }
-
-    function setEmissionPeriod(uint256 period) public governed {
-        require(emissionPeriod != period, "no update");
-        emissionPeriod = period;
-        emit EmissionPeriodUpdated(period);
     }
 
     function distribute() public {

@@ -48,7 +48,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setEmission(address[],uint256[],uint256,uint256)": FunctionFragment;
     "setEmissionCutRate(uint256)": FunctionFragment;
-    "setEmissionPeriod(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setMinimumRate(uint256)": FunctionFragment;
     "setProtocolFund(address)": FunctionFragment;
@@ -149,10 +148,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setEmissionCutRate",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setEmissionPeriod",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -272,10 +267,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setEmissionPeriod",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setGovernance",
     data: BytesLike
   ): Result;
@@ -304,7 +295,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
   events: {
     "Anarchized()": EventFragment;
     "EmissionCutRateUpdated(uint256)": EventFragment;
-    "EmissionPeriodUpdated(uint256)": EventFragment;
     "EmissionRateUpdated(uint256)": EventFragment;
     "EmissionWeightUpdated(uint256)": EventFragment;
     "NewBurnMiningPool(address,address)": EventFragment;
@@ -316,7 +306,6 @@ interface VisionTokenEmitterInterface extends ethers.utils.Interface {
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionCutRateUpdated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "EmissionPeriodUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionRateUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EmissionWeightUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewBurnMiningPool"): EventFragment;
@@ -553,16 +542,6 @@ export class VisionTokenEmitter extends Contract {
 
     "setEmissionCutRate(uint256)"(
       rate: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setEmissionPeriod(
-      period: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setEmissionPeriod(uint256)"(
-      period: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -809,16 +788,6 @@ export class VisionTokenEmitter extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setEmissionPeriod(
-    period: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setEmissionPeriod(uint256)"(
-    period: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   setGovernance(
     _gov: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -1047,16 +1016,6 @@ export class VisionTokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setEmissionPeriod(
-      period: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setEmissionPeriod(uint256)"(
-      period: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setGovernance(_gov: string, overrides?: CallOverrides): Promise<void>;
 
     "setGovernance(address)"(
@@ -1107,10 +1066,6 @@ export class VisionTokenEmitter extends Contract {
     EmissionCutRateUpdated(
       rate: null
     ): TypedEventFilter<[BigNumber], { rate: BigNumber }>;
-
-    EmissionPeriodUpdated(
-      newPeriod: null
-    ): TypedEventFilter<[BigNumber], { newPeriod: BigNumber }>;
 
     EmissionRateUpdated(
       rate: null
@@ -1314,16 +1269,6 @@ export class VisionTokenEmitter extends Contract {
 
     "setEmissionCutRate(uint256)"(
       rate: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setEmissionPeriod(
-      period: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setEmissionPeriod(uint256)"(
-      period: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1580,16 +1525,6 @@ export class VisionTokenEmitter extends Contract {
 
     "setEmissionCutRate(uint256)"(
       rate: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setEmissionPeriod(
-      period: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setEmissionPeriod(uint256)"(
-      period: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
