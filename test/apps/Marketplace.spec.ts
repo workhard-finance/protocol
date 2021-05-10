@@ -16,10 +16,10 @@ describe("Marketplace.sol", function () {
   let bob: SignerWithAddress;
   let fixture: AppFixture;
   let marketplace: Contract;
-  let stableReserves: Contract;
+  let stableReserve: Contract;
   let commitmentToken: Contract;
   let baseCurrency: Contract;
-  let visionFarm: Contract;
+  let dividendPool: Contract;
   let timelock: Contract;
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -31,8 +31,8 @@ describe("Marketplace.sol", function () {
     baseCurrency = fixture.baseCurrency;
     commitmentToken = fixture.commitmentToken;
     marketplace = fixture.marketplace;
-    stableReserves = fixture.stableReserves;
-    visionFarm = fixture.visionFarm;
+    stableReserve = fixture.stableReserve;
+    dividendPool = fixture.dividendPool;
     timelock = fixture.timelock;
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: Signer) => {
@@ -40,8 +40,8 @@ describe("Marketplace.sol", function () {
       await baseCurrency.mint(addr, parseEther("10000"));
       await baseCurrency
         .connect(account)
-        .approve(stableReserves.address, parseEther("10000"));
-      await stableReserves
+        .approve(stableReserve.address, parseEther("10000"));
+      await stableReserve
         .connect(account)
         .payInsteadOfWorking(parseEther("100"));
       commitmentToken

@@ -23,7 +23,7 @@ describe("SquareRootVoteCounter.sol", function () {
   let carlAddress: string;
   let fixture: MiningFixture;
   let visionToken: Contract;
-  let visionFarm: Contract;
+  let dividendPool: Contract;
   let voteCounter: Contract;
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -39,14 +39,14 @@ describe("SquareRootVoteCounter.sol", function () {
     carlAddress = await carl.getAddress();
     fixture = await getMiningFixture({ skipMinterSetting: true });
     visionToken = fixture.visionToken;
-    visionFarm = fixture.visionFarm;
+    dividendPool = fixture.dividendPool;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
       await visionToken.mint(addr, parseEther("10000"));
       await visionToken
         .connect(account)
-        .approve(visionFarm.address, parseEther("10000"));
+        .approve(dividendPool.address, parseEther("10000"));
     };
     await prepare(alice);
     await prepare(bob);
@@ -54,21 +54,21 @@ describe("SquareRootVoteCounter.sol", function () {
   });
   describe("getVotes()", async () => {
     beforeEach(async () => {
-      await visionFarm.connect(alice).stakeAndLock(parseEther("100"), 4);
-      await visionFarm.connect(bob).stakeAndLock(parseEther("10"), 40);
-      await visionFarm.connect(carl).stakeAndLock(parseEther("100"), 2);
+      await dividendPool.connect(alice).stakeAndLock(parseEther("100"), 4);
+      await dividendPool.connect(bob).stakeAndLock(parseEther("10"), 40);
+      await dividendPool.connect(carl).stakeAndLock(parseEther("100"), 2);
     });
     it("should be proportional to the square root of its dispachable farmers", async () => {
-      const epoch = await visionFarm.callStatic.getCurrentEpoch();
-      const aliceDispatchableFarmersForNextEpoch = await visionFarm.callStatic.dispatchableFarmers(
+      const epoch = await dividendPool.callStatic.getCurrentEpoch();
+      const aliceDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
         alice.address,
         epoch.add(1)
       );
-      const bobDispatchableFarmersForNextEpoch = await visionFarm.callStatic.dispatchableFarmers(
+      const bobDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
         bob.address,
         epoch.add(1)
       );
-      const carlDispatchableFarmersForNextEpoch = await visionFarm.callStatic.dispatchableFarmers(
+      const carlDispatchableFarmersForNextEpoch = await dividendPool.callStatic.dispatchableFarmers(
         carl.address,
         epoch.add(1)
       );

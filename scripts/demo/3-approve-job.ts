@@ -7,8 +7,8 @@ import { BigNumber } from "ethers";
 import hre, { ethers } from "hardhat";
 import { MyNetwork } from "../../deployed";
 import {
-  CryptoJobBoard,
-  CryptoJobBoard__factory,
+  JobBoard,
+  JobBoard__factory,
   TimelockedGovernance__factory,
 } from "../../src";
 import { goTo } from "../../test/utils/utilities";
@@ -19,24 +19,21 @@ async function main() {
   console.log("3. approve job - snapshot id: ", result);
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed()[network];
-  if (!deployed.CryptoJobBoard || !deployed.TimelockedGovernance)
+  if (!deployed.JobBoard || !deployed.TimelockedGovernance)
     throw Error("not deployed");
 
   const [signer] = await ethers.getSigners();
-  const cryptoJobBoard = CryptoJobBoard__factory.connect(
-    deployed.CryptoJobBoard,
-    signer
-  );
+  const jobBoard = JobBoard__factory.connect(deployed.JobBoard, signer);
   const timeLockGovernance = TimelockedGovernance__factory.connect(
     deployed.TimelockedGovernance,
     signer
   );
-  const tx = await cryptoJobBoard.populateTransaction.approveProject(0);
+  const tx = await jobBoard.populateTransaction.approveProject(0);
   const data = tx?.data;
   await timeLockGovernance
     .connect(signer)
     .schedule(
-      deployed.CryptoJobBoard,
+      deployed.JobBoard,
       0,
       data,
       ethers.constants.HashZero,
@@ -47,7 +44,7 @@ async function main() {
   await timeLockGovernance
     .connect(signer)
     .execute(
-      deployed.CryptoJobBoard,
+      deployed.JobBoard,
       0,
       data,
       ethers.constants.HashZero,

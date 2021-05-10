@@ -20,18 +20,21 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface SquareRootVoteCounterInterface extends ethers.utils.Interface {
   functions: {
+    "dividendPool()": FunctionFragment;
     "getVotes(address)": FunctionFragment;
-    "visionFarm()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "visionFarm",
+    functionFragment: "dividendPool",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getVotes", values: [string]): string;
 
+  decodeFunctionResult(
+    functionFragment: "dividendPool",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {};
 }
@@ -80,17 +83,21 @@ export class SquareRootVoteCounter extends Contract {
   interface: SquareRootVoteCounterInterface;
 
   functions: {
+    dividendPool(overrides?: CallOverrides): Promise<[string]>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<[string]>;
+
     getVotes(voter: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "getVotes(address)"(
       voter: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    visionFarm(overrides?: CallOverrides): Promise<[string]>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
   };
+
+  dividendPool(overrides?: CallOverrides): Promise<string>;
+
+  "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
   getVotes(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -99,39 +106,39 @@ export class SquareRootVoteCounter extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  visionFarm(overrides?: CallOverrides): Promise<string>;
-
-  "visionFarm()"(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
+    dividendPool(overrides?: CallOverrides): Promise<string>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<string>;
+
     getVotes(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "getVotes(address)"(
       voter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    visionFarm(overrides?: CallOverrides): Promise<string>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
+    dividendPool(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getVotes(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "getVotes(address)"(
       voter: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    dividendPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getVotes(
       voter: string,
       overrides?: CallOverrides
@@ -141,9 +148,5 @@ export class SquareRootVoteCounter extends Contract {
       voter: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -8,7 +8,7 @@ import { getMiningFixture, MiningFixture } from "../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("VisionTokenEmitter.sol", function () {
+describe("VisionEmitter.sol", function () {
   let signers: Signer[];
   let deployer: Signer;
   let dev: Signer;
@@ -45,7 +45,7 @@ describe("VisionTokenEmitter.sol", function () {
       10,
     ];
   });
-  it("VisionTokenEmitter should be governed by the timelock contract at first", async function () {
+  it("VisionEmitter should be governed by the timelock contract at first", async function () {
     expect(await visionTokenEmitter.gov()).eq(timelock.address);
   });
 
@@ -91,12 +91,10 @@ describe("VisionTokenEmitter.sol", function () {
     let stakeMiningPool: Contract;
     let burnMiningPool: Contract;
     beforeEach(async () => {
-      const VisionToken = await ethers.getContractFactory("VisionToken");
-      const CommitmentToken = await ethers.getContractFactory(
-        "CommitmentToken"
-      );
-      testingStakeToken = await VisionToken.deploy();
-      testingBurnToken = await CommitmentToken.deploy();
+      const VISION = await ethers.getContractFactory("VISION");
+      const COMMIT = await ethers.getContractFactory("COMMIT");
+      testingStakeToken = await VISION.deploy();
+      testingBurnToken = await COMMIT.deploy();
     });
     it("newBurnMiningPool", async () => {
       const burnMiningPoolFactoryAddr = await visionTokenEmitter.callStatic.burnMiningPoolFactory();
@@ -141,12 +139,10 @@ describe("VisionTokenEmitter.sol", function () {
     let testingStakeMiningPool: Contract;
     let testingBurnMiningPool: Contract;
     beforeEach(async () => {
-      const VisionToken = await ethers.getContractFactory("VisionToken");
-      const CommitmentToken = await ethers.getContractFactory(
-        "CommitmentToken"
-      );
-      testingStakeToken = await VisionToken.deploy();
-      testingBurnToken = await CommitmentToken.deploy();
+      const VISION = await ethers.getContractFactory("VISION");
+      const COMMIT = await ethers.getContractFactory("COMMIT");
+      testingStakeToken = await VISION.deploy();
+      testingBurnToken = await COMMIT.deploy();
       await visionTokenEmitter.newBurnMiningPool(testingBurnToken.address);
       await visionTokenEmitter.newStakeMiningPool(testingStakeToken.address);
       testingBurnMiningPool = await ethers.getContractAt(

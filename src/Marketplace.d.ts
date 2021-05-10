@@ -31,6 +31,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "buy(uint256,address,uint256)": FunctionFragment;
     "disable(address)": FunctionFragment;
     "disablePermanently(address)": FunctionFragment;
+    "dividendPool()": FunctionFragment;
     "enable(address)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
@@ -56,7 +57,6 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "supportsInterface(bytes4)": FunctionFragment;
     "taxRate()": FunctionFragment;
     "uri(uint256)": FunctionFragment;
-    "visionFarm()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -92,6 +92,10 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "disablePermanently",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "dividendPool",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "enable", values: [string]): string;
   encodeFunctionData(
@@ -178,10 +182,6 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "taxRate", values?: undefined): string;
   encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
-  encodeFunctionData(
-    functionFragment: "visionFarm",
-    values?: undefined
-  ): string;
 
   decodeFunctionResult(
     functionFragment: "RATE_DENOMINATOR",
@@ -203,6 +203,10 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "disable", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "disablePermanently",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "dividendPool",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "enable", data: BytesLike): Result;
@@ -281,7 +285,6 @@ interface MarketplaceInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "taxRate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -455,6 +458,10 @@ export class Marketplace extends Contract {
       _contract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    dividendPool(overrides?: CallOverrides): Promise<[string]>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<[string]>;
 
     enable(
       _contract: string,
@@ -729,10 +736,6 @@ export class Marketplace extends Contract {
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
-
-    visionFarm(overrides?: CallOverrides): Promise<[string]>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -836,6 +839,10 @@ export class Marketplace extends Contract {
     _contract: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  dividendPool(overrides?: CallOverrides): Promise<string>;
+
+  "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
   enable(
     _contract: string,
@@ -1108,10 +1115,6 @@ export class Marketplace extends Contract {
 
   "uri(uint256)"(id: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
-  visionFarm(overrides?: CallOverrides): Promise<string>;
-
-  "visionFarm()"(overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
     RATE_DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1207,6 +1210,10 @@ export class Marketplace extends Contract {
       _contract: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    dividendPool(overrides?: CallOverrides): Promise<string>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
     enable(_contract: string, overrides?: CallOverrides): Promise<void>;
 
@@ -1465,10 +1472,6 @@ export class Marketplace extends Contract {
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
-
-    visionFarm(overrides?: CallOverrides): Promise<string>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1670,6 +1673,10 @@ export class Marketplace extends Contract {
       _contract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    dividendPool(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     enable(
       _contract: string,
@@ -1923,10 +1930,6 @@ export class Marketplace extends Contract {
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -2033,6 +2036,10 @@ export class Marketplace extends Contract {
       _contract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    dividendPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "dividendPool()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     enable(
       _contract: string,
@@ -2297,9 +2304,5 @@ export class Marketplace extends Contract {
       id: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

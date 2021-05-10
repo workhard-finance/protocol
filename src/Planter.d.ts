@@ -20,15 +20,18 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface PlanterInterface extends ethers.utils.Interface {
   functions: {
-    "visionFarm()": FunctionFragment;
+    "dividendPool()": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "visionFarm",
+    functionFragment: "dividendPool",
     values?: undefined
   ): string;
 
-  decodeFunctionResult(functionFragment: "visionFarm", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "dividendPool",
+    data: BytesLike
+  ): Result;
 
   events: {};
 }
@@ -77,32 +80,32 @@ export class Planter extends Contract {
   interface: PlanterInterface;
 
   functions: {
-    visionFarm(overrides?: CallOverrides): Promise<[string]>;
+    dividendPool(overrides?: CallOverrides): Promise<[string]>;
 
-    "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
+    "dividendPool()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  visionFarm(overrides?: CallOverrides): Promise<string>;
+  dividendPool(overrides?: CallOverrides): Promise<string>;
 
-  "visionFarm()"(overrides?: CallOverrides): Promise<string>;
+  "dividendPool()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    visionFarm(overrides?: CallOverrides): Promise<string>;
+    dividendPool(overrides?: CallOverrides): Promise<string>;
 
-    "visionFarm()"(overrides?: CallOverrides): Promise<string>;
+    "dividendPool()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
 
   estimateGas: {
-    visionFarm(overrides?: CallOverrides): Promise<BigNumber>;
+    dividendPool(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "visionFarm()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "dividendPool()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    visionFarm(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    dividendPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "visionFarm()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "dividendPool()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

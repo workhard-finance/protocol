@@ -13,8 +13,8 @@ import {
   BurnMining__factory,
   StakeMining,
   StakeMining__factory,
-  VisionTokenEmitter,
-  VisionTokenEmitter__factory,
+  VisionEmitter,
+  VisionEmitter__factory,
   TimelockedGovernance,
   TimelockedGovernance__factory,
 } from "../../src";
@@ -31,7 +31,7 @@ async function main() {
   if (
     !deployed.CommitmentMining ||
     !deployed.LiquidityMining ||
-    !deployed.VisionTokenEmitter ||
+    !deployed.VisionEmitter ||
     !deployed.TimelockedGovernance
   )
     throw Error("not deployed");
@@ -48,8 +48,8 @@ async function main() {
     signer
   );
 
-  const visionTokenEmitter: VisionTokenEmitter = VisionTokenEmitter__factory.connect(
-    deployed.VisionTokenEmitter,
+  const visionTokenEmitter: VisionEmitter = VisionEmitter__factory.connect(
+    deployed.VisionEmitter,
     signer
   );
 

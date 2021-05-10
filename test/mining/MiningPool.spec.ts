@@ -45,10 +45,10 @@ describe("MiningPool.sol", function () {
     visionToken = fixture.visionToken;
     visionTokenEmitter = fixture.visionTokenEmitter;
     timelock = fixture.timelock;
-    const VisionToken = await ethers.getContractFactory("VisionToken");
-    const CommitmentToken = await ethers.getContractFactory("CommitmentToken");
-    testingStakeToken = await VisionToken.deploy();
-    testingBurnToken = await CommitmentToken.deploy();
+    const VISION = await ethers.getContractFactory("VISION");
+    const COMMIT = await ethers.getContractFactory("COMMIT");
+    testingStakeToken = await VISION.deploy();
+    testingBurnToken = await COMMIT.deploy();
     await visionTokenEmitter.newBurnMiningPool(testingBurnToken.address);
     await visionTokenEmitter.newStakeMiningPool(testingStakeToken.address);
     burnMiningPool = await ethers.getContractAt(

@@ -26,11 +26,11 @@ export interface TokenFixture {
 }
 
 export interface GovernanceFixture extends TokenFixture {
-  farmersUnion: Contract;
+  workersUnion: Contract;
   voteCounter: Contract;
   timelock: Contract;
   teamShare: Contract;
-  visionFarm: Contract;
+  dividendPool: Contract;
 }
 
 export interface MiningFixture extends GovernanceFixture {
@@ -40,8 +40,8 @@ export interface MiningFixture extends GovernanceFixture {
 }
 
 export interface AppFixture extends MiningFixture {
-  cryptoJobBoard: Contract;
-  stableReserves: Contract;
+  jobBoard: Contract;
+  stableReserve: Contract;
   marketplace: Contract;
 }
 
@@ -51,9 +51,9 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   const baseCurrency = await getBaseCurrency(deployer.address);
   record(hre.network.name as MyNetwork, "BaseCurrency", baseCurrency.address);
   // 2. Deploy vision token
-  const visionToken = await autoDeploy("VisionToken");
+  const visionToken = await autoDeploy("VISION");
   // 3. Deploy commitment token
-  const commitmentToken = await autoDeploy("CommitmentToken");
+  const commitmentToken = await autoDeploy("COMMIT");
   // 4. Deploy uniswap pair
   const project = await autoDeploy("Project");
   // 5. Deploy uniswap pair
@@ -77,36 +77,36 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   // 7. Deploy timelock contract
   const timelock = await autoDeploy("TimelockedGovernance", [deployer.address]);
   // 8. Deploy vision farm
-  const visionFarm = await autoDeploy(
-    "VisionFarm",
+  const dividendPool = await autoDeploy(
+    "DividendPool",
     timelock.address,
     visionToken.address
   );
   // 9. Deploy vote counter
   const voteCounter = await autoDeploy(
     "SquareRootVoteCounter",
-    visionFarm.address
+    dividendPool.address
   );
   // 10. Deploy farmers union
-  const farmersUnion = await autoDeploy(
-    "FarmersUnion",
-    visionFarm.address,
+  const workersUnion = await autoDeploy(
+    "WorkersUnion",
+    dividendPool.address,
     voteCounter.address,
     timelock.address
   );
   // 11. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
   await scheduleGovernanceTransfer(
     timelock,
-    farmersUnion.address,
+    workersUnion.address,
     deployer.address
   );
   return {
     ...tokenFixture,
     teamShare,
-    farmersUnion,
+    workersUnion,
     voteCounter,
     timelock,
-    visionFarm,
+    dividendPool,
   };
 }
 
@@ -128,7 +128,7 @@ export async function getMiningFixture(option?: {
   const stakeMiningFactory = await autoDeploy("StakeMiningPoolFactory");
   // 14. Deploy Vision Token Emitter
   const visionTokenEmitter = await autoDeploy(
-    "VisionTokenEmitter",
+    "VisionEmitter",
     teamShare.address,
     timelock.address,
     timelock.address,
@@ -176,23 +176,23 @@ export async function getAppFixture(): Promise<AppFixture> {
     projectToken,
     commitmentToken,
     baseCurrency,
-    visionFarm,
+    dividendPool,
   } = miningFixture;
-  const stableReserves = await autoDeploy(
-    "StableReserves",
+  const stableReserve = await autoDeploy(
+    "StableReserve",
     timelock.address,
     commitmentToken.address,
     baseCurrency.address
   );
-  // 18. Move Minter Permission to StableReserves
-  await commitmentToken.setMinter(stableReserves.address);
+  // 18. Move Minter Permission to StableReserve
+  await commitmentToken.setMinter(stableReserve.address);
   // 19. Deploy Project Manager
-  const cryptoJobBoard = await autoDeploy(
-    "CryptoJobBoard",
+  const jobBoard = await autoDeploy(
+    "JobBoard",
     timelock.address,
     projectToken.address,
-    visionFarm.address,
-    stableReserves.address,
+    dividendPool.address,
+    stableReserve.address,
     baseCurrency.address,
     ONE_INCH
   );
@@ -201,16 +201,16 @@ export async function getAppFixture(): Promise<AppFixture> {
     "Marketplace",
     timelock.address,
     commitmentToken.address,
-    visionFarm.address
+    dividendPool.address
   );
   // 21. Initialize Labor Market
-  await stableReserves.init(cryptoJobBoard.address);
+  await stableReserve.init(jobBoard.address);
   // 22. Initialize Vision Farm
-  await visionFarm.init(cryptoJobBoard.address, marketplace.address);
+  await dividendPool.init(jobBoard.address, marketplace.address);
   return {
     ...miningFixture,
-    cryptoJobBoard: cryptoJobBoard,
-    stableReserves,
+    jobBoard: jobBoard,
+    stableReserve,
     marketplace,
   };
 }

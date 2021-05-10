@@ -5,7 +5,7 @@
 // Runtime Environment's members available in the global scope.
 import hre, { ethers } from "hardhat";
 import { MyNetwork } from "../../deployed";
-import { CryptoJobBoard, CryptoJobBoard__factory } from "../../src";
+import { JobBoard, JobBoard__factory } from "../../src";
 import { getDeployed } from "../utils/deployer";
 
 async function main() {
@@ -13,14 +13,14 @@ async function main() {
   console.log("2. new crypto job - snapshot id: ", result);
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed();
-  if (!deployed[network].CryptoJobBoard) throw Error("no crypto job board");
+  if (!deployed[network].JobBoard) throw Error("no crypto job board");
 
   const [signer] = await ethers.getSigners();
-  const cryptoJobBoard = CryptoJobBoard__factory.connect(
-    deployed[network].CryptoJobBoard,
+  const jobBoard = JobBoard__factory.connect(
+    deployed[network].JobBoard,
     signer
   );
-  await cryptoJobBoard.createProject("sampleuri");
+  await jobBoard.createProject("sampleuri");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -6,19 +6,19 @@
 import hre, { ethers } from "hardhat";
 import { MyNetwork } from "../../deployed";
 import { getDeployed } from "../utils/deployer";
-import { FarmersUnion, FarmersUnion__factory } from "../../src";
+import { WorkersUnion, WorkersUnion__factory } from "../../src";
 import { goToNextWeek } from "../../test/utils/utilities";
 async function main() {
   const result = await ethers.provider.send("evm_snapshot", []);
   console.log("4. farmers union - snapshot id: ", result);
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = getDeployed()[network];
-  if (!deployed.FarmersUnion) throw Error("not deployed");
+  if (!deployed.WorkersUnion) throw Error("not deployed");
 
   const [signer] = await ethers.getSigners();
 
-  const farmersUnion: FarmersUnion = FarmersUnion__factory.connect(
-    deployed.FarmersUnion,
+  const workersUnion: WorkersUnion = WorkersUnion__factory.connect(
+    deployed.WorkersUnion,
     signer
   );
 
@@ -26,7 +26,7 @@ async function main() {
   await goToNextWeek();
   await goToNextWeek();
   await goToNextWeek();
-  await farmersUnion.launch();
+  await workersUnion.launch();
 }
 
 main()
