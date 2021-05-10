@@ -21,7 +21,7 @@ struct Proposal {
     mapping(uint256 => uint256) againstVotes; // votingRightId => against vote amount
 }
 
-struct Memorandom {
+struct VotingRule {
     uint256 minimumPending;
     uint256 maximumPending;
     uint256 minimumVotingPeriod;
@@ -42,7 +42,7 @@ contract WorkersUnion is Pausable, Governed {
 
     bytes32 public constant NO_DEPENDENCY = bytes32(0);
 
-    Memorandom public memorandom;
+    VotingRule public votingRule;
 
     mapping(bytes32 => Proposal) public proposals;
 
@@ -74,7 +74,7 @@ contract WorkersUnion is Pausable, Governed {
     event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
     constructor(address _voteCounter, address _timelockGov) {
-        memorandom = Memorandom(
+        votingRule = VotingRule(
             1 days, // minimum pending for vote
             1 weeks, // maximum pending for vote
             1 weeks, // minimum voting period
@@ -98,7 +98,7 @@ contract WorkersUnion is Pausable, Governed {
         _unpause();
     }
 
-    function changeMemorandom(
+    function changeVotingRule(
         uint256 minimumPendingPeriod,
         uint256 maximumPendingPeriod,
         uint256 minimumVotingPeriod,
@@ -120,7 +120,7 @@ contract WorkersUnion is Pausable, Governed {
         );
         require(minimumVotes <= totalVotes.div(2), "too large number");
         require(address(voteCounter) != address(0), "null address");
-        memorandom = Memorandom(
+        votingRule = VotingRule(
             minimumPendingPeriod,
             maximumPendingPeriod,
             minimumVotingPeriod,
@@ -192,7 +192,7 @@ contract WorkersUnion is Pausable, Governed {
      */
     function vote(bytes32 txHash, bool agree) public {
         uint256[] memory votingRights =
-            memorandom.voteCounter.votingRights(msg.sender);
+            votingRule.voteCounter.votingRights(msg.sender);
         manualVote(txHash, votingRights, agree);
     }
 
@@ -218,12 +218,12 @@ contract WorkersUnion is Pausable, Governed {
         for (uint256 i = 0; i < rightIds.length; i++) {
             uint256 id = rightIds[i];
             require(
-                memorandom.voteCounter.voterOf(id) == msg.sender,
+                votingRule.voteCounter.voterOf(id) == msg.sender,
                 "not the voting right owner"
             );
             uint256 prevForVotes = proposal.forVotes[id];
             uint256 prevAgainstVotes = proposal.againstVotes[id];
-            uint256 votes = memorandom.voteCounter.getVotes(id, timestamp);
+            uint256 votes = votingRule.voteCounter.getVotes(id, timestamp);
             proposal.forVotes[id] = agree ? votes : 0;
             proposal.againstVotes[id] = agree ? 0 : votes;
             totalForVotes = totalForVotes.add(agree ? votes : 0).sub(
@@ -246,7 +246,7 @@ contract WorkersUnion is Pausable, Governed {
         else if (block.timestamp <= proposal.end) return VotingState.Voting;
         else if (_timelock().isOperationDone(txHash))
             return VotingState.Executed;
-        else if (proposal.totalForVotes < memorandom.minimumVotes)
+        else if (proposal.totalForVotes < votingRule.minimumVotes)
             return VotingState.Rejected;
         else if (proposal.totalForVotes > proposal.totalAgainstVotes)
             return VotingState.Passed;
@@ -268,11 +268,11 @@ contract WorkersUnion is Pausable, Governed {
         returns (uint256)
     {
         uint256[] memory votingRights =
-            memorandom.voteCounter.votingRights(account);
+            votingRule.voteCounter.votingRights(account);
         uint256 votes;
         for (uint256 i = 0; i < votingRights.length; i++) {
             votes = votes.add(
-                memorandom.voteCounter.getVotes(votingRights[i], timestamp)
+                votingRule.voteCounter.getVotes(votingRights[i], timestamp)
             );
         }
         return votes;
@@ -404,23 +404,23 @@ contract WorkersUnion is Pausable, Governed {
     {
         uint256 votes = getVotesAt(msg.sender, block.timestamp);
         require(
-            memorandom.minimumVotesForProposing <= votes,
+            votingRule.minimumVotesForProposing <= votes,
             "Not enough votes for proposing."
         );
         require(
-            memorandom.minimumPending <= startsIn,
+            votingRule.minimumPending <= startsIn,
             "Pending period is too short."
         );
         require(
-            startsIn <= memorandom.maximumPending,
+            startsIn <= votingRule.maximumPending,
             "Pending period is too long."
         );
         require(
-            memorandom.minimumVotingPeriod <= votingPeriod,
+            votingRule.minimumVotingPeriod <= votingPeriod,
             "Voting period is too short."
         );
         require(
-            votingPeriod <= memorandom.maximumVotingPeriod,
+            votingPeriod <= votingRule.maximumVotingPeriod,
             "Voting period is too long."
         );
     }

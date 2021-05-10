@@ -25,7 +25,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "NO_DEPENDENCY()": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
-    "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
+    "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)": FunctionFragment;
     "execute(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
@@ -36,7 +36,6 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "gov()": FunctionFragment;
     "launch()": FunctionFragment;
     "manualVote(bytes32,uint256[],bool)": FunctionFragment;
-    "memorandom()": FunctionFragment;
     "paused()": FunctionFragment;
     "proposals(bytes32)": FunctionFragment;
     "proposeBatchTx(address[],uint256[],bytes[],bytes32,bytes32,uint256,uint256)": FunctionFragment;
@@ -46,6 +45,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "vote(bytes32,bool)": FunctionFragment;
+    "votingRule()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -58,7 +58,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "changeMemorandom",
+    functionFragment: "changeVotingRule",
     values: [
       BigNumberish,
       BigNumberish,
@@ -102,10 +102,6 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "manualVote",
     values: [BytesLike, BigNumberish[], boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "memorandom",
-    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "paused", values?: undefined): string;
   encodeFunctionData(
@@ -156,6 +152,10 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     functionFragment: "vote",
     values: [BytesLike, boolean]
   ): string;
+  encodeFunctionData(
+    functionFragment: "votingRule",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "NO_DEPENDENCY",
@@ -167,7 +167,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "changeMemorandom",
+    functionFragment: "changeVotingRule",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
@@ -195,7 +195,6 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "launch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "manualVote", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "memorandom", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proposals", data: BytesLike): Result;
   decodeFunctionResult(
@@ -217,6 +216,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "vote", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "votingRule", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -299,7 +299,7 @@ export class WorkersUnion extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    changeMemorandom(
+    changeVotingRule(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -310,7 +310,7 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
+    "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -428,50 +428,6 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    memorandom(
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        minimumPending: BigNumber;
-        maximumPending: BigNumber;
-        minimumVotingPeriod: BigNumber;
-        maximumVotingPeriod: BigNumber;
-        minimumVotesForProposing: BigNumber;
-        minimumVotes: BigNumber;
-        voteCounter: string;
-      }
-    >;
-
-    "memorandom()"(
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        minimumPending: BigNumber;
-        maximumPending: BigNumber;
-        minimumVotingPeriod: BigNumber;
-        maximumVotingPeriod: BigNumber;
-        minimumVotesForProposing: BigNumber;
-        minimumVotes: BigNumber;
-        voteCounter: string;
-      }
-    >;
 
     paused(overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -614,6 +570,50 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    votingRule(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        minimumPending: BigNumber;
+        maximumPending: BigNumber;
+        minimumVotingPeriod: BigNumber;
+        maximumVotingPeriod: BigNumber;
+        minimumVotesForProposing: BigNumber;
+        minimumVotes: BigNumber;
+        voteCounter: string;
+      }
+    >;
+
+    "votingRule()"(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        minimumPending: BigNumber;
+        maximumPending: BigNumber;
+        minimumVotingPeriod: BigNumber;
+        maximumVotingPeriod: BigNumber;
+        minimumVotesForProposing: BigNumber;
+        minimumVotes: BigNumber;
+        voteCounter: string;
+      }
+    >;
   };
 
   NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
@@ -632,7 +632,7 @@ export class WorkersUnion extends Contract {
 
   "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  changeMemorandom(
+  changeVotingRule(
     minimumPendingPeriod: BigNumberish,
     maximumPendingPeriod: BigNumberish,
     minimumVotingPeriod: BigNumberish,
@@ -643,7 +643,7 @@ export class WorkersUnion extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
+  "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
     minimumPendingPeriod: BigNumberish,
     maximumPendingPeriod: BigNumberish,
     minimumVotingPeriod: BigNumberish,
@@ -761,50 +761,6 @@ export class WorkersUnion extends Contract {
     agree: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
-
-  memorandom(
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string
-    ] & {
-      minimumPending: BigNumber;
-      maximumPending: BigNumber;
-      minimumVotingPeriod: BigNumber;
-      maximumVotingPeriod: BigNumber;
-      minimumVotesForProposing: BigNumber;
-      minimumVotes: BigNumber;
-      voteCounter: string;
-    }
-  >;
-
-  "memorandom()"(
-    overrides?: CallOverrides
-  ): Promise<
-    [
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      BigNumber,
-      string
-    ] & {
-      minimumPending: BigNumber;
-      maximumPending: BigNumber;
-      minimumVotingPeriod: BigNumber;
-      maximumVotingPeriod: BigNumber;
-      minimumVotesForProposing: BigNumber;
-      minimumVotes: BigNumber;
-      voteCounter: string;
-    }
-  >;
 
   paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -948,6 +904,50 @@ export class WorkersUnion extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  votingRule(
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      string
+    ] & {
+      minimumPending: BigNumber;
+      maximumPending: BigNumber;
+      minimumVotingPeriod: BigNumber;
+      maximumVotingPeriod: BigNumber;
+      minimumVotesForProposing: BigNumber;
+      minimumVotes: BigNumber;
+      voteCounter: string;
+    }
+  >;
+
+  "votingRule()"(
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      BigNumber,
+      string
+    ] & {
+      minimumPending: BigNumber;
+      maximumPending: BigNumber;
+      minimumVotingPeriod: BigNumber;
+      maximumVotingPeriod: BigNumber;
+      minimumVotesForProposing: BigNumber;
+      minimumVotes: BigNumber;
+      voteCounter: string;
+    }
+  >;
+
   callStatic: {
     NO_DEPENDENCY(overrides?: CallOverrides): Promise<string>;
 
@@ -961,7 +961,7 @@ export class WorkersUnion extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    changeMemorandom(
+    changeVotingRule(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -972,7 +972,7 @@ export class WorkersUnion extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
+    "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -1082,50 +1082,6 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    memorandom(
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        minimumPending: BigNumber;
-        maximumPending: BigNumber;
-        minimumVotingPeriod: BigNumber;
-        maximumVotingPeriod: BigNumber;
-        minimumVotesForProposing: BigNumber;
-        minimumVotes: BigNumber;
-        voteCounter: string;
-      }
-    >;
-
-    "memorandom()"(
-      overrides?: CallOverrides
-    ): Promise<
-      [
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        BigNumber,
-        string
-      ] & {
-        minimumPending: BigNumber;
-        maximumPending: BigNumber;
-        minimumVotingPeriod: BigNumber;
-        maximumVotingPeriod: BigNumber;
-        minimumVotesForProposing: BigNumber;
-        minimumVotes: BigNumber;
-        voteCounter: string;
-      }
-    >;
 
     paused(overrides?: CallOverrides): Promise<boolean>;
 
@@ -1265,6 +1221,50 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    votingRule(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        minimumPending: BigNumber;
+        maximumPending: BigNumber;
+        minimumVotingPeriod: BigNumber;
+        maximumVotingPeriod: BigNumber;
+        minimumVotesForProposing: BigNumber;
+        minimumVotes: BigNumber;
+        voteCounter: string;
+      }
+    >;
+
+    "votingRule()"(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        BigNumber,
+        string
+      ] & {
+        minimumPending: BigNumber;
+        maximumPending: BigNumber;
+        minimumVotingPeriod: BigNumber;
+        maximumVotingPeriod: BigNumber;
+        minimumVotesForProposing: BigNumber;
+        minimumVotes: BigNumber;
+        voteCounter: string;
+      }
+    >;
   };
 
   filters: {
@@ -1373,7 +1373,7 @@ export class WorkersUnion extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    changeMemorandom(
+    changeVotingRule(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -1384,7 +1384,7 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
+    "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -1502,10 +1502,6 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    memorandom(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "memorandom()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     paused(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1629,6 +1625,10 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    votingRule(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "votingRule()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1648,7 +1648,7 @@ export class WorkersUnion extends Contract {
 
     "anarchizedAt()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    changeMemorandom(
+    changeVotingRule(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -1659,7 +1659,7 @@ export class WorkersUnion extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "changeMemorandom(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
+    "changeVotingRule(uint256,uint256,uint256,uint256,uint256,uint256,address)"(
       minimumPendingPeriod: BigNumberish,
       maximumPendingPeriod: BigNumberish,
       minimumVotingPeriod: BigNumberish,
@@ -1779,10 +1779,6 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
-
-    memorandom(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "memorandom()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     paused(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1909,5 +1905,9 @@ export class WorkersUnion extends Contract {
       agree: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    votingRule(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "votingRule()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

@@ -23,7 +23,7 @@ describe("WorkersUnion.sol", function () {
   let timelock: Contract;
   let voteCounter: Contract;
   let veVISION: Contract;
-  let newMemorandom: any[];
+  let newVotingRule: any[];
   let pTx: PopulatedTransaction;
   let params: any[];
   let txHash: string;
@@ -56,7 +56,7 @@ describe("WorkersUnion.sol", function () {
     await veLocker.connect(bob).createLock(parseEther("100000"), 20);
     await veLocker.connect(carl).createLock(parseEther("100"), 4);
     await goTo(86400 * 7);
-    newMemorandom = [
+    newVotingRule = [
       3600 * 24 * 2,
       3600 * 24 * 7,
       3600 * 24 * 2,
@@ -65,8 +65,8 @@ describe("WorkersUnion.sol", function () {
       0,
       voteCounter.address,
     ];
-    pTx = await workersUnion.populateTransaction.changeMemorandom(
-      ...newMemorandom
+    pTx = await workersUnion.populateTransaction.changeVotingRule(
+      ...newVotingRule
     );
     params = [
       pTx.to,
@@ -237,7 +237,7 @@ describe("WorkersUnion.sol", function () {
     });
   });
 
-  describe("changeMemorandom()", async () => {
+  describe("changeVotingRule()", async () => {
     beforeEach(async () => {
       await goTo(3600 * 24 * 7 * 4);
       await workersUnion.launch();
@@ -246,17 +246,17 @@ describe("WorkersUnion.sol", function () {
       await workersUnion.connect(bob).vote(txHash, true);
       await goTo(3600 * 24 * 7);
     });
-    it("should update the memorandom", async () => {
+    it("should update the votingRule", async () => {
       await workersUnion.schedule(...params.slice(0, 5));
       await goTo(3600 * 24 * 1);
       await workersUnion.execute(...params.slice(0, 5));
-      const newMemorandom = await workersUnion.callStatic.memorandom();
-      expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
-      expect(newMemorandom.maximumPending).eq(newMemorandom[1]);
-      expect(newMemorandom.minimumVotingPeriod).eq(newMemorandom[2]);
-      expect(newMemorandom.maximumVotingPeriod).eq(newMemorandom[3]);
-      expect(newMemorandom.minimumVotesForProposing).eq(newMemorandom[4]);
-      expect(newMemorandom.minimumVotes).eq(newMemorandom[5]);
+      const newVotingRule = await workersUnion.callStatic.votingRule();
+      expect(newVotingRule.minimumPending).eq(newVotingRule[0]);
+      expect(newVotingRule.maximumPending).eq(newVotingRule[1]);
+      expect(newVotingRule.minimumVotingPeriod).eq(newVotingRule[2]);
+      expect(newVotingRule.maximumVotingPeriod).eq(newVotingRule[3]);
+      expect(newVotingRule.minimumVotesForProposing).eq(newVotingRule[4]);
+      expect(newVotingRule.minimumVotes).eq(newVotingRule[5]);
     });
   });
   describe("proposeBatchTx() & executeBatchTx", async () => {
@@ -282,19 +282,19 @@ describe("WorkersUnion.sol", function () {
       await workersUnion.connect(bob).vote(batchTxHash, true);
       await goTo(3600 * 24 * 7);
     });
-    it("should update the memorandom correctly", async () => {
+    it("should update the votingRule correctly", async () => {
       await expect(
         workersUnion.scheduleBatch(...batchTxParams.slice(0, 5))
       ).to.emit(timelock, "CallScheduled");
       await goTo(3600 * 24 * 1);
       await workersUnion.executeBatch(...batchTxParams.slice(0, 5));
-      const newMemorandom = await workersUnion.callStatic.memorandom();
-      expect(newMemorandom.minimumPending).eq(newMemorandom[0]);
-      expect(newMemorandom.maximumPending).eq(newMemorandom[1]);
-      expect(newMemorandom.minimumVotingPeriod).eq(newMemorandom[2]);
-      expect(newMemorandom.maximumVotingPeriod).eq(newMemorandom[3]);
-      expect(newMemorandom.minimumVotesForProposing).eq(newMemorandom[4]);
-      expect(newMemorandom.minimumVotes).eq(newMemorandom[5]);
+      const newVotingRule = await workersUnion.callStatic.votingRule();
+      expect(newVotingRule.minimumPending).eq(newVotingRule[0]);
+      expect(newVotingRule.maximumPending).eq(newVotingRule[1]);
+      expect(newVotingRule.minimumVotingPeriod).eq(newVotingRule[2]);
+      expect(newVotingRule.maximumVotingPeriod).eq(newVotingRule[3]);
+      expect(newVotingRule.minimumVotesForProposing).eq(newVotingRule[4]);
+      expect(newVotingRule.minimumVotes).eq(newVotingRule[5]);
     });
   });
 });
