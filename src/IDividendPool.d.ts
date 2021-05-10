@@ -191,9 +191,9 @@ export class IDividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    distributedTokens(overrides?: CallOverrides): Promise<[BigNumber]>;
+    distributedTokens(overrides?: CallOverrides): Promise<[string[]]>;
 
-    "distributedTokens()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+    "distributedTokens()"(overrides?: CallOverrides): Promise<[string[]]>;
 
     distributionBalance(
       token: string,
@@ -281,9 +281,9 @@ export class IDividendPool extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+  distributedTokens(overrides?: CallOverrides): Promise<string[]>;
 
-  "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+  "distributedTokens()"(overrides?: CallOverrides): Promise<string[]>;
 
   distributionBalance(
     token: string,
@@ -371,9 +371,9 @@ export class IDividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
+    distributedTokens(overrides?: CallOverrides): Promise<string[]>;
 
-    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "distributedTokens()"(overrides?: CallOverrides): Promise<string[]>;
 
     distributionBalance(
       token: string,

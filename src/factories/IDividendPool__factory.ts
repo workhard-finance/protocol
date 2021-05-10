@@ -102,9 +102,9 @@ const _abi = [
     name: "distributedTokens",
     outputs: [
       {
-        internalType: "uint256",
+        internalType: "address[]",
         name: "",
-        type: "uint256",
+        type: "address[]",
       },
     ],
     stateMutability: "view",

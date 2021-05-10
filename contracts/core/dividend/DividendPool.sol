@@ -121,8 +121,13 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         return (timestamp - genesis) / epochUnit;
     }
 
-    function distributedTokens() public view override returns (uint256) {
-        return distributedToken.length;
+    function distributedTokens()
+        public
+        view
+        override
+        returns (address[] memory _tokens)
+    {
+        return distributedToken;
     }
 
     /**
