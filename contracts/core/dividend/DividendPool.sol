@@ -19,7 +19,7 @@ struct Distribution {
     mapping(uint256 => uint256) claimStartWeekNum; // key is lock id
 }
 
-/** @title Vision Farm */
+/** @title Dividend Pool */
 contract DividendPool is IDividendPool, Governed, HasInitializer {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
