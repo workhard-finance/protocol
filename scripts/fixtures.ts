@@ -89,6 +89,7 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
     "VotingEscrowLock",
     await veVISION.callStatic.veLocker()
   );
+  record(hre.network.name as MyNetwork, "VotingEscrowLock", veLocker.address);
   // 9. Deploy dividend pool
   const dividendPool = await autoDeploy(
     "DividendPool",

@@ -9,6 +9,7 @@ import { MyNetwork } from "../../deployed";
 import {
   JobBoard,
   JobBoard__factory,
+  Project__factory,
   TimelockedGovernance__factory,
 } from "../../src";
 import { goTo } from "../../test/utils/utilities";
@@ -24,11 +25,13 @@ async function main() {
 
   const [signer] = await ethers.getSigners();
   const jobBoard = JobBoard__factory.connect(deployed.JobBoard, signer);
+  const project = Project__factory.connect(deployed.Project, signer);
   const timeLockGovernance = TimelockedGovernance__factory.connect(
     deployed.TimelockedGovernance,
     signer
   );
-  const tx = await jobBoard.populateTransaction.approveProject(0);
+  const tokenId = await project.tokenByIndex(0);
+  const tx = await jobBoard.populateTransaction.approveProject(tokenId);
   const data = tx?.data;
   await timeLockGovernance
     .connect(signer)

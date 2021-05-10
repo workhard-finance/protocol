@@ -20,7 +20,9 @@ async function main() {
     deployed[network].JobBoard,
     signer
   );
-  await jobBoard.createProject("sampleuri");
+  await jobBoard.createProject(
+    "QmToBdkMKvKaCYRaZtRVWu1tZb3Zg6HSgz13nugRrwzRiJ"
+  );
 }
 
 // We recommend this pattern to be able to use async/await everywhere
