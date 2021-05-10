@@ -43,7 +43,7 @@ contract CryptoJobBoard is
 
     uint256 public taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
 
-    mapping(address => bool) public accpetableTokens;
+    mapping(address => bool) public acceptableTokens;
 
     mapping(uint256 => uint256) public projectFund;
 
@@ -85,7 +85,7 @@ contract CryptoJobBoard is
         baseCurrency = _baseCurrency;
         oneInch = _oneInchExchange;
         project = IProject(_project);
-        accpetableTokens[_baseCurrency] = true;
+        acceptableTokens[_baseCurrency] = true;
         Governed.setGovernance(_gov);
     }
 
@@ -210,11 +210,11 @@ contract CryptoJobBoard is
     // Governed functions
 
     function addCurrency(address currency) public governed {
-        accpetableTokens[currency] = true;
+        acceptableTokens[currency] = true;
     }
 
     function removeCurrency(address currency) public governed {
-        accpetableTokens[currency] = false;
+        acceptableTokens[currency] = false;
     }
 
     function approveProject(uint256 projId) public governed {
@@ -251,7 +251,7 @@ contract CryptoJobBoard is
         address token,
         uint256 amount
     ) internal returns (uint256) {
-        require(accpetableTokens[token], "Not a supported currency");
+        require(acceptableTokens[token], "Not a supported currency");
         Budget memory budget = Budget(token, amount, false);
         projectBudgets[projId].push(budget);
         emit BudgetAdded(

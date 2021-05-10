@@ -21,7 +21,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface CryptoJobBoardInterface extends ethers.utils.Interface {
   functions: {
-    "accpetableTokens(address)": FunctionFragment;
+    "acceptableTokens(address)": FunctionFragment;
     "addAndExecuteBudget(uint256,address,uint256,bytes)": FunctionFragment;
     "addBudget(uint256,address,uint256)": FunctionFragment;
     "addCurrency(address)": FunctionFragment;
@@ -61,7 +61,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
-    functionFragment: "accpetableTokens",
+    functionFragment: "acceptableTokens",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -189,7 +189,7 @@ interface CryptoJobBoardInterface extends ethers.utils.Interface {
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "accpetableTokens",
+    functionFragment: "acceptableTokens",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -376,12 +376,12 @@ export class CryptoJobBoard extends Contract {
   interface: CryptoJobBoardInterface;
 
   functions: {
-    accpetableTokens(
+    acceptableTokens(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    "accpetableTokens(address)"(
+    "acceptableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
@@ -720,9 +720,9 @@ export class CryptoJobBoard extends Contract {
     "visionFarm()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
-  accpetableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+  acceptableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-  "accpetableTokens(address)"(
+  "acceptableTokens(address)"(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -1061,9 +1061,9 @@ export class CryptoJobBoard extends Contract {
   "visionFarm()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    accpetableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    acceptableTokens(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
-    "accpetableTokens(address)"(
+    "acceptableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -1448,12 +1448,12 @@ export class CryptoJobBoard extends Contract {
   };
 
   estimateGas: {
-    accpetableTokens(
+    acceptableTokens(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "accpetableTokens(address)"(
+    "acceptableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -1781,12 +1781,12 @@ export class CryptoJobBoard extends Contract {
   };
 
   populateTransaction: {
-    accpetableTokens(
+    acceptableTokens(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "accpetableTokens(address)"(
+    "acceptableTokens(address)"(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
