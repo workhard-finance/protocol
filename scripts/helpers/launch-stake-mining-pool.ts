@@ -5,10 +5,8 @@ export async function launchStakeMiningPool(
   visionEmitter: Contract,
   stakeToken: string
 ): Promise<Contract> {
-  await visionEmitter.newStakeMiningPool(stakeToken);
-  const poolAddr = await visionEmitter.callStatic.stakeMiningPools(
-    stakeToken
-  );
+  await visionEmitter.newStakeMiningPool(stakeToken, { gasLimit: 1650000 });
+  const poolAddr = await visionEmitter.callStatic.stakeMiningPools(stakeToken);
   const contract = await ethers.getContractAt("StakeMining", poolAddr);
   return contract;
 }
