@@ -36,15 +36,14 @@ export type Deployed = {
   [network in MyNetwork]?: {
     [contract in ContractNames]?: string;
   };
-};
-
-export type DeployedSequence = {
-  [network in MyNetwork]?: {
-    sequence?: {
-      [key: number]: boolean;
+} &
+  {
+    [network in MyNetwork]?: {
+      sequence?: {
+        [key: number]: boolean;
+      };
     };
   };
-};
 
 export const getNetworkName = (chainId: number): MyNetwork => {
   if (chainId === 1) return "mainnet";
@@ -54,4 +53,3 @@ export const getNetworkName = (chainId: number): MyNetwork => {
 };
 
 export const deployed: Deployed = deployedContract;
-export const deployedSequence: DeployedSequence = deployedContract as DeployedSequence;

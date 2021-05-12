@@ -1,8 +1,8 @@
 import hre, { ethers } from "hardhat";
 import { Contract, Signer, constants } from "ethers";
 
-import { autoDeploy, getDeployed, getRoleHash, record } from "./helper";
-import { MyNetwork } from "../../deployed";
+import { autoDeploy, getDB, getRoleHash, record } from "./helper";
+import { deployed, MyNetwork } from "../../deployed";
 
 import {
   BurnMining,
@@ -53,8 +53,8 @@ const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 export async function getBaseCurrency(signer: Signer): Promise<IERC20> {
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployed = getDeployed();
-  const deployedAddress = deployed[network]?.BaseCurrency;
+  const deployed = await getDB();
+  const deployedAddress = await deployed.get(`${network}.BaseCurrency`).value();
   let stablecoin: string;
   if (deployedAddress) {
     stablecoin = deployedAddress;
@@ -92,8 +92,8 @@ export async function getVisionETHLP(signer: Signer): Promise<IERC20> {
   const vision = await getVision(signer);
   const network = hre.network.name as MyNetwork;
   let lpAddress: string;
-  const deployed = getDeployed();
-  const deployedAddress = deployed[network]?.VisionLP;
+  const deployed = await getDB();
+  const deployedAddress = await deployed.get(`${network}.VisionLP`).value();
   let uniswapV2Factory: Contract;
   if (deployedAddress) {
     lpAddress = deployedAddress;
@@ -147,9 +147,11 @@ export async function getTimelockedGovernance(
 }
 
 export async function getVeLocker(signer: Signer): Promise<VotingEscrowLock> {
-  const deployed = getDeployed();
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployedAddress = deployed[network]?.VotingEscrowLock;
+  const deployed = await getDB();
+  const deployedAddress = await deployed
+    .get(`${network}.VotingEscrowLock`)
+    .value();
   let veLockAddr: string;
   if (deployedAddress) {
     veLockAddr = deployedAddress;
@@ -231,9 +233,11 @@ export async function getVisionEmitter(signer: Signer): Promise<VisionEmitter> {
 }
 
 export async function getLiquidityMining(signer: Signer): Promise<StakeMining> {
-  const deployed = getDeployed();
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployedAddress = deployed[network]?.LiquidityMining;
+  const deployed = await getDB();
+  const deployedAddress = await deployed
+    .get(`${network}.LiquidityMining`)
+    .value();
   let poolAddr: string;
   if (deployedAddress) {
     poolAddr = deployedAddress;
@@ -241,20 +245,20 @@ export async function getLiquidityMining(signer: Signer): Promise<StakeMining> {
     const visionEmitter = await getVisionEmitter(signer);
     const visionEthLP = await getVisionETHLP(signer);
     await visionEmitter.newStakeMiningPool(visionEthLP.address, {
-      gasLimit: 1650000,
+      gasLimit: 2000000,
     });
-    const poolAddr = await visionEmitter.callStatic.stakeMiningPools(
+    poolAddr = await visionEmitter.callStatic.stakeMiningPools(
       visionEthLP.address
     );
     record(hre.network.name as MyNetwork, "LiquidityMining", poolAddr);
-    return StakeMining__factory.connect(poolAddr, signer);
   }
+  return StakeMining__factory.connect(poolAddr, signer);
 }
 
 export async function getCommitMining(signer: Signer): Promise<BurnMining> {
-  const deployed = getDeployed();
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployedAddress = deployed[network]?.CommitMining;
+  const deployed = await getDB();
+  const deployedAddress = await deployed.get(`${network}.CommitMining`).value();
   let poolAddr: string;
   if (deployedAddress) {
     poolAddr = deployedAddress;
@@ -262,14 +266,12 @@ export async function getCommitMining(signer: Signer): Promise<BurnMining> {
     const visionEmitter = await getVisionEmitter(signer);
     const commit = await getCommit(signer);
     await visionEmitter.newBurnMiningPool(commit.address, {
-      gasLimit: 1650000,
+      gasLimit: 2000000,
     });
-    const poolAddr = await visionEmitter.callStatic.burnMiningPools(
-      commit.address
-    );
+    poolAddr = await visionEmitter.callStatic.burnMiningPools(commit.address);
     record(hre.network.name as MyNetwork, "CommitMining", poolAddr);
-    return BurnMining__factory.connect(poolAddr, signer);
   }
+  return BurnMining__factory.connect(poolAddr, signer);
 }
 
 export async function setEmissionRate(signer: Signer): Promise<void> {

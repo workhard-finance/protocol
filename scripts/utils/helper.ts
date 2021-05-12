@@ -5,6 +5,8 @@
 // Runtime Environment's members available in the global scope.
 import hre, { ethers } from "hardhat";
 import { Contract } from "ethers";
+import lowdb, { LowdbAsync } from "lowdb";
+import FileSync from "lowdb/adapters/FileSync";
 import merge from "deepmerge";
 import fs from "fs";
 import {
@@ -12,7 +14,6 @@ import {
   ContractNames,
   DeployableContracts,
   MyNetwork,
-  DeployedSequence,
 } from "../../deployed";
 import { solidityKeccak256 } from "ethers/lib/utils";
 
@@ -24,44 +25,26 @@ function deployFileName(): string {
   return fileName;
 }
 
-export function getDeployed(): Deployed {
-  const fileName = deployFileName();
-  if (fs.existsSync(fileName)) {
-    const data = fs.readFileSync(fileName, "utf-8");
-    const deployed = JSON.parse(data);
-    return deployed;
+let db: lowdb.LowdbSync<Deployed>;
+
+export const getDB = async () => {
+  if (!db) {
+    const adapter = new FileSync<Deployed>(deployFileName());
+    db = lowdb(adapter);
+    await db
+      .defaults({ localhost: {}, rinkeby: {}, hardhat: {}, mainnet: {} })
+      .write();
   }
-  return {};
-}
+  return db;
+};
 
-export function getDeployedSequence(): DeployedSequence {
-  return getDeployed() as DeployedSequence;
-}
-
-export function record(
+export async function record(
   network: MyNetwork,
   contract: ContractNames,
   address: string
 ) {
-  const deployed = getDeployed();
-  const updated = merge(deployed, {
-    [network]: { [contract]: address },
-  });
-  const fileName = deployFileName();
-  fs.writeFileSync(fileName, JSON.stringify(updated));
-}
-
-export function recordSequence(
-  network: MyNetwork,
-  sequence: string,
-  result: boolean
-) {
-  const deployed = getDeployed();
-  const updated = merge(deployed, {
-    [network]: { sequence: { [sequence]: result } },
-  });
-  const fileName = deployFileName();
-  fs.writeFileSync(fileName, JSON.stringify(updated));
+  const db = await getDB();
+  await db.set(`${network}.${contract}`, address).write();
 }
 
 export async function sequence(
@@ -70,10 +53,10 @@ export async function sequence(
   description: string,
   run: () => Promise<string | undefined>
 ): Promise<void> {
-  const deployed = getDeployedSequence();
-  const recorded = deployed[network]?.sequence;
-  if (!!recorded && recorded[key]) {
-    console.log(`(skip) ${key}.${description}: ${recorded[key]}`);
+  const db = await getDB();
+  const recorded = await db.get(`${network}.${key}`).value();
+  if (!!recorded) {
+    console.log(`(skip) ${key}.${description}: ${recorded}`);
     return;
   } else {
     let result: string | undefined;
@@ -85,11 +68,7 @@ export async function sequence(
     }
     if (result) {
       console.log(`(pass) ${key}.${description}${result && ": " + result}`);
-      const updated = merge(deployed, {
-        [network]: { sequence: { [key]: result } },
-      });
-      const fileName = deployFileName();
-      fs.writeFileSync(fileName, JSON.stringify(updated));
+      await db.set(`${network}.${key}`, result).write();
     } else {
       console.log(`(fail) ${key}.${description}`);
       throw Error(`Failed to execute sequence ${key}`);
@@ -102,8 +81,8 @@ export async function autoDeploy(
   ...args: any[]
 ): Promise<Contract> {
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployed = getDeployed();
-  const deployedAddress = deployed[network]?.[name];
+  const db = await getDB();
+  const deployedAddress = await db.get(`${network}.${name}`).value();
 
   if (network === "hardhat") {
     const contract = await (await ethers.getContractFactory(name)).deploy(
@@ -111,7 +90,6 @@ export async function autoDeploy(
     );
     return contract;
   } else if (deployedAddress) {
-    // console.log(`Contract ${name} is already deployed at ${deployedAddress}`);
     const contract = await ethers.getContractAt(name, deployedAddress);
     return contract;
   } else {
