@@ -4,39 +4,28 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { BigNumber } from "ethers";
-import hre, { ethers } from "hardhat";
-import { MyNetwork } from "../../deployed";
-import {
-  JobBoard,
-  JobBoard__factory,
-  Project__factory,
-  TimelockedGovernance__factory,
-} from "../../src";
+import { ethers } from "hardhat";
 import { goTo } from "../../test/utils/utilities";
-import { getDeployed } from "../utils/deployer";
+import {
+  getJobBoard,
+  getProject,
+  getTimelockedGovernance,
+} from "../utils/deployer";
 
 async function main() {
   const result = await ethers.provider.send("evm_snapshot", []);
   console.log("3. approve job - snapshot id: ", result);
-  const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployed = getDeployed()[network];
-  if (!deployed.JobBoard || !deployed.TimelockedGovernance)
-    throw Error("not deployed");
-
   const [signer] = await ethers.getSigners();
-  const jobBoard = JobBoard__factory.connect(deployed.JobBoard, signer);
-  const project = Project__factory.connect(deployed.Project, signer);
-  const timeLockGovernance = TimelockedGovernance__factory.connect(
-    deployed.TimelockedGovernance,
-    signer
-  );
+  const jobBoard = await getJobBoard(signer);
+  const project = await getProject(signer);
+  const timelock = await getTimelockedGovernance(signer);
   const tokenId = await project.tokenByIndex(0);
   const tx = await jobBoard.populateTransaction.approveProject(tokenId);
   const data = tx?.data;
-  await timeLockGovernance
+  await timelock
     .connect(signer)
     .schedule(
-      deployed.JobBoard,
+      jobBoard.address,
       0,
       data,
       ethers.constants.HashZero,
@@ -44,10 +33,10 @@ async function main() {
       BigNumber.from(86400)
     );
   await goTo(86400);
-  await timeLockGovernance
+  await timelock
     .connect(signer)
     .execute(
-      deployed.JobBoard,
+      jobBoard.address,
       0,
       data,
       ethers.constants.HashZero,

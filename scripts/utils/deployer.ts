@@ -1,88 +1,427 @@
-// We require the Hardhat Runtime Environment explicitly here. This is optional
-// but useful for running the script in a standalone fashion through `node <script>`.
-//
-// When running the script with `hardhat run <script>` you'll find the Hardhat
-// Runtime Environment's members available in the global scope.
 import hre, { ethers } from "hardhat";
-import { Contract } from "ethers";
-import merge from "deepmerge";
-import fs from "fs";
+import { Contract, Signer, constants } from "ethers";
+
+import { autoDeploy, getDeployed, getRoleHash, record } from "./helper";
+import { MyNetwork } from "../../deployed";
+
 import {
-  Deployed,
-  ContractNames,
-  DeployableContracts,
-  MyNetwork,
-} from "../../deployed";
+  BurnMining,
+  BurnMiningPoolFactory,
+  BurnMiningPoolFactory__factory,
+  BurnMining__factory,
+  COMMIT,
+  COMMIT__factory,
+  DividendPool,
+  DividendPool__factory,
+  ERC20Mock__factory,
+  IERC20,
+  IERC20__factory,
+  JobBoard,
+  JobBoard__factory,
+  Marketplace,
+  Marketplace__factory,
+  Project,
+  Project__factory,
+  StableReserve,
+  StableReserve__factory,
+  StakeMining,
+  StakeMiningPoolFactory,
+  StakeMiningPoolFactory__factory,
+  StakeMining__factory,
+  TeamShare,
+  TeamShare__factory,
+  TimelockedGovernance,
+  TimelockedGovernance__factory,
+  VISION,
+  VisionEmitter,
+  VisionEmitter__factory,
+  VISION__factory,
+  VoteCounter,
+  VoteCounter__factory,
+  VotingEscrowLock,
+  VotingEscrowLock__factory,
+  VotingEscrowToken,
+  VotingEscrowToken__factory,
+  WorkersUnion,
+  WorkersUnion__factory,
+} from "../../src";
+import { isAddress } from "ethers/lib/utils";
 
-function deployFileName(): string {
+const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
+const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+
+export async function getBaseCurrency(signer: Signer): Promise<IERC20> {
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const fileName = ["mainnet", "rinkeby"].includes(network)
-    ? "deployed.json"
-    : "deployed.dev.json";
-  return fileName;
-}
-
-export function getDeployed(): Deployed {
-  const fileName = deployFileName();
-  if (fs.existsSync(fileName)) {
-    const data = fs.readFileSync(fileName, "utf-8");
-    const deployed = JSON.parse(data);
-    return deployed;
-  }
-  return {};
-}
-
-export function record(
-  network: MyNetwork,
-  contract: ContractNames,
-  address: string
-) {
   const deployed = getDeployed();
-  const updated = merge(deployed, {
-    [network]: { [contract]: address },
-  });
-  const fileName = deployFileName();
-  fs.writeFileSync(fileName, JSON.stringify(updated));
-}
-
-export async function autoDeploy(
-  name: DeployableContracts,
-  ...args: any[]
-): Promise<Contract> {
-  const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployed = getDeployed();
-  const deployedAddress = deployed[network]?.[name];
-
-  if (network === "hardhat") {
-    const contract = await (await ethers.getContractFactory(name)).deploy(
-      ...args
-    );
-    return contract;
-  } else if (deployedAddress) {
-    console.log(`Contract ${name} is already deployed at ${deployedAddress}`);
-    const contract = await ethers.getContractAt(name, deployedAddress);
-    return contract;
+  const deployedAddress = deployed[network]?.BaseCurrency;
+  let stablecoin: string;
+  if (deployedAddress) {
+    stablecoin = deployedAddress;
+  } else if (network === "rinkeby") {
+    // rinkeby DAI
+    stablecoin = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
+  } else if (network === "mainnet") {
+    // mainnet DAI
+    stablecoin = "0x6b175474e89094c44da98b954eedeac495271d0f";
   } else {
-    const contract = await (await ethers.getContractFactory(name)).deploy(
-      ...args
+    // deploy!
+    const mockERC20 = await new ERC20Mock__factory(signer).deploy();
+    stablecoin = mockERC20.address;
+  }
+  record(hre.network.name as MyNetwork, "BaseCurrency", stablecoin);
+  return IERC20__factory.connect(stablecoin, signer);
+}
+
+export async function getVision(signer: Signer): Promise<VISION> {
+  const vision = await autoDeploy("VISION");
+  return VISION__factory.connect(vision.address, signer);
+}
+
+export async function getCommit(signer: Signer): Promise<COMMIT> {
+  const commit = await autoDeploy("COMMIT");
+  return COMMIT__factory.connect(commit.address, signer);
+}
+
+export async function getProject(signer: Signer): Promise<Project> {
+  const project = await autoDeploy("Project");
+  return Project__factory.connect(project.address, signer);
+}
+
+export async function getVisionETHLP(signer: Signer): Promise<IERC20> {
+  const vision = await getVision(signer);
+  const network = hre.network.name as MyNetwork;
+  let lpAddress: string;
+  const deployed = getDeployed();
+  const deployedAddress = deployed[network]?.VisionLP;
+  let uniswapV2Factory: Contract;
+  if (deployedAddress) {
+    lpAddress = deployedAddress;
+  } else {
+    if (["mainnet", "rinkeby"].includes(network)) {
+      uniswapV2Factory = await ethers.getContractAt(
+        "IUniswapV2Factory",
+        UNISWAP_FACTORY
+      );
+    } else {
+      const UniswapV2Factory = await ethers.getContractFactory(
+        "UniswapV2Factory"
+      );
+      uniswapV2Factory = await UniswapV2Factory.deploy(
+        await signer.getAddress()
+      );
+    }
+    let deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
+    if (deployedLP === constants.AddressZero) {
+      await uniswapV2Factory.createPair(vision.address, WETH);
+      deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
+    }
+    lpAddress = deployedLP;
+  }
+  record(hre.network.name as MyNetwork, "VisionLP", lpAddress);
+  return IERC20__factory.connect(lpAddress, signer);
+}
+
+export async function getRight(signer: Signer): Promise<VotingEscrowToken> {
+  const vision = await getVision(signer);
+  const right = await autoDeploy(
+    "RIGHT",
+    "https://workhard.finance/RIGHT/",
+    vision.address
+  );
+  return VotingEscrowToken__factory.connect(right.address, signer);
+}
+
+export async function getTeamShare(signer: Signer): Promise<TeamShare> {
+  const teamShare = await autoDeploy("TeamShare");
+  return TeamShare__factory.connect(teamShare.address, signer);
+}
+
+export async function getTimelockedGovernance(
+  signer: Signer
+): Promise<TimelockedGovernance> {
+  const tg = await autoDeploy("TimelockedGovernance", [
+    await signer.getAddress(),
+  ]);
+  return TimelockedGovernance__factory.connect(tg.address, signer);
+}
+
+export async function getVeLocker(signer: Signer): Promise<VotingEscrowLock> {
+  const deployed = getDeployed();
+  const network: MyNetwork = hre.network.name as MyNetwork;
+  const deployedAddress = deployed[network]?.VotingEscrowLock;
+  let veLockAddr: string;
+  if (deployedAddress) {
+    veLockAddr = deployedAddress;
+  } else {
+    const veVISION = await getRight(signer);
+    veLockAddr = await veVISION.veLocker();
+    record(hre.network.name as MyNetwork, "VotingEscrowLock", veLockAddr);
+  }
+  return VotingEscrowLock__factory.connect(veLockAddr, signer);
+}
+
+export async function getDividendPool(signer: Signer): Promise<DividendPool> {
+  const timelock = await getTimelockedGovernance(signer);
+  const veVISION = await getRight(signer);
+  const dividendPool = await autoDeploy(
+    "DividendPool",
+    timelock.address,
+    veVISION.address
+  );
+  return DividendPool__factory.connect(dividendPool.address, signer);
+}
+
+export async function getVoteCounter(signer: Signer): Promise<VoteCounter> {
+  const veVISION = await getRight(signer);
+  const voteCounter = await autoDeploy(
+    "SquareRootVoteCounter",
+    veVISION.address
+  );
+  return VoteCounter__factory.connect(voteCounter.address, signer);
+}
+
+export async function getWorkersUnion(signer: Signer): Promise<WorkersUnion> {
+  const voteCounter = await getVoteCounter(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const workersUnion = await autoDeploy(
+    "WorkersUnion",
+    voteCounter.address,
+    timelock.address
+  );
+  return WorkersUnion__factory.connect(workersUnion.address, signer);
+}
+
+export async function getBurnMiningFactory(
+  signer: Signer
+): Promise<BurnMiningPoolFactory> {
+  const burnMiningPoolFactory = await autoDeploy("BurnMiningPoolFactory");
+  return BurnMiningPoolFactory__factory.connect(
+    burnMiningPoolFactory.address,
+    signer
+  );
+}
+
+export async function getStakeMiningFactory(
+  signer: Signer
+): Promise<StakeMiningPoolFactory> {
+  const stakeMiningPoolFactory = await autoDeploy("StakeMiningPoolFactory");
+  return StakeMiningPoolFactory__factory.connect(
+    stakeMiningPoolFactory.address,
+    signer
+  );
+}
+
+export async function getVisionEmitter(signer: Signer): Promise<VisionEmitter> {
+  const teamShare = await getTeamShare(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const vision = await getVision(signer);
+  const burnMiningFactory = await getBurnMiningFactory(signer);
+  const stakeMiningFactory = await getStakeMiningFactory(signer);
+  const visionEmitter = await autoDeploy(
+    "VisionEmitter",
+    teamShare.address,
+    timelock.address,
+    await signer.getAddress(),
+    vision.address,
+    burnMiningFactory.address,
+    stakeMiningFactory.address
+  );
+  return VisionEmitter__factory.connect(visionEmitter.address, signer);
+}
+
+export async function getLiquidityMining(signer: Signer): Promise<StakeMining> {
+  const deployed = getDeployed();
+  const network: MyNetwork = hre.network.name as MyNetwork;
+  const deployedAddress = deployed[network]?.LiquidityMining;
+  let poolAddr: string;
+  if (deployedAddress) {
+    poolAddr = deployedAddress;
+  } else {
+    const visionEmitter = await getVisionEmitter(signer);
+    const visionEthLP = await getVisionETHLP(signer);
+    await visionEmitter.newStakeMiningPool(visionEthLP.address, {
+      gasLimit: 1650000,
+    });
+    const poolAddr = await visionEmitter.callStatic.stakeMiningPools(
+      visionEthLP.address
     );
-    record(network, name, contract.address);
-    console.log(`Deployed ${name} at ${contract.address}`);
-    return contract;
+    record(hre.network.name as MyNetwork, "LiquidityMining", poolAddr);
+    return StakeMining__factory.connect(poolAddr, signer);
   }
 }
 
-export async function getDeployedContract(
-  deployed: Deployed,
-  name: ContractNames,
-  artifactName?: string
-) {
+export async function getCommitMining(signer: Signer): Promise<BurnMining> {
+  const deployed = getDeployed();
   const network: MyNetwork = hre.network.name as MyNetwork;
-  const deployedAddress = deployed[network]?.[name];
-  if (!deployedAddress) throw Error(`${name} is not deployed on ${network}`);
-  const contract = await ethers.getContractAt(
-    artifactName || name,
-    deployedAddress
+  const deployedAddress = deployed[network]?.CommitMining;
+  let poolAddr: string;
+  if (deployedAddress) {
+    poolAddr = deployedAddress;
+  } else {
+    const visionEmitter = await getVisionEmitter(signer);
+    const commit = await getCommit(signer);
+    await visionEmitter.newBurnMiningPool(commit.address, {
+      gasLimit: 1650000,
+    });
+    const poolAddr = await visionEmitter.callStatic.burnMiningPools(
+      commit.address
+    );
+    record(hre.network.name as MyNetwork, "CommitMining", poolAddr);
+    return BurnMining__factory.connect(poolAddr, signer);
+  }
+}
+
+export async function setEmissionRate(signer: Signer): Promise<void> {
+  const liquidityMining = await getLiquidityMining(signer);
+  const commitMining = await getCommitMining(signer);
+  const visionEmitter = await getVisionEmitter(signer);
+  await visionEmitter
+    .connect(signer)
+    .setEmission(
+      [liquidityMining.address, commitMining.address],
+      [4745, 4745],
+      499,
+      1
+    );
+}
+
+export async function setVisionMinter(signer?: Signer): Promise<void> {
+  const vision = await getVision(signer);
+  const visionEmitter = await getVisionEmitter(signer);
+  await vision.setMinter(visionEmitter.address);
+}
+
+export async function transferGovernanceOfEmitter(
+  signer: Signer
+): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  await visionEmitter.setGovernance(timelock.address);
+}
+
+export async function getStableReserve(signer: Signer): Promise<StableReserve> {
+  const commit = await getCommit(signer);
+  const baseCurrency = await getBaseCurrency(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const stableReserve = await autoDeploy(
+    "StableReserve",
+    timelock.address,
+    commit.address,
+    baseCurrency.address
   );
-  return contract;
+  return StableReserve__factory.connect(stableReserve.address, signer);
+}
+export async function setCommitMinter(signer: Signer): Promise<void> {
+  const commit = await getCommit(signer);
+  const stableReserve = await getStableReserve(signer);
+  await commit.setMinter(stableReserve.address);
+}
+
+export async function getJobBoard(signer: Signer): Promise<JobBoard> {
+  const project = await getProject(signer);
+  const baseCurrency = await getBaseCurrency(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const dividendPool = await getDividendPool(signer);
+  const stableReserve = await getStableReserve(signer);
+  const jobBoard = await autoDeploy(
+    "JobBoard",
+    timelock.address,
+    project.address,
+    dividendPool.address,
+    stableReserve.address,
+    baseCurrency.address,
+    ONE_INCH
+  );
+  return JobBoard__factory.connect(jobBoard.address, signer);
+}
+
+export async function getMarketplace(signer: Signer): Promise<Marketplace> {
+  const commit = await getCommit(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const dividendPool = await getDividendPool(signer);
+  const marketplace = await autoDeploy(
+    "Marketplace",
+    timelock.address,
+    commit.address,
+    dividendPool.address
+  );
+  return Marketplace__factory.connect(marketplace.address, signer);
+}
+
+export async function initStableReserve(signer: Signer): Promise<void> {
+  const stableReserve = await getStableReserve(signer);
+  const jobBoard = await getJobBoard(signer);
+  await stableReserve.init(jobBoard.address);
+}
+
+export async function initDividendPool(signer: Signer): Promise<void> {
+  const dividendPool = await getDividendPool(signer);
+  const jobBoard = await getJobBoard(signer);
+  const markeplace = await getMarketplace(signer);
+  await dividendPool.init(jobBoard.address, markeplace.address);
+}
+
+export async function scheduleTokenEmissionStart(
+  signer: Signer
+): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const tx = await visionEmitter.populateTransaction.start();
+  const timelockTxParams = [
+    visionEmitter.address,
+    0,
+    tx.data,
+    constants.HashZero,
+    constants.HashZero,
+  ];
+  // @ts-ignore
+  await timelock.schedule(...timelockTxParams, 86400);
+}
+
+export async function transferGovernance(signer: Signer): Promise<void> {
+  const timelock = await getTimelockedGovernance(signer);
+  const workersUnion = await getWorkersUnion(signer);
+  const isDevEnv = !["mainnet", "rinkeby"].includes(
+    ethers.provider.network.name
+  );
+  const MULTISIG_WALLET = process.env.MULTISIG_WALLET;
+  let multisig: string;
+  const deployer = await signer.getAddress();
+  if (isDevEnv) {
+    multisig = deployer;
+  } else {
+    if (!isAddress(MULTISIG_WALLET)) {
+      throw Error("You should setup multi sig wallet");
+    }
+    multisig = MULTISIG_WALLET;
+  }
+  await timelock.grantRole(getRoleHash("PROPOSER_ROLE"), multisig);
+  await timelock.grantRole(getRoleHash("EXECUTOR_ROLE"), multisig);
+  await timelock.grantRole(getRoleHash("PROPOSER_ROLE"), workersUnion.address);
+  await timelock.grantRole(getRoleHash("EXECUTOR_ROLE"), workersUnion.address);
+  await timelock.grantRole(
+    getRoleHash("TIMELOCK_ADMIN_ROLE"),
+    workersUnion.address
+  );
+  const populated = await timelock.populateTransaction.revokeRole(
+    getRoleHash("EXECUTOR_ROLE"),
+    multisig
+  );
+  const delay = 3600 * 24 * 7 * 4; // about 4 weeks
+  const target = populated.to;
+  if (!target) throw Error("populated tx does not have the to value");
+  await timelock.forceSchedule(
+    target,
+    populated.value || 0,
+    populated.data,
+    constants.HashZero, // predecessor
+    constants.HashZero, // salt
+    delay
+  );
+  if (!isDevEnv) {
+    await timelock.revokeRole(getRoleHash("PROPOSER_ROLE"), deployer);
+    await timelock.revokeRole(getRoleHash("EXECUTOR_ROLE"), deployer);
+    await timelock.revokeRole(getRoleHash("TIMELOCK_ADMIN_ROLE"), deployer);
+  }
 }
