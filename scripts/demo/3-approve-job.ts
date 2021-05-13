@@ -12,7 +12,7 @@ import {
   getTimelockedGovernance,
 } from "../utils/deployer";
 
-async function main() {
+export async function approveProject() {
   const result = await ethers.provider.send("evm_snapshot", []);
   console.log("3. approve job - snapshot id: ", result);
   const [signer] = await ethers.getSigners();
@@ -43,12 +43,3 @@ async function main() {
       ethers.constants.HashZero
     );
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });

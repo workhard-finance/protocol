@@ -6,7 +6,7 @@
 import { ethers } from "hardhat";
 import { getJobBoard } from "../utils/deployer";
 
-async function main() {
+export async function newCryptoJob() {
   const result = await ethers.provider.send("evm_snapshot", []);
   console.log("2. new crypto job - snapshot id: ", result);
   const [signer] = await ethers.getSigners();
@@ -15,12 +15,3 @@ async function main() {
     "QmToBdkMKvKaCYRaZtRVWu1tZb3Zg6HSgz13nugRrwzRiJ"
   );
 }
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });

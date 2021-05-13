@@ -8,7 +8,7 @@ import { constants } from "ethers";
 import { getTimelockedGovernance, getVisionEmitter } from "../utils/deployer";
 import { goTo, goToNextWeek } from "../../test/utils/utilities";
 
-async function main() {
+export async function executeSetEmission() {
   const [signer] = await ethers.getSigners();
   const visionEmitter = await getVisionEmitter(signer);
   const timelock = await getTimelockedGovernance(signer);
@@ -29,10 +29,3 @@ async function main() {
   await goToNextWeek();
   await visionEmitter.distribute();
 }
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
