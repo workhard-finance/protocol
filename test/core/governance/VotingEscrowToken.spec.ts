@@ -1,10 +1,18 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber } from "ethers";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
+import { parseEther } from "ethers/lib/utils";
 import { almostEquals, goTo } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  ERC20Mock,
+  ERC20Mock__factory,
+  VotingEscrowLock,
+  VotingEscrowLock__factory,
+  VotingEscrowToken,
+  VotingEscrowToken__factory,
+} from "../../../src";
 
 chai.use(solidity);
 
@@ -13,28 +21,23 @@ describe("VotingEscrowToken.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let token: Contract;
-  let veToken: Contract;
-  let veLocker: Contract;
-  const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
+  let token: ERC20Mock;
+  let veToken: VotingEscrowToken;
+  let veLocker: VotingEscrowLock;
   before(async () => {
     signers = await ethers.getSigners();
     alice = signers[0];
     bob = signers[1];
     carl = signers[2];
-    const ERC20Mock_Factory = await ethers.getContractFactory("ERC20Mock");
-    const VeToken_Factory = await ethers.getContractFactory(
-      "VotingEscrowToken"
-    );
-    token = await ERC20Mock_Factory.deploy();
-    veToken = await VeToken_Factory.deploy(
+    token = await new ERC20Mock__factory(alice).deploy();
+    veToken = await new VotingEscrowToken__factory(alice).deploy(
       "Voting Escrow Token",
       "veToken",
       "locker uri",
       token.address
     );
     const veLockerAddress = await veToken.callStatic.veLocker();
-    veLocker = await ethers.getContractAt("VotingEscrowLock", veLockerAddress);
+    veLocker = VotingEscrowLock__factory.connect(veLockerAddress, alice);
     const prepare = async (account: SignerWithAddress) => {
       await token.mint(account.address, parseEther("10000"));
       await token
@@ -45,7 +48,6 @@ describe("VotingEscrowToken.sol", function () {
     await prepare(bob);
     await prepare(carl);
 
-    const timestamp0 = (await ethers.provider.getBlock("latest")).timestamp;
     const MAX = (await veLocker.callStatic.MAXTIME()) as BigNumber;
     const expectBalances = async (
       aliceBal: string,

@@ -1,32 +1,29 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, Signer, constants } from "ethers";
+import { constants } from "ethers";
 import { goTo } from "../../utils/utilities";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Governed, Governed__factory } from "../../../src";
 
 chai.use(solidity);
 
 describe("Governed.sol", function () {
-  let signers: Signer[];
-  let initialGov: Signer;
-  let newGov: Signer;
-  let governed: Contract;
-  let newGovAddr: string;
-  let initialGovAddr: string;
+  let signers: SignerWithAddress[];
+  let initialGov: SignerWithAddress;
+  let newGov: SignerWithAddress;
+  let governed: Governed;
   beforeEach(async () => {
     signers = await ethers.getSigners();
     initialGov = signers[0];
     newGov = signers[1];
-    const Governed = await ethers.getContractFactory("Governed", initialGov);
-    governed = await Governed.deploy();
-    initialGovAddr = await initialGov.getAddress();
-    newGovAddr = await newGov.getAddress();
+    governed = await new Governed__factory(initialGov).deploy();
   });
   it("Governance admin functions is only allowed to 'gov' address", async function () {
     const _governed = governed.connect(newGov);
-    expect(await governed.gov()).eq(initialGovAddr);
+    expect(await governed.gov()).eq(initialGov.address);
     await expect(_governed.anarchize()).to.be.reverted;
-    await expect(_governed.setGovernance(newGovAddr)).to.be.reverted;
+    await expect(_governed.setGovernance(newGov.address)).to.be.reverted;
     const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
     await expect(_governed.setAnarchyPoint(timestamp + 1)).to.be.reverted;
   });
@@ -36,7 +33,7 @@ describe("Governed.sol", function () {
     });
     it("removes the gov control", async function () {
       const _governed = governed.connect(initialGov);
-      expect(await _governed.gov()).eq(initialGovAddr);
+      expect(await _governed.gov()).eq(initialGov.address);
       await expect(_governed.anarchize())
         .to.emit(_governed, "Anarchized")
         .withArgs();
@@ -45,16 +42,16 @@ describe("Governed.sol", function () {
   });
   describe("setGovernance()", async function () {
     it("is allowed only for the current gov()", async function () {
-      await expect(governed.connect(newGov).setGovernance(newGovAddr)).to.be
+      await expect(governed.connect(newGov).setGovernance(newGov.address)).to.be
         .reverted;
     });
     it("changes the gov address and emit NewGovernance()", async function () {
       const _governed = governed.connect(initialGov);
-      expect(await _governed.gov()).eq(initialGovAddr);
-      await expect(_governed.setGovernance(newGovAddr))
+      expect(await _governed.gov()).eq(initialGov.address);
+      await expect(_governed.setGovernance(newGov.address))
         .to.emit(_governed, "NewGovernance")
-        .withArgs(initialGovAddr, newGovAddr);
-      expect(await _governed.gov()).eq(newGovAddr);
+        .withArgs(initialGov.address, newGov.address);
+      expect(await _governed.gov()).eq(newGov.address);
     });
   });
 
@@ -73,7 +70,7 @@ describe("Governed.sol", function () {
         .to.emit(_governed, "Anarchized")
         .withArgs();
       expect(await _governed.gov()).eq(constants.AddressZero);
-      await expect(_governed.setGovernance(newGovAddr)).to.be.reverted;
+      await expect(_governed.setGovernance(newGov.address)).to.be.reverted;
     });
   });
 });

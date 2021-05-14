@@ -1,11 +1,19 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import { goTo, runTimelockTx } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  DividendPool,
+  ERC20Mock,
+  ERC20Mock__factory,
+  TimelockedGovernance,
+  VISION,
+  VotingEscrowLock,
+} from "../../../src";
 
 chai.use(solidity);
 
@@ -20,11 +28,11 @@ describe("DividendPool.sol", function () {
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
   let fixture: MiningFixture;
-  let vision: Contract;
-  let dividendPool: Contract;
-  let veLocker: Contract;
-  let timelock: Contract;
-  let testingRewardToken: Contract;
+  let vision: VISION;
+  let dividendPool: DividendPool;
+  let veLocker: VotingEscrowLock;
+  let timelock: TimelockedGovernance;
+  let testingRewardToken: ERC20Mock;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -38,15 +46,13 @@ describe("DividendPool.sol", function () {
     dividendPool = fixture.dividendPool;
     veLocker = fixture.veLocker;
     timelock = fixture.timelock;
-    const ERC20 = await ethers.getContractFactory("ERC20Mock");
-    testingRewardToken = await ERC20.deploy();
+    testingRewardToken = await new ERC20Mock__factory(deployer).deploy();
     await testingRewardToken.mint(distributor.address, parseEther("10000"));
     await testingRewardToken
       .connect(distributor)
       .approve(dividendPool.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {
-      const addr = await account.getAddress();
-      await vision.mint(addr, parseEther("10000"));
+      await vision.mint(account.address, parseEther("10000"));
       await vision
         .connect(account)
         .approve(veLocker.address, parseEther("10000"));
@@ -59,20 +65,16 @@ describe("DividendPool.sol", function () {
     it("should start from 0", async () => {
       let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
       const startEpoch = Math.floor(timestamp / week);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(startEpoch);
+      expect(await dividendPool.getCurrentEpoch()).eq(startEpoch);
     });
     it("should increment by weekly", async () => {
       let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
       const startEpoch = Math.floor(timestamp / week);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(startEpoch);
+      expect(await dividendPool.getCurrentEpoch()).eq(startEpoch);
       await goTo(4 * week);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(
-        startEpoch + 4
-      );
+      expect(await dividendPool.getCurrentEpoch()).eq(startEpoch + 4);
       await goTo(3 * week);
-      expect(await dividendPool.callStatic.getCurrentEpoch()).eq(
-        startEpoch + 7
-      );
+      expect(await dividendPool.getCurrentEpoch()).eq(startEpoch + 7);
     });
   });
   describe("distribute() & claim()", async () => {

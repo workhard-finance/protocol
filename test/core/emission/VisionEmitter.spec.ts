@@ -1,49 +1,63 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Signer, Contract, constants, BigNumber } from "ethers";
+import { constants, BigNumber } from "ethers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
-import { getCreate2Address, goTo, goToNextWeek } from "../../utils/utilities";
+import {
+  getCreate2Address,
+  goTo,
+  goToNextWeek,
+  runTimelockTx,
+} from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  BurnMining,
+  BurnMining__factory,
+  COMMIT,
+  COMMIT__factory,
+  StakeMining,
+  StakeMining__factory,
+  TimelockedGovernance,
+  VISION,
+  VisionEmitter,
+  VISION__factory,
+} from "../../../src";
 
 chai.use(solidity);
 
 describe("VisionEmitter.sol", function () {
-  let signers: Signer[];
-  let deployer: Signer;
-  let dev: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let deployerAddress: string;
-  let devAddress: string;
+  let signers: SignerWithAddress[];
+  let deployer: SignerWithAddress;
+  let dev: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
   let fixture: MiningFixture;
-  let vision: Contract;
-  let visionEmitter: Contract;
-  let commitMining: Contract;
-  let liquidityMining: Contract;
-  let timelock: Contract;
-  let initialEmission;
+  let vision: VISION;
+  let visionEmitter: VisionEmitter;
+  let commitMining: BurnMining;
+  let liquidityMining: StakeMining;
+  let timelock: TimelockedGovernance;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
+  let initialEmission;
   beforeEach(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     dev = signers[1];
     alice = signers[2];
     bob = signers[3];
-    deployerAddress = await deployer.getAddress();
-    devAddress = await dev.getAddress();
     fixture = await getMiningFixture();
     vision = fixture.vision;
     visionEmitter = fixture.visionEmitter;
     timelock = fixture.timelock;
     commitMining = fixture.commitMining;
     liquidityMining = fixture.liquidityMining;
-    initialEmission = [
-      [commitMining.address, liquidityMining.address],
-      [4745, 4745],
-      500,
-      10,
-    ];
+    initialEmission = {
+      pools: [commitMining.address, liquidityMining.address],
+      weights: [4745, 4745],
+      protocol: 499,
+      caller: 1,
+    };
   });
   it("VisionEmitter should be governed by the timelock contract at first", async function () {
     expect(await visionEmitter.gov()).eq(timelock.address);
@@ -51,49 +65,73 @@ describe("VisionEmitter.sol", function () {
 
   describe("setEmission", async () => {
     it("should revert tx from unauthenticated addresses", async () => {
-      await expect(visionEmitter.setEmission(...initialEmission)).to.be
-        .reverted;
+      await expect(
+        visionEmitter.setEmission(
+          initialEmission.pools,
+          initialEmission.weights,
+          initialEmission.protocol,
+          initialEmission.caller
+        )
+      ).to.be.reverted;
     });
     it("should set the emission from the authenticated timelock contract", async () => {
       const tx = await visionEmitter.populateTransaction.setEmission(
-        ...initialEmission
+        initialEmission.pools,
+        initialEmission.weights,
+        initialEmission.protocol,
+        initialEmission.caller
       );
-      const timelockTxParams = [
-        visionEmitter.address, // target
-        0, // value
-        tx.data, // msg.data
-        constants.HashZero, // predecessor
-        constants.HashZero, // salt
-      ];
-      await timelock.schedule(...timelockTxParams, 86400);
-      await expect(timelock.execute(...timelockTxParams)).to.be.reverted;
+      const timelockTxParams = {
+        target: visionEmitter.address, // target
+        value: 0, // value
+        data: tx.data, // msg.data
+        predecessor: constants.HashZero, // predecessor
+        salt: constants.HashZero, // salt
+      };
+      await timelock.schedule(
+        timelockTxParams.target,
+        timelockTxParams.value,
+        timelockTxParams.data,
+        timelockTxParams.predecessor,
+        timelockTxParams.salt,
+        86400
+      );
+      await expect(
+        timelock.execute(
+          timelockTxParams.target,
+          timelockTxParams.value,
+          timelockTxParams.data,
+          timelockTxParams.predecessor,
+          timelockTxParams.salt
+        )
+      ).to.be.reverted;
       await goTo(86401);
-      await expect(timelock.execute(...timelockTxParams))
+      await expect(
+        timelock.execute(
+          timelockTxParams.target,
+          timelockTxParams.value,
+          timelockTxParams.data,
+          timelockTxParams.predecessor,
+          timelockTxParams.salt
+        )
+      )
         .to.emit(visionEmitter, "EmissionWeightUpdated")
         .withArgs(2);
-      expect(await visionEmitter.callStatic.pools(0)).to.be.eq(
-        commitMining.address
-      );
-      expect(await visionEmitter.callStatic.pools(1)).to.be.eq(
-        liquidityMining.address
-      );
-      expect(await visionEmitter.callStatic.getPoolWeight(0)).to.be.eq(4745);
-      expect(await visionEmitter.callStatic.getPoolWeight(1)).to.be.eq(4745);
+      expect(await visionEmitter.pools(0)).to.be.eq(commitMining.address);
+      expect(await visionEmitter.pools(1)).to.be.eq(liquidityMining.address);
+      expect(await visionEmitter.getPoolWeight(0)).to.be.eq(4745);
+      expect(await visionEmitter.getPoolWeight(1)).to.be.eq(4745);
     });
   });
   describe("newBurnMiningPool & newStakeMiningPool", async () => {
-    let testingStakeToken: Contract;
-    let testingBurnToken: Contract;
-    let stakeMiningPool: Contract;
-    let burnMiningPool: Contract;
+    let testingStakeToken: VISION;
+    let testingBurnToken: COMMIT;
     beforeEach(async () => {
-      const VISION = await ethers.getContractFactory("VISION");
-      const COMMIT = await ethers.getContractFactory("COMMIT");
-      testingStakeToken = await VISION.deploy();
-      testingBurnToken = await COMMIT.deploy();
+      testingStakeToken = await new VISION__factory(deployer).deploy();
+      testingBurnToken = await new COMMIT__factory(deployer).deploy();
     });
     it("newBurnMiningPool", async () => {
-      const burnMiningPoolFactoryAddr = await visionEmitter.callStatic.burnMiningPoolFactory();
+      const burnMiningPoolFactoryAddr = await visionEmitter.burnMiningPoolFactory();
       const BurnMining = await ethers.getContractFactory("BurnMining");
       const newBurnMiningPoolAddr = getCreate2Address(
         burnMiningPoolFactoryAddr,
@@ -105,7 +143,7 @@ describe("VisionEmitter.sol", function () {
         .withArgs(testingBurnToken.address, newBurnMiningPoolAddr);
     });
     it("newStakeMiningPool", async () => {
-      const stakeMiningPoolFactoryAddr = await visionEmitter.callStatic.stakeMiningPoolFactory();
+      const stakeMiningPoolFactoryAddr = await visionEmitter.stakeMiningPoolFactory();
       const StakeMining = await ethers.getContractFactory("StakeMining");
       const newStakeMiningPoolAddr = getCreate2Address(
         stakeMiningPoolFactoryAddr,
@@ -118,26 +156,22 @@ describe("VisionEmitter.sol", function () {
     });
   });
   describe("start() & distribute()", async () => {
-    let testingStakeToken: Contract;
-    let testingBurnToken: Contract;
-    let testingStakeMiningPool: Contract;
-    let testingBurnMiningPool: Contract;
+    let testingStakeToken: VISION;
+    let testingBurnToken: COMMIT;
+    let testingStakeMiningPool: StakeMining;
+    let testingBurnMiningPool: BurnMining;
     beforeEach(async () => {
-      const VISION = await ethers.getContractFactory("VISION");
-      const COMMIT = await ethers.getContractFactory("COMMIT");
-      testingStakeToken = await VISION.deploy();
-      testingBurnToken = await COMMIT.deploy();
+      testingStakeToken = await new VISION__factory(deployer).deploy();
+      testingBurnToken = await new COMMIT__factory(deployer).deploy();
       await visionEmitter.newBurnMiningPool(testingBurnToken.address);
       await visionEmitter.newStakeMiningPool(testingStakeToken.address);
-      testingBurnMiningPool = await ethers.getContractAt(
-        "BurnMining",
-        await visionEmitter.callStatic.burnMiningPools(testingBurnToken.address)
+      testingBurnMiningPool = BurnMining__factory.connect(
+        await visionEmitter.burnMiningPools(testingBurnToken.address),
+        deployer
       );
-      testingStakeMiningPool = await ethers.getContractAt(
-        "BurnMining",
-        await visionEmitter.callStatic.stakeMiningPools(
-          testingStakeToken.address
-        )
+      testingStakeMiningPool = StakeMining__factory.connect(
+        await visionEmitter.stakeMiningPools(testingStakeToken.address),
+        deployer
       );
     });
     it("distribute() should fail before it starts", async () => {
@@ -145,35 +179,21 @@ describe("VisionEmitter.sol", function () {
     });
     describe("after start() executed", async () => {
       beforeEach(async () => {
-        const startTx = await visionEmitter.populateTransaction.start();
-        const startTxParams = [
-          visionEmitter.address, // target
-          0, // value
-          startTx.data, // msg.data
-          constants.HashZero, // predecessor
-          constants.HashZero, // salt
-        ];
-        const testEmissionRate = [
-          [testingBurnMiningPool.address, testingStakeMiningPool.address],
-          [4745, 4745],
-          500,
-          10,
-        ];
-        const setEmissionTx = await visionEmitter.populateTransaction.setEmission(
-          ...testEmissionRate
+        await runTimelockTx(
+          timelock,
+          visionEmitter.populateTransaction.start(),
+          86400
         );
-        const setEmissionTxParams = [
-          visionEmitter.address, // target
-          0, // value
-          setEmissionTx.data, // msg.data
-          constants.HashZero, // predecessor
-          constants.HashZero, // salt
-        ];
-        await timelock.schedule(...startTxParams, 86400);
-        await timelock.schedule(...setEmissionTxParams, 86400);
-        await goTo(86401);
-        await timelock.execute(...setEmissionTxParams);
-        await timelock.execute(...startTxParams);
+        await runTimelockTx(
+          timelock,
+          visionEmitter.populateTransaction.setEmission(
+            [testingBurnMiningPool.address, testingStakeMiningPool.address],
+            [4745, 4745],
+            500,
+            10
+          ),
+          86400
+        );
       });
       describe("distribute()", async () => {
         it("should fail when if the emission rate is not set properly", async () => {
@@ -184,9 +204,7 @@ describe("VisionEmitter.sol", function () {
           await expect(visionEmitter.distribute())
             .to.emit(visionEmitter, "TokenEmission")
             .withArgs(INITIAL_EMISSION_AMOUNT);
-          expect(await vision.callStatic.totalSupply()).to.eq(
-            INITIAL_EMISSION_AMOUNT
-          );
+          expect(await vision.totalSupply()).to.eq(INITIAL_EMISSION_AMOUNT);
         });
         const weeklyStat = [];
         weeklyStat.push({

@@ -1,37 +1,46 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Signer, Contract, constants, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import {
   goTo,
   goToNextWeek,
+  runTimelockTx,
   setNextBlockTimestamp,
 } from "../../utils/utilities";
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import {
+  BurnMining,
+  BurnMining__factory,
+  COMMIT,
+  COMMIT__factory,
+  StakeMining,
+  StakeMining__factory,
+  TimelockedGovernance,
+  VISION,
+  VisionEmitter,
+  VISION__factory,
+} from "../../../src";
 
 chai.use(solidity);
 
 describe("MiningPool.sol", function () {
-  let signers: Signer[];
-  let deployer: Signer;
-  let dev: Signer;
-  let alice: Signer;
-  let bob: Signer;
-  let carl: Signer;
-  let deployerAddress: string;
-  let devAddress: string;
-  let aliceAddress: string;
-  let bobAddress: string;
-  let carlAddress: string;
+  let signers: SignerWithAddress[];
+  let deployer: SignerWithAddress;
+  let dev: SignerWithAddress;
+  let alice: SignerWithAddress;
+  let bob: SignerWithAddress;
+  let carl: SignerWithAddress;
   let fixture: MiningFixture;
-  let vision: Contract;
-  let visionEmitter: Contract;
-  let timelock: Contract;
-  let testingStakeToken: Contract;
-  let testingBurnToken: Contract;
-  let stakeMiningPool: Contract;
-  let burnMiningPool: Contract;
+  let vision: VISION;
+  let visionEmitter: VisionEmitter;
+  let timelock: TimelockedGovernance;
+  let testingStakeToken: VISION;
+  let testingBurnToken: COMMIT;
+  let stakeMiningPool: StakeMining;
+  let burnMiningPool: BurnMining;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -40,37 +49,25 @@ describe("MiningPool.sol", function () {
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    deployerAddress = await deployer.getAddress();
-    devAddress = await dev.getAddress();
-    aliceAddress = await alice.getAddress();
-    bobAddress = await bob.getAddress();
-    carlAddress = await carl.getAddress();
     fixture = await getMiningFixture();
     vision = fixture.vision;
     visionEmitter = fixture.visionEmitter;
     timelock = fixture.timelock;
-    const VISION = await ethers.getContractFactory("VISION");
-    const COMMIT = await ethers.getContractFactory("COMMIT");
-    testingStakeToken = await VISION.deploy();
-    testingBurnToken = await COMMIT.deploy();
+    testingStakeToken = await new VISION__factory(deployer).deploy();
+    testingBurnToken = await new COMMIT__factory(deployer).deploy();
     await visionEmitter.newBurnMiningPool(testingBurnToken.address);
     await visionEmitter.newStakeMiningPool(testingStakeToken.address);
-    burnMiningPool = await ethers.getContractAt(
-      "BurnMining",
-      await visionEmitter.callStatic.burnMiningPools(
-        testingBurnToken.address
-      )
+    burnMiningPool = BurnMining__factory.connect(
+      await visionEmitter.burnMiningPools(testingBurnToken.address),
+      deployer
     );
-    stakeMiningPool = await ethers.getContractAt(
-      "StakeMining",
-      await visionEmitter.callStatic.stakeMiningPools(
-        testingStakeToken.address
-      )
+    stakeMiningPool = StakeMining__factory.connect(
+      await visionEmitter.stakeMiningPools(testingStakeToken.address),
+      deployer
     );
-    const prepare = async (account: Signer) => {
-      const addr = await account.getAddress();
-      await testingStakeToken.mint(addr, parseEther("10000"));
-      await testingBurnToken.mint(addr, parseEther("10000"));
+    const prepare = async (account: SignerWithAddress) => {
+      await testingStakeToken.mint(account.address, parseEther("10000"));
+      await testingBurnToken.mint(account.address, parseEther("10000"));
       await testingStakeToken
         .connect(account)
         .approve(stakeMiningPool.address, parseEther("10000"));
@@ -82,35 +79,21 @@ describe("MiningPool.sol", function () {
     await prepare(bob);
     await prepare(carl);
 
-    const startTx = await visionEmitter.populateTransaction.start();
-    const startTxParams = [
-      visionEmitter.address, // target
-      0, // value
-      startTx.data, // msg.data
-      constants.HashZero, // predecessor
-      constants.HashZero, // salt
-    ];
-    const testEmissionRate = [
-      [burnMiningPool.address, stakeMiningPool.address],
-      [4745, 4745],
-      500,
-      10,
-    ];
-    const setEmissionTx = await visionEmitter.populateTransaction.setEmission(
-      ...testEmissionRate
+    await runTimelockTx(
+      timelock,
+      visionEmitter.populateTransaction.start(),
+      86400
     );
-    const setEmissionTxParams = [
-      visionEmitter.address, // target
-      0, // value
-      setEmissionTx.data, // msg.data
-      constants.HashZero, // predecessor
-      constants.HashZero, // salt
-    ];
-    await timelock.schedule(...startTxParams, 86400);
-    await timelock.schedule(...setEmissionTxParams, 86400);
-    await goTo(86401);
-    await timelock.execute(...setEmissionTxParams);
-    await timelock.execute(...startTxParams);
+    await runTimelockTx(
+      timelock,
+      visionEmitter.populateTransaction.setEmission(
+        [burnMiningPool.address, stakeMiningPool.address],
+        [4745, 4745],
+        500,
+        10
+      ),
+      86400
+    );
   });
   describe("distribute()", async () => {
     beforeEach(async () => {
@@ -119,15 +102,15 @@ describe("MiningPool.sol", function () {
     });
     describe("Stake Mining Pool", async () => {
       it("should return the value depending on the staking period", async () => {
-        const bal0 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal0 = await vision.balanceOf(alice.address);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(10000);
         await stakeMiningPool.connect(alice).exit();
-        const bal1 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal1 = await vision.balanceOf(alice.address);
         await stakeMiningPool.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(20000);
         await stakeMiningPool.connect(alice).exit();
-        const bal2 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal2 = await vision.balanceOf(alice.address);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of stake", async () => {
@@ -142,11 +125,9 @@ describe("MiningPool.sol", function () {
         await stakeMiningPool.connect(bob).exit();
         await stakeMiningPool.connect(carl).exit();
 
-        const aliceReward = await vision.callStatic.balanceOf(
-          aliceAddress
-        );
-        const bobReward = await vision.callStatic.balanceOf(bobAddress);
-        const carlReward = await vision.callStatic.balanceOf(carlAddress);
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
         expect(aliceReward.div(1833333333333).div(1e9)).eq(
           bobReward.div(833333333333).div(1e9)
         );
@@ -157,15 +138,15 @@ describe("MiningPool.sol", function () {
     });
     describe("Burn Mining Pool", async () => {
       it("should return the value depending on the burned period", async () => {
-        const bal0 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal0 = await vision.balanceOf(alice.address);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(10000);
         await burnMiningPool.connect(alice).exit();
-        const bal1 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal1 = await vision.balanceOf(alice.address);
         await burnMiningPool.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(20000);
         await burnMiningPool.connect(alice).exit();
-        const bal2 = await vision.callStatic.balanceOf(aliceAddress);
+        const bal2 = await vision.balanceOf(alice.address);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of burn", async () => {
@@ -180,11 +161,9 @@ describe("MiningPool.sol", function () {
         await burnMiningPool.connect(bob).exit();
         await burnMiningPool.connect(carl).exit();
 
-        const aliceReward = await vision.callStatic.balanceOf(
-          aliceAddress
-        );
-        const bobReward = await vision.callStatic.balanceOf(bobAddress);
-        const carlReward = await vision.callStatic.balanceOf(carlAddress);
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
         expect(aliceReward.div(1833333333333).div(1e9)).eq(
           bobReward.div(833333333333).div(1e9)
         );

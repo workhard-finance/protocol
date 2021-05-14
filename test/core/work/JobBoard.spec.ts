@@ -1,11 +1,20 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { Contract, BigNumber, Signer, BigNumberish } from "ethers";
+import { BigNumber, BigNumberish } from "ethers";
 import { parseEther, solidityKeccak256 } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { runTimelockTx } from "../../utils/utilities";
 import { getAppFixture, AppFixture } from "../../../scripts/fixtures";
+import {
+  COMMIT,
+  DividendPool,
+  ERC20Mock,
+  JobBoard,
+  Project,
+  StableReserve,
+  TimelockedGovernance,
+} from "../../../src";
 
 chai.use(solidity);
 
@@ -16,13 +25,13 @@ describe("JobBoard.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let fixture: AppFixture;
-  let jobBoard: Contract;
-  let stableReserve: Contract;
-  let commit: Contract;
-  let project: Contract;
-  let baseCurrency: Contract;
-  let dividendPool: Contract;
-  let timelock: Contract;
+  let jobBoard: JobBoard;
+  let stableReserve: StableReserve;
+  let commit: COMMIT;
+  let project: Project;
+  let baseCurrency: ERC20Mock;
+  let dividendPool: DividendPool;
+  let timelock: TimelockedGovernance;
   let projectMetadata: {
     id: BigNumberish;
     title: string;
@@ -48,9 +57,8 @@ describe("JobBoard.sol", function () {
     dividendPool = fixture.dividendPool;
     timelock = fixture.timelock;
     await baseCurrency.mint(deployer.address, parseEther("10000"));
-    const prepare = async (account: Signer) => {
-      const addr = await account.getAddress();
-      await baseCurrency.mint(addr, parseEther("10000"));
+    const prepare = async (account: SignerWithAddress) => {
+      await baseCurrency.mint(account.address, parseEther("10000"));
       await baseCurrency
         .connect(account)
         .approve(jobBoard.address, parseEther("10000"));
@@ -86,19 +94,19 @@ describe("JobBoard.sol", function () {
   describe("addBudget()", async () => {
     it("should transfer the fund from the proposer to the contract", async () => {
       await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
-      expect(await baseCurrency.callStatic.balanceOf(projOwner.address)).to.eq(
+      expect(await baseCurrency.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
-      expect(await baseCurrency.callStatic.balanceOf(jobBoard.address)).to.eq(
+      expect(await baseCurrency.balanceOf(jobBoard.address)).to.eq(
         parseEther("0")
       );
       await jobBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
-      expect(await baseCurrency.callStatic.balanceOf(projOwner.address)).to.eq(
+      expect(await baseCurrency.balanceOf(projOwner.address)).to.eq(
         parseEther("9900")
       );
-      expect(await baseCurrency.callStatic.balanceOf(jobBoard.address)).to.eq(
+      expect(await baseCurrency.balanceOf(jobBoard.address)).to.eq(
         parseEther("100")
       );
     });
@@ -132,13 +140,9 @@ describe("JobBoard.sol", function () {
         .withArgs(projectMetadata.id);
     });
     it("should refund the unapproved budgets", async () => {
-      const bal0: BigNumber = await baseCurrency.callStatic.balanceOf(
-        projOwner.address
-      );
+      const bal0: BigNumber = await baseCurrency.balanceOf(projOwner.address);
       await jobBoard.connect(projOwner).closeProject(projectMetadata.id);
-      const bal1: BigNumber = await baseCurrency.callStatic.balanceOf(
-        projOwner.address
-      );
+      const bal1: BigNumber = await baseCurrency.balanceOf(projOwner.address);
       expect(bal1.sub(bal0)).eq(parseEther("100"));
     });
   });
@@ -177,14 +181,14 @@ describe("JobBoard.sol", function () {
         timelock,
         jobBoard.populateTransaction.approveProject(projectMetadata.id)
       );
-      const prevTotalSupply: BigNumber = await commit.callStatic.totalSupply();
+      const prevTotalSupply: BigNumber = await commit.totalSupply();
       await jobBoard
         .connect(projOwner)
         .executeBudget(projectMetadata.id, 0, []);
-      const updatedTotalSupply: BigNumber = await commit.callStatic.totalSupply();
-      expect(
-        await baseCurrency.callStatic.balanceOf(stableReserve.address)
-      ).to.eq(parseEther("80"));
+      const updatedTotalSupply: BigNumber = await commit.totalSupply();
+      expect(await baseCurrency.balanceOf(stableReserve.address)).to.eq(
+        parseEther("80")
+      );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("80"));
     });
     it("should send the 20% of the fund to the vision farm", async () => {
@@ -195,8 +199,8 @@ describe("JobBoard.sol", function () {
       await jobBoard
         .connect(projOwner)
         .executeBudget(projectMetadata.id, 0, []);
-      const weekNum = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.distributionOfWeek(
+      const weekNum = await dividendPool.getCurrentEpoch();
+      const result = await dividendPool.distributionOfWeek(
         baseCurrency.address,
         weekNum
       );
@@ -231,17 +235,17 @@ describe("JobBoard.sol", function () {
         .withArgs(projectMetadata.id, 0);
     });
     it("should take 50% of the fund for the fee.", async () => {
-      const prevTotalSupply: BigNumber = await commit.callStatic.totalSupply();
+      const prevTotalSupply: BigNumber = await commit.totalSupply();
       await jobBoard
         .connect(projOwner)
-        .forceExecuteBudget(projectMetadata.id, 0, []);
-      const updatedTotalSupply: BigNumber = await commit.callStatic.totalSupply();
-      expect(
-        await baseCurrency.callStatic.balanceOf(stableReserve.address)
-      ).to.eq(parseEther("50"));
+        .forceExecuteBudget(projectMetadata.id, 0);
+      const updatedTotalSupply: BigNumber = await commit.totalSupply();
+      expect(await baseCurrency.balanceOf(stableReserve.address)).to.eq(
+        parseEther("50")
+      );
       expect(updatedTotalSupply.sub(prevTotalSupply)).eq(parseEther("50"));
-      const weekNum = await dividendPool.callStatic.getCurrentEpoch();
-      const result = await dividendPool.callStatic.distributionOfWeek(
+      const weekNum = await dividendPool.getCurrentEpoch();
+      const result = await dividendPool.distributionOfWeek(
         baseCurrency.address,
         weekNum
       );
@@ -288,9 +292,7 @@ describe("JobBoard.sol", function () {
           .forceExecuteBudget(projectMetadata.id, 0);
       });
       it("the budget owner can execute the budget", async () => {
-        const bal0: BigNumber = await commit.callStatic.balanceOf(
-          alice.address
-        );
+        const bal0: BigNumber = await commit.balanceOf(alice.address);
         await expect(
           jobBoard
             .connect(projOwner)
@@ -298,9 +300,7 @@ describe("JobBoard.sol", function () {
         )
           .to.emit(jobBoard, "Payed")
           .withArgs(projectMetadata.id, alice.address, parseEther("1"));
-        const bal1: BigNumber = await commit.callStatic.balanceOf(
-          alice.address
-        );
+        const bal1: BigNumber = await commit.balanceOf(alice.address);
         expect(bal1.sub(bal0)).eq(parseEther("1"));
       });
     });
