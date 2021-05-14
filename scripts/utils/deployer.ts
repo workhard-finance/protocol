@@ -47,8 +47,8 @@ import {
 } from "../../src";
 import { isAddress } from "ethers/lib/utils";
 
-const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
+export const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+export const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
 const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 export async function getBaseCurrency(signer: Signer): Promise<IERC20> {
@@ -288,18 +288,20 @@ export async function setEmissionRate(signer: Signer): Promise<void> {
     );
 }
 
-export async function setVisionMinter(signer?: Signer): Promise<void> {
-  const vision = await getVision(signer);
-  const visionEmitter = await getVisionEmitter(signer);
-  await vision.setMinter(visionEmitter.address);
+export async function setVisionMinter(
+  vision: VISION,
+  visionEmitter: VisionEmitter,
+  signer: Signer
+): Promise<void> {
+  await vision.connect(signer).setMinter(visionEmitter.address);
 }
 
 export async function transferGovernanceOfEmitter(
+  visionEmitter: VisionEmitter,
+  timelock: TimelockedGovernance,
   signer: Signer
 ): Promise<void> {
-  const visionEmitter = await getVisionEmitter(signer);
-  const timelock = await getTimelockedGovernance(signer);
-  await visionEmitter.setGovernance(timelock.address);
+  await visionEmitter.connect(signer).setGovernance(timelock.address);
 }
 
 export async function getStableReserve(signer: Signer): Promise<StableReserve> {
@@ -314,10 +316,12 @@ export async function getStableReserve(signer: Signer): Promise<StableReserve> {
   );
   return StableReserve__factory.connect(stableReserve.address, signer);
 }
-export async function setCommitMinter(signer: Signer): Promise<void> {
-  const commit = await getCommit(signer);
-  const stableReserve = await getStableReserve(signer);
-  await commit.setMinter(stableReserve.address);
+export async function setCommitMinter(
+  commit: COMMIT,
+  stableReserve: StableReserve,
+  signer: Signer
+): Promise<void> {
+  await commit.connect(signer).setMinter(stableReserve.address);
 }
 
 export async function getJobBoard(signer: Signer): Promise<JobBoard> {
@@ -351,24 +355,28 @@ export async function getMarketplace(signer: Signer): Promise<Marketplace> {
   return Marketplace__factory.connect(marketplace.address, signer);
 }
 
-export async function initStableReserve(signer: Signer): Promise<void> {
-  const stableReserve = await getStableReserve(signer);
-  const jobBoard = await getJobBoard(signer);
-  await stableReserve.init(jobBoard.address);
+export async function initStableReserve(
+  stableReserve: StableReserve,
+  jobBoard: JobBoard,
+  signer: Signer
+): Promise<void> {
+  await stableReserve.connect(signer).init(jobBoard.address);
 }
 
-export async function initDividendPool(signer: Signer): Promise<void> {
-  const dividendPool = await getDividendPool(signer);
-  const jobBoard = await getJobBoard(signer);
-  const markeplace = await getMarketplace(signer);
-  await dividendPool.init(jobBoard.address, markeplace.address);
+export async function initDividendPool(
+  dividendPool: DividendPool,
+  jobBoard: JobBoard,
+  markeplace: Marketplace,
+  signer: Signer
+): Promise<void> {
+  await dividendPool.connect(signer).init(jobBoard.address, markeplace.address);
 }
 
 export async function scheduleTokenEmissionStart(
+  visionEmitter: VisionEmitter,
+  timelock: TimelockedGovernance,
   signer: Signer
 ): Promise<void> {
-  const visionEmitter = await getVisionEmitter(signer);
-  const timelock = await getTimelockedGovernance(signer);
   const tx = await visionEmitter.populateTransaction.start();
   const timelockTxParams = [
     visionEmitter.address,
@@ -378,12 +386,14 @@ export async function scheduleTokenEmissionStart(
     constants.HashZero,
   ];
   // @ts-ignore
-  await timelock.schedule(...timelockTxParams, 86400);
+  await timelock.connect(signer).schedule(...timelockTxParams, 86400);
 }
 
-export async function transferGovernance(signer: Signer): Promise<void> {
-  const timelock = await getTimelockedGovernance(signer);
-  const workersUnion = await getWorkersUnion(signer);
+export async function transferGovernance(
+  timelock: TimelockedGovernance,
+  workersUnion: WorkersUnion,
+  signer: Signer
+): Promise<void> {
   const isDevEnv = !["mainnet", "rinkeby"].includes(
     ethers.provider.network.name
   );

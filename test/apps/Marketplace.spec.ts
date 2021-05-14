@@ -17,7 +17,7 @@ describe("Marketplace.sol", function () {
   let fixture: AppFixture;
   let marketplace: Contract;
   let stableReserve: Contract;
-  let commitToken: Contract;
+  let commit: Contract;
   let baseCurrency: Contract;
   let dividendPool: Contract;
   let timelock: Contract;
@@ -29,7 +29,7 @@ describe("Marketplace.sol", function () {
     bob = signers[2];
     fixture = await getAppFixture();
     baseCurrency = fixture.baseCurrency;
-    commitToken = fixture.commitToken;
+    commit = fixture.commit;
     marketplace = fixture.marketplace;
     stableReserve = fixture.stableReserve;
     dividendPool = fixture.dividendPool;
@@ -44,9 +44,7 @@ describe("Marketplace.sol", function () {
       await stableReserve
         .connect(account)
         .payInsteadOfWorking(parseEther("100"));
-      commitToken
-        .connect(account)
-        .approve(marketplace.address, parseEther("10000"));
+      commit.connect(account).approve(marketplace.address, parseEther("10000"));
     };
     await prepare(manufacturer);
     await prepare(alice);

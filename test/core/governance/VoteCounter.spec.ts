@@ -24,7 +24,7 @@ describe("SquareRootVoteCounter.sol", function () {
   let fixture: MiningFixture;
   let vision: Contract;
   let veLocker: Contract;
-  let veVISION: Contract;
+  let right: Contract;
   let voteCounter: Contract;
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -41,7 +41,7 @@ describe("SquareRootVoteCounter.sol", function () {
     fixture = await getMiningFixture({ skipMinterSetting: true });
     vision = fixture.vision;
     veLocker = fixture.veLocker;
-    veVISION = fixture.veVISION;
+    right = fixture.right;
     voteCounter = fixture.voteCounter;
     const prepare = async (account: SignerWithAddress) => {
       const addr = await account.getAddress();
@@ -67,7 +67,7 @@ describe("SquareRootVoteCounter.sol", function () {
         alice.address,
         0
       );
-      const aliceVeVISION = await veVISION.callStatic.balanceOfAt(
+      const aliceVeVISION = await right.callStatic.balanceOfAt(
         alice.address,
         timestamp
       );
@@ -75,7 +75,7 @@ describe("SquareRootVoteCounter.sol", function () {
         bob.address,
         0
       );
-      const bobVeVISION = await veVISION.callStatic.balanceOfAt(
+      const bobVeVISION = await right.callStatic.balanceOfAt(
         bob.address,
         timestamp
       );
@@ -83,7 +83,7 @@ describe("SquareRootVoteCounter.sol", function () {
         carl.address,
         0
       );
-      const carlVeVISION = await veVISION.callStatic.balanceOfAt(
+      const carlVeVISION = await right.callStatic.balanceOfAt(
         carl.address,
         timestamp
       );

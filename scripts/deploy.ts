@@ -100,7 +100,11 @@ async function main() {
     19,
     "Set VisionEmitter as Vision Minter",
     async () => {
-      await setVisionMinter(deployer);
+      await setVisionMinter(
+        await getVision(deployer),
+        await getVisionEmitter(deployer),
+        deployer
+      );
       return "success";
     }
   );
@@ -109,7 +113,11 @@ async function main() {
     20,
     "Transfer emitter governance to timelock",
     async () => {
-      await transferGovernanceOfEmitter(deployer);
+      await transferGovernanceOfEmitter(
+        await getVisionEmitter(deployer),
+        await getTimelockedGovernance(deployer),
+        deployer
+      );
       return "success";
     }
   );
@@ -121,7 +129,11 @@ async function main() {
     22,
     "Set StableReserve as Commit Minter",
     async () => {
-      await setCommitMinter(deployer);
+      await setCommitMinter(
+        await getCommit(deployer),
+        await getStableReserve(deployer),
+        deployer
+      );
       return "success";
     }
   );
@@ -132,19 +144,36 @@ async function main() {
     return (await getMarketplace(deployer)).address;
   });
   await sequence(network, 25, "Init Stable Reserve", async () => {
-    await initStableReserve(deployer);
+    await initStableReserve(
+      await getStableReserve(deployer),
+      await getJobBoard(deployer),
+      deployer
+    );
     return "success";
   });
   await sequence(network, 26, "Init Dividend Pool", async () => {
-    await initDividendPool(deployer);
+    await initDividendPool(
+      await getDividendPool(deployer),
+      await getJobBoard(deployer),
+      await getMarketplace(deployer),
+      deployer
+    );
     return "success";
   });
   await sequence(network, 27, "Schedule token emission start", async () => {
-    await scheduleTokenEmissionStart(deployer);
+    await scheduleTokenEmissionStart(
+      await getVisionEmitter(deployer),
+      await getTimelockedGovernance(deployer),
+      deployer
+    );
     return "success";
   });
   await sequence(network, 28, "Transfer Governance", async () => {
-    await transferGovernance(deployer);
+    await transferGovernance(
+      await getTimelockedGovernance(deployer),
+      await getWorkersUnion(deployer),
+      deployer
+    );
     return "transferred";
   });
 }

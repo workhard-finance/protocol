@@ -22,7 +22,7 @@ describe("WorkersUnion.sol", function () {
   let workersUnion: Contract;
   let timelock: Contract;
   let voteCounter: Contract;
-  let veVISION: Contract;
+  let right: Contract;
   let newVotingRule: any[];
   let pTx: PopulatedTransaction;
   let params: any[];
@@ -37,7 +37,7 @@ describe("WorkersUnion.sol", function () {
     fixture = await getMiningFixture({ skipMinterSetting: true });
     vision = fixture.vision;
     veLocker = fixture.veLocker;
-    veVISION = fixture.veVISION;
+    right = fixture.right;
     voteCounter = fixture.voteCounter;
     workersUnion = fixture.workersUnion;
     timelock = fixture.timelock;
