@@ -7,6 +7,7 @@ import { executeSetEmission } from "./1-execute-set-emission";
 import { newCryptoJob } from "./2-new-crypto-job";
 import { approveProject } from "./3-approve-job";
 import { launchWorkersUnion } from "./4-workers-union";
+import { mintBaseCurrency } from "./5-mint-base-currency";
 
 async function main() {
   // 1
@@ -17,6 +18,8 @@ async function main() {
   await approveProject();
   // 4
   await launchWorkersUnion();
+  // 5
+  await mintBaseCurrency();
 }
 
 main()
