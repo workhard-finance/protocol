@@ -6,6 +6,7 @@
 import hre, { ethers } from "hardhat";
 import { MyNetwork } from "../deployed";
 import {
+  addTokensToDividendPool,
   getBaseCurrency,
   getBurnMiningFactory,
   getCommit,
@@ -26,7 +27,6 @@ import {
   getVisionETHLP,
   getVoteCounter,
   getWorkersUnion,
-  initDividendPool,
   initStableReserve,
   scheduleTokenEmissionStart,
   setCommitMinter,
@@ -151,22 +151,23 @@ async function main() {
     );
     return "success";
   });
-  await sequence(network, 26, "Init Dividend Pool", async () => {
-    await initDividendPool(
-      await getDividendPool(deployer),
-      await getJobBoard(deployer),
-      await getMarketplace(deployer),
-      deployer
-    );
-    return "success";
-  });
-  await sequence(network, 27, "Schedule token emission start", async () => {
+  await sequence(network, 26, "Schedule token emission start", async () => {
     await scheduleTokenEmissionStart(
       await getVisionEmitter(deployer),
       await getTimelockedGovernance(deployer),
       deployer
     );
     return "success";
+  });
+  await sequence(network, 27, "Add tokens to the dividend pool", async () => {
+    await addTokensToDividendPool(
+      await getTimelockedGovernance(deployer),
+      await getDividendPool(deployer),
+      await getBaseCurrency(deployer),
+      await getCommit(deployer),
+      deployer
+    );
+    return "transferred";
   });
   await sequence(network, 28, "Transfer Governance", async () => {
     await transferGovernance(

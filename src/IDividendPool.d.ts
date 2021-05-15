@@ -21,24 +21,33 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface IDividendPoolInterface extends ethers.utils.Interface {
   functions: {
+    "addToken(address)": FunctionFragment;
     "claimStartWeek(address,uint256)": FunctionFragment;
     "claimable(address)": FunctionFragment;
+    "distributable(address)": FunctionFragment;
     "distribute(address,uint256)": FunctionFragment;
     "distributedToken(uint256)": FunctionFragment;
     "distributedTokens()": FunctionFragment;
     "distributionBalance(address)": FunctionFragment;
     "distributionOfWeek(address,uint256)": FunctionFragment;
     "getCurrentEpoch()": FunctionFragment;
+    "removeToken(address)": FunctionFragment;
+    "setAdmin(address,bool)": FunctionFragment;
     "totalDistributed(address)": FunctionFragment;
     "veLocker()": FunctionFragment;
     "veVISION()": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "addToken", values: [string]): string;
   encodeFunctionData(
     functionFragment: "claimStartWeek",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "claimable", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "distributable",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "distribute",
     values: [string, BigNumberish]
@@ -63,6 +72,11 @@ interface IDividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "getCurrentEpoch",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "removeToken", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "setAdmin",
+    values: [string, boolean]
+  ): string;
   encodeFunctionData(
     functionFragment: "totalDistributed",
     values: [string]
@@ -70,11 +84,16 @@ interface IDividendPoolInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
   encodeFunctionData(functionFragment: "veVISION", values?: undefined): string;
 
+  decodeFunctionResult(functionFragment: "addToken", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "claimStartWeek",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "distributable",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "distributedToken",
@@ -96,6 +115,11 @@ interface IDividendPoolInterface extends ethers.utils.Interface {
     functionFragment: "getCurrentEpoch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "setAdmin", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalDistributed",
     data: BytesLike
@@ -150,6 +174,16 @@ export class IDividendPool extends Contract {
   interface: IDividendPoolInterface;
 
   functions: {
+    addToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "addToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     claimStartWeek(
       token: string,
       veLockId: BigNumberish,
@@ -168,6 +202,13 @@ export class IDividendPool extends Contract {
       token: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    distributable(token: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    "distributable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     distribute(
       token: string,
@@ -221,6 +262,28 @@ export class IDividendPool extends Contract {
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    removeToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "removeToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setAdmin(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setAdmin(address,bool)"(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     totalDistributed(
       token: string,
       overrides?: CallOverrides
@@ -240,6 +303,16 @@ export class IDividendPool extends Contract {
     "veVISION()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
+  addToken(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "addToken(address)"(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   claimStartWeek(
     token: string,
     veLockId: BigNumberish,
@@ -258,6 +331,13 @@ export class IDividendPool extends Contract {
     token: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  distributable(token: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "distributable(address)"(
+    token: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   distribute(
     token: string,
@@ -311,6 +391,28 @@ export class IDividendPool extends Contract {
 
   "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  removeToken(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "removeToken(address)"(
+    token: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setAdmin(
+    admin: string,
+    active: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setAdmin(address,bool)"(
+    admin: string,
+    active: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   totalDistributed(
     token: string,
     overrides?: CallOverrides
@@ -330,6 +432,13 @@ export class IDividendPool extends Contract {
   "veVISION()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
+    addToken(token: string, overrides?: CallOverrides): Promise<void>;
+
+    "addToken(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     claimStartWeek(
       token: string,
       veLockId: BigNumberish,
@@ -348,6 +457,13 @@ export class IDividendPool extends Contract {
       token: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    distributable(token: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "distributable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     distribute(
       token: string,
@@ -401,6 +517,25 @@ export class IDividendPool extends Contract {
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    removeToken(token: string, overrides?: CallOverrides): Promise<void>;
+
+    "removeToken(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setAdmin(
+      admin: string,
+      active: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setAdmin(address,bool)"(
+      admin: string,
+      active: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     totalDistributed(
       token: string,
       overrides?: CallOverrides
@@ -423,6 +558,16 @@ export class IDividendPool extends Contract {
   filters: {};
 
   estimateGas: {
+    addToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "addToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     claimStartWeek(
       token: string,
       veLockId: BigNumberish,
@@ -438,6 +583,13 @@ export class IDividendPool extends Contract {
     claimable(token: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     "claimable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    distributable(token: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributable(address)"(
       token: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -494,6 +646,28 @@ export class IDividendPool extends Contract {
 
     "getCurrentEpoch()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    removeToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "removeToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setAdmin(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setAdmin(address,bool)"(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     totalDistributed(
       token: string,
       overrides?: CallOverrides
@@ -514,6 +688,16 @@ export class IDividendPool extends Contract {
   };
 
   populateTransaction: {
+    addToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "addToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     claimStartWeek(
       token: string,
       veLockId: BigNumberish,
@@ -532,6 +716,16 @@ export class IDividendPool extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "claimable(address)"(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    distributable(
+      token: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "distributable(address)"(
       token: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -590,6 +784,28 @@ export class IDividendPool extends Contract {
 
     "getCurrentEpoch()"(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    removeToken(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "removeToken(address)"(
+      token: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAdmin(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setAdmin(address,bool)"(
+      admin: string,
+      active: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     totalDistributed(

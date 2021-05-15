@@ -9,7 +9,6 @@ import {
   setVisionMinter,
   setCommitMinter,
   initStableReserve,
-  initDividendPool,
   WETH,
   ONE_INCH,
   transferGovernanceOfEmitter,
@@ -306,13 +305,6 @@ export async function getAppFixture(): Promise<AppFixture> {
   );
   // 21. Initialize Stable Reserve
   await initStableReserve(stableReserve, jobBoard, deployer);
-  // 22. Initialize Dividend Pool
-  await initDividendPool(
-    miningFixture.dividendPool,
-    jobBoard,
-    marketplace,
-    deployer
-  );
   return {
     ...miningFixture,
     jobBoard,

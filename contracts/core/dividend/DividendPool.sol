@@ -28,33 +28,35 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
     address public immutable override veVISION; // a.k.a RIGHT
     address public immutable override veLocker;
 
-    mapping(address => bool) distributors;
-
     mapping(address => Distribution) public distributions;
+
+    mapping(address => bool) public override distributable;
 
     address[] public override distributedToken;
 
     /** @notice The block timestamp when the contract is deployed */
-    uint256 public genesis;
+    uint256 public immutable genesis;
 
-    uint256 public immutable epochUnit = 1 weeks; // default 1 epoch is 1 week
+    uint256 public constant epochUnit = 1 weeks; // default 1 epoch is 1 week
 
-    address private _initalizer;
+    mapping(address => bool) admin;
 
-    constructor(address _gov, address _RIGHT) Governed() HasInitializer() {
+    constructor(address _gov, address _RIGHT) Governed() {
         veVISION = _RIGHT;
         veLocker = IVotingEscrowToken(_RIGHT).veLocker();
         Governed.setGovernance(_gov);
+        genesis = (block.timestamp / epochUnit) * epochUnit;
     }
 
-    modifier distributorsOnly {
-        require(distributors[msg.sender], "Not a registered distributor");
+    modifier onlyAdmin() {
+        require(admin[msg.sender] || msg.sender == gov, "Not allowed");
         _;
     }
 
     // distribution
 
     function distribute(address _token, uint256 _amount) public override {
+        require(distributable[_token], "Not allowed");
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 newBalance = IERC20(_token).balanceOf(address(this));
         Distribution storage distribution = distributions[_token];
@@ -93,19 +95,16 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
 
     // governance or initializer
 
-    function init(address jobBoard, address marketplace) public initializer {
-        _addDistributor(jobBoard);
-        _addDistributor(marketplace);
-        genesis = (block.timestamp / epochUnit) * epochUnit;
+    function setAdmin(address _admin, bool active) public override governed {
+        admin[_admin] = active;
     }
 
-    function addDistributor(address distributor) public governed {
-        _addDistributor(distributor);
+    function addToken(address token) public override onlyAdmin {
+        _addToken(token);
     }
 
-    function removeDistributor(address distributor) public governed {
-        require(distributors[distributor], "Not a registered distributor");
-        distributors[distributor] = false;
+    function removeToken(address token) public override onlyAdmin {
+        _removeToken(token);
     }
 
     /** @notice 1 epoch is 1 week */
@@ -179,11 +178,6 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         return acc;
     }
 
-    function _addDistributor(address distributor) internal {
-        require(!distributors[distributor], "Already registered");
-        distributors[distributor] = true;
-    }
-
     function _claim(
         address _token,
         uint256 _tokenId,
@@ -206,7 +200,7 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         uint256 epochCursor = distribution.claimStartWeekNum[_tokenId];
         if (epochCursor == 0) {
             (, uint256 _start, ) = IVotingEscrowLock(veLocker).locks(_tokenId);
-            epochCursor = (_start / epochUnit);
+            epochCursor = getEpoch(_start);
         }
         while (epochCursor <= _epoch) {
             // check the balance when the epoch ends
@@ -225,5 +219,19 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
             epochCursor += 1;
         }
         return accumulated;
+    }
+
+    function _addToken(address token) internal {
+        require(!distributable[token], "Token already registered");
+        distributable[token] = true;
+        (bool exist, ) = distributedToken.find(token);
+        if (!exist) {
+            distributedToken.push(token);
+        }
+    }
+
+    function _removeToken(address token) internal {
+        require(distributable[token], "Token not registered");
+        distributable[token] = false;
     }
 }

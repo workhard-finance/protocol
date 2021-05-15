@@ -25,10 +25,6 @@ async function distributeReward() {
   );
   const dividendPool = await getDividendPool(signer);
   const timelock = await getTimelockedGovernance(signer);
-  await runTimelockTx(
-    timelock,
-    dividendPool.populateTransaction.addDistributor(signer.address)
-  );
   await baseCurrency.approve(dividendPool.address, parseEther("10000"));
   await dividendPool.distribute(baseCurrency.address, parseEther("10000"));
   console.log(await dividendPool.claimable(baseCurrency.address));

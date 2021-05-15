@@ -363,15 +363,6 @@ export async function initStableReserve(
   await stableReserve.connect(signer).init(jobBoard.address);
 }
 
-export async function initDividendPool(
-  dividendPool: DividendPool,
-  jobBoard: JobBoard,
-  markeplace: Marketplace,
-  signer: Signer
-): Promise<void> {
-  await dividendPool.connect(signer).init(jobBoard.address, markeplace.address);
-}
-
 export async function scheduleTokenEmissionStart(
   visionEmitter: VisionEmitter,
   timelock: TimelockedGovernance,
@@ -387,6 +378,29 @@ export async function scheduleTokenEmissionStart(
   ];
   // @ts-ignore
   await timelock.connect(signer).schedule(...timelockTxParams, 86400);
+}
+
+export async function addTokensToDividendPool(
+  timelock: TimelockedGovernance,
+  dividendPool: DividendPool,
+  baseCurrency: IERC20,
+  commit: COMMIT,
+  signer: Signer
+): Promise<void> {
+  const populated0 = await dividendPool.populateTransaction.addToken(
+    baseCurrency.address
+  );
+  const populated1 = await dividendPool.populateTransaction.addToken(
+    commit.address
+  );
+  await timelock.scheduleBatch(
+    [populated0.to, populated1.to],
+    [populated0.value, populated1.value],
+    [populated0.data, populated1.data],
+    constants.HashZero, // predecessor
+    constants.HashZero, // salt
+    86400
+  );
 }
 
 export async function transferGovernance(

@@ -13,6 +13,7 @@ import {
   StableReserve,
   TimelockedGovernance,
 } from "../../src";
+import { runTimelockTx } from "../utils/utilities";
 
 chai.use(solidity);
 
@@ -42,6 +43,10 @@ describe("Marketplace.sol", function () {
     stableReserve = fixture.stableReserve;
     dividendPool = fixture.dividendPool;
     timelock = fixture.timelock;
+    await runTimelockTx(
+      timelock,
+      dividendPool.populateTransaction.addToken(commit.address)
+    );
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {
       await baseCurrency.mint(account.address, parseEther("10000"));
