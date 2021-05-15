@@ -395,7 +395,7 @@ export async function addTokensToDividendPool(
   );
   await timelock.scheduleBatch(
     [populated0.to, populated1.to],
-    [populated0.value, populated1.value],
+    [0, 0],
     [populated0.data, populated1.data],
     constants.HashZero, // predecessor
     constants.HashZero, // salt
