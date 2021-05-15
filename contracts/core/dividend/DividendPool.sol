@@ -60,9 +60,6 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 newBalance = IERC20(_token).balanceOf(address(this));
         Distribution storage distribution = distributions[_token];
-        if (distribution.totalDistribution == 0) {
-            distributedToken.push(_token);
-        }
         uint256 increment = newBalance - distribution.balance;
         distribution.balance = newBalance;
         distribution.totalDistribution += increment;
