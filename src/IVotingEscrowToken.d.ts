@@ -27,7 +27,7 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
     "balanceOfAt(address,uint256)": FunctionFragment;
     "balanceOfLock(uint256)": FunctionFragment;
     "balanceOfLockAt(uint256,uint256)": FunctionFragment;
-    "checkpoint()": FunctionFragment;
+    "checkpoint(uint256)": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "totalSupplyAt(uint256)": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
@@ -58,7 +58,7 @@ interface IVotingEscrowTokenInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "checkpoint",
-    values?: undefined
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -228,10 +228,12 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<[BigNumber]>;
 
     checkpoint(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -346,10 +348,12 @@ export class IVotingEscrowToken extends Contract {
   ): Promise<BigNumber>;
 
   checkpoint(
+    maxRecord: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "checkpoint()"(
+  "checkpoint(uint256)"(
+    maxRecord: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -463,9 +467,15 @@ export class IVotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    checkpoint(overrides?: CallOverrides): Promise<void>;
+    checkpoint(
+      maxRecord: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "checkpoint()"(overrides?: CallOverrides): Promise<void>;
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -599,10 +609,12 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<BigNumber>;
 
     checkpoint(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -721,10 +733,12 @@ export class IVotingEscrowToken extends Contract {
     ): Promise<PopulatedTransaction>;
 
     checkpoint(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -292,7 +292,8 @@ export class VotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -505,7 +506,8 @@ export class VotingEscrowToken extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "checkpoint()"(
+  "checkpoint(uint256)"(
+    maxRecord: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -718,7 +720,10 @@ export class VotingEscrowToken extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "checkpoint()"(overrides?: CallOverrides): Promise<void>;
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -950,7 +955,8 @@ export class VotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1143,7 +1149,8 @@ export class VotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "checkpoint()"(
+    "checkpoint(uint256)"(
+      maxRecord: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

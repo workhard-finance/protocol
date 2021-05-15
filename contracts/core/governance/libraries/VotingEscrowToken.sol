@@ -51,10 +51,10 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         veLocker = address(_veLocker);
     }
 
-    function checkpoint() external override {
+    function checkpoint(uint256 maxRecord) external override {
         // Point memory lastPoint = _recordPointHistory();
         // pointHistory[epoch] = lastPoint;
-        _recordPointHistory();
+        _recordPointHistory(maxRecord);
     }
 
     function checkpoint(
@@ -63,7 +63,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         Lock calldata newLock
     ) external onlyVELock {
         // Record history
-        _recordPointHistory();
+        _recordPointHistory(0);
 
         // Compute points
         (Point memory oldLockPoint, Point memory newLockPoint) =
@@ -209,7 +209,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         }
     }
 
-    function _recordPointHistory() internal {
+    function _recordPointHistory(uint256 maxRecord) internal {
         // last_point: Point = Point({bias: 0, slope: 0, ts: block.timestamp})
         Point memory _point;
         // Get the latest right most point
@@ -223,6 +223,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
         uint256 timestamp = block.timestamp;
         uint256 x = (_point.timestamp / 1 weeks) * 1 weeks;
         // record intermediate histories
+        uint256 i = 0;
         do {
             x = Math.min(x + 1 weeks, timestamp);
             uint256 delta = Math.min(timestamp - x, 1 weeks);
@@ -232,7 +233,8 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
             _point.bias = _point.bias > 0 ? _point.bias : 0;
             _point.slope = _point.slope > 0 ? _point.slope : 0;
             pointHistory.push(_point);
-        } while (timestamp != x);
+            i++;
+        } while (timestamp != x && i != maxRecord);
     }
 
     function _recordLockPointHistory(

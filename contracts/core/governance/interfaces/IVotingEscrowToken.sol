@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface IVotingEscrowToken is IERC20 {
     function veLocker() external view returns (address);
 
-    function checkpoint() external;
+    function checkpoint(uint256 maxRecord) external;
 
     function totalSupplyAt(uint256 timestamp) external view returns (uint256);
 

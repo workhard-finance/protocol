@@ -202,7 +202,13 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "maxRecord",
+        type: "uint256",
+      },
+    ],
     name: "checkpoint",
     outputs: [],
     stateMutability: "nonpayable",
