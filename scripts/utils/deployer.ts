@@ -111,7 +111,9 @@ export async function getVisionETHLP(signer: Signer): Promise<IERC20> {
         await signer.getAddress()
       );
     }
+    console.log("fac", uniswapV2Factory.address);
     let deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
+    console.log("deployed", deployedLP);
     if (deployedLP === constants.AddressZero) {
       await uniswapV2Factory.createPair(vision.address, WETH);
       deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
@@ -394,7 +396,7 @@ export async function addTokensToDividendPool(
     commit.address
   );
   await timelock.scheduleBatch(
-    [populated0.to, populated1.to],
+    [dividendPool.address, dividendPool.address],
     [0, 0],
     [populated0.data, populated1.data],
     constants.HashZero, // predecessor

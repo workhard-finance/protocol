@@ -4,7 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import hre, { ethers } from "hardhat";
-import { Contract } from "ethers";
+import { constants, Contract } from "ethers";
 import lowdb, { LowdbAsync } from "lowdb";
 import FileSync from "lowdb/adapters/FileSync";
 import merge from "deepmerge";
@@ -43,6 +43,8 @@ export async function record(
   contract: ContractNames,
   address: string
 ) {
+  if (address === constants.AddressZero)
+    throw Error("Deploy error. Zero address returned.");
   const db = await getDB();
   await db.set(`${network}.${contract}`, address).write();
 }
@@ -59,14 +61,8 @@ export async function sequence(
     console.log(`(skip) ${key}.${description}: ${recorded}`);
     return;
   } else {
-    let result: string | undefined;
-    try {
-      result = await run();
-    } catch (err) {
-      console.error(err);
-      result = undefined;
-    }
-    if (result) {
+    const result = await run();
+    if (result && result !== constants.AddressZero) {
       console.log(`(pass) ${key}.${description}${result && ": " + result}`);
       await db.set(`${network}.${key}`, result).write();
     } else {
@@ -85,17 +81,17 @@ export async function autoDeploy(
   const deployedAddress = await db.get(`${network}.${name}`).value();
 
   if (network === "hardhat") {
-    const contract = await (await ethers.getContractFactory(name)).deploy(
-      ...args
-    );
+    const contract = await (
+      await ethers.getContractFactory(name)
+    ).deploy(...args);
     return contract;
   } else if (deployedAddress) {
     const contract = await ethers.getContractAt(name, deployedAddress);
     return contract;
   } else {
-    const contract = await (await ethers.getContractFactory(name)).deploy(
-      ...args
-    );
+    const contract = await (
+      await ethers.getContractFactory(name)
+    ).deploy(...args);
     record(network, name, contract.address);
     return contract;
   }
