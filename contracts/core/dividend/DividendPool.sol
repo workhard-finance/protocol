@@ -130,15 +130,6 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         return distributedToken;
     }
 
-    /**
-     */
-    struct Distribution {
-        uint256 totalDistribution;
-        uint256 balance;
-        mapping(uint256 => uint256) tokenPerWeek; // key is week num
-        mapping(uint256 => uint256) claimStartWeekNum; // key is lock id
-    }
-
     function totalDistributed(address token)
         public
         view
@@ -210,27 +201,26 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
         uint256 _epoch
     ) internal view returns (uint256 amount) {
         uint256 currentEpoch = getCurrentEpoch();
-        uint256 claimingEpoch = _epoch;
-        require(
-            claimingEpoch < currentEpoch,
-            "Current epoch is being updated."
-        );
+        require(_epoch < currentEpoch, "Current epoch is being updated.");
         uint256 accumulated;
         uint256 epochCursor = distribution.claimStartWeekNum[_tokenId];
         if (epochCursor == 0) {
             (, uint256 _start, ) = IVotingEscrowLock(veLocker).locks(_tokenId);
-            epochCursor = _start;
+            epochCursor = (_start / epochUnit);
         }
-        while (epochCursor <= claimingEpoch) {
-            uint256 timestamp = genesis + epochCursor * epochUnit;
+        while (epochCursor <= _epoch) {
+            // check the balance when the epoch ends
+            uint256 timestamp = genesis + epochCursor * epochUnit + 1 weeks;
             // calculate amount;
             uint256 bal =
                 IVotingEscrowToken(veVISION).balanceOfAt(msg.sender, timestamp);
             uint256 supply =
                 IVotingEscrowToken(veVISION).totalSupplyAt(timestamp);
-            accumulated += distribution.tokenPerWeek[epochCursor].mul(bal).div(
-                supply
-            );
+            if (supply != 0) {
+                accumulated += distribution.tokenPerWeek[epochCursor]
+                    .mul(bal)
+                    .div(supply);
+            }
             // update cursor
             epochCursor += 1;
         }
