@@ -4,7 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
-import { getJobBoard } from "../utils/deployer";
+import { getJobBoard } from "../../utils/deployer";
 
 export async function newCryptoJob() {
   const result = await ethers.provider.send("evm_snapshot", []);

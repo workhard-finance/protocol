@@ -6,9 +6,10 @@
 import { ethers } from "hardhat";
 import { goToNextWeek } from "../../test/utils/utilities";
 import { getWorkersUnion } from "../utils/deployer";
-export async function launchWorkersUnion() {
+
+async function launchWorkersUnion() {
   const result = await ethers.provider.send("evm_snapshot", []);
-  console.log("4. farmers union - snapshot id: ", result);
+  console.log("Farmers union - snapshot id: ", result);
   const [signer] = await ethers.getSigners();
 
   const workersUnion = await getWorkersUnion(signer);
@@ -19,3 +20,10 @@ export async function launchWorkersUnion() {
   await goToNextWeek();
   await workersUnion.launch();
 }
+
+launchWorkersUnion()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

@@ -5,12 +5,12 @@
 // Runtime Environment's members available in the global scope.
 import { BigNumber } from "ethers";
 import { ethers } from "hardhat";
-import { goTo } from "../../test/utils/utilities";
+import { goTo } from "../../../test/utils/utilities";
 import {
   getJobBoard,
   getProject,
   getTimelockedGovernance,
-} from "../utils/deployer";
+} from "../../utils/deployer";
 
 export async function approveProject() {
   const result = await ethers.provider.send("evm_snapshot", []);

@@ -11,8 +11,12 @@ import {
   getLiquidityMining,
   getTimelockedGovernance,
   getVisionEmitter,
-} from "../utils/deployer";
-import { goTo, goToNextWeek, runTimelockTx } from "../../test/utils/utilities";
+} from "../../utils/deployer";
+import {
+  goTo,
+  goToNextWeek,
+  runTimelockTx,
+} from "../../../test/utils/utilities";
 
 export async function executeSetEmission() {
   const [signer] = await ethers.getSigners();

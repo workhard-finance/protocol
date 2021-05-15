@@ -88,13 +88,25 @@ export interface AppFixture extends MiningFixture {
 export async function getTokenFixture(): Promise<TokenFixture> {
   const [deployer] = await ethers.getSigners();
   // 1. Get base currency. (In mainnet use DAI & for testing deploy new)
-  const baseCurrency = await new ERC20Mock__factory(deployer).deploy();
+  const baseCurrency = ERC20Mock__factory.connect(
+    (await (await ethers.getContractFactory("ERC20Mock")).deploy()).address,
+    deployer
+  );
   // 2. Deploy vision token
-  const vision = await new VISION__factory(deployer).deploy();
+  const vision = VISION__factory.connect(
+    (await (await ethers.getContractFactory("VISION")).deploy()).address,
+    deployer
+  );
   // 3. Deploy commit token
-  const commit = await new COMMIT__factory(deployer).deploy();
+  const commit = COMMIT__factory.connect(
+    (await (await ethers.getContractFactory("COMMIT")).deploy()).address,
+    deployer
+  );
   // 4. Deploy project token
-  const project = await new Project__factory(deployer).deploy();
+  const project = Project__factory.connect(
+    (await (await ethers.getContractFactory("Project")).deploy()).address,
+    deployer
+  );
   // 5. Deploy uniswap pair
   const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
   const uniswapV2Factory = await UniswapV2Factory.deploy(deployer.address);
@@ -102,9 +114,14 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   const lpAddress = await uniswapV2Factory.getPair(vision.address, WETH);
   const visionLP = IERC20__factory.connect(lpAddress, deployer);
   // 6. Deploy RIGHT
-  const right = await new RIGHT__factory(deployer).deploy(
-    "https://workhard.finance/RIGHT/",
-    vision.address
+  const right = RIGHT__factory.connect(
+    (
+      await (await ethers.getContractFactory("RIGHT")).deploy(
+        "https://workhard.finance/RIGHT/",
+        vision.address
+      )
+    ).address,
+    deployer
   );
   return {
     baseCurrency,
@@ -120,29 +137,52 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
   // 6. Deploy team share
-  const teamShare = await new TeamShare__factory(deployer).deploy();
+  const teamShare = TeamShare__factory.connect(
+    (await (await ethers.getContractFactory("TeamShare")).deploy()).address,
+    deployer
+  );
   // 7. Deploy timelock contract
-  const timelock = await new TimelockedGovernance__factory(deployer).deploy([
-    deployer.address,
-  ]);
+  const timelock = TimelockedGovernance__factory.connect(
+    (
+      await (await ethers.getContractFactory("TimelockedGovernance")).deploy([
+        deployer.address,
+      ])
+    ).address,
+    deployer
+  );
   // 8. Get VotingEscrowLock
   const veLocker = VotingEscrowLock__factory.connect(
     await tokenFixture.right.veLocker(),
     deployer
   );
   // 9. Deploy dividend pool
-  const dividendPool = await new DividendPool__factory(deployer).deploy(
-    timelock.address,
-    tokenFixture.right.address
+  const dividendPool = DividendPool__factory.connect(
+    (
+      await (await ethers.getContractFactory("DividendPool")).deploy(
+        timelock.address,
+        tokenFixture.right.address
+      )
+    ).address,
+    deployer
   );
   // 9. Deploy vote counter
-  const voteCounter = await new SquareRootVoteCounter__factory(deployer).deploy(
-    tokenFixture.right.address
+  const voteCounter = SquareRootVoteCounter__factory.connect(
+    (
+      await (await ethers.getContractFactory("SquareRootVoteCounter")).deploy(
+        tokenFixture.right.address
+      )
+    ).address,
+    deployer
   );
   // 10. Deploy farmers union
-  const workersUnion = await new WorkersUnion__factory(deployer).deploy(
-    voteCounter.address,
-    timelock.address
+  const workersUnion = WorkersUnion__factory.connect(
+    (
+      await (await ethers.getContractFactory("WorkersUnion")).deploy(
+        voteCounter.address,
+        timelock.address
+      )
+    ).address,
+    deployer
   );
   // 11. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
   await transferGovernance(timelock, workersUnion, deployer);
@@ -163,21 +203,30 @@ export async function getMiningFixture(option?: {
   const [deployer] = await ethers.getSigners();
   const governanceFixture: GovernanceFixture = await getGovernanceFixture();
   // 12. Deploy Burn Mining Factory
-  const burnMiningFactory = await new BurnMiningPoolFactory__factory(
+  const burnMiningFactory = BurnMiningPoolFactory__factory.connect(
+    (await (await ethers.getContractFactory("BurnMiningPoolFactory")).deploy())
+      .address,
     deployer
-  ).deploy();
+  );
   // 13. Deploy Stake Mining Factory
-  const stakeMiningFactory = await new StakeMiningPoolFactory__factory(
+  const stakeMiningFactory = StakeMiningPoolFactory__factory.connect(
+    (await (await ethers.getContractFactory("StakeMiningPoolFactory")).deploy())
+      .address,
     deployer
-  ).deploy();
+  );
   // 14. Deploy Vision Token Emitter
-  const visionEmitter = await new VisionEmitter__factory(deployer).deploy(
-    governanceFixture.teamShare.address,
-    governanceFixture.timelock.address,
-    deployer.address,
-    governanceFixture.vision.address,
-    burnMiningFactory.address,
-    stakeMiningFactory.address
+  const visionEmitter = VisionEmitter__factory.connect(
+    (
+      await (await ethers.getContractFactory("VisionEmitter")).deploy(
+        governanceFixture.teamShare.address,
+        governanceFixture.timelock.address,
+        deployer.address,
+        governanceFixture.vision.address,
+        burnMiningFactory.address,
+        stakeMiningFactory.address
+      )
+    ).address,
+    deployer
   );
   // 15. Launch the visionLP liquidity mining pool
   await visionEmitter.newStakeMiningPool(governanceFixture.visionLP.address, {
@@ -218,27 +267,42 @@ export async function getAppFixture(): Promise<AppFixture> {
   const [deployer] = await ethers.getSigners();
   const miningFixture: MiningFixture = await getMiningFixture();
   // 17. Deploy Labor Market
-  const stableReserve = await new StableReserve__factory(deployer).deploy(
-    miningFixture.timelock.address,
-    miningFixture.commit.address,
-    miningFixture.baseCurrency.address
+  const stableReserve = StableReserve__factory.connect(
+    (
+      await (await ethers.getContractFactory("StableReserve")).deploy(
+        miningFixture.timelock.address,
+        miningFixture.commit.address,
+        miningFixture.baseCurrency.address
+      )
+    ).address,
+    deployer
   );
   // 18. Move Minter Permission to StableReserve
   await setCommitMinter(miningFixture.commit, stableReserve, deployer);
   // 19. Deploy Project Manager
-  const jobBoard = await new JobBoard__factory(deployer).deploy(
-    miningFixture.timelock.address,
-    miningFixture.project.address,
-    miningFixture.dividendPool.address,
-    stableReserve.address,
-    miningFixture.baseCurrency.address,
-    ONE_INCH
+  const jobBoard = JobBoard__factory.connect(
+    (
+      await (await ethers.getContractFactory("JobBoard")).deploy(
+        miningFixture.timelock.address,
+        miningFixture.project.address,
+        miningFixture.dividendPool.address,
+        stableReserve.address,
+        miningFixture.baseCurrency.address,
+        ONE_INCH
+      )
+    ).address,
+    deployer
   );
   // 20. Deploy Product Market
-  const marketplace = await new Marketplace__factory(deployer).deploy(
-    miningFixture.timelock.address,
-    miningFixture.commit.address,
-    miningFixture.dividendPool.address
+  const marketplace = Marketplace__factory.connect(
+    (
+      await (await ethers.getContractFactory("Marketplace")).deploy(
+        miningFixture.timelock.address,
+        miningFixture.commit.address,
+        miningFixture.dividendPool.address
+      )
+    ).address,
+    deployer
   );
   // 21. Initialize Stable Reserve
   await initStableReserve(stableReserve, jobBoard, deployer);

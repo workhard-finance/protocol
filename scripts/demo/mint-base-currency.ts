@@ -7,9 +7,10 @@ import { parseEther } from "@ethersproject/units";
 import { ethers } from "hardhat";
 import { ERC20Mock__factory } from "../../src";
 import { getBaseCurrency } from "../utils/deployer";
-export async function mintBaseCurrency() {
+
+async function mintBaseCurrency() {
   const result = await ethers.provider.send("evm_snapshot", []);
-  console.log("5. Mint Base Currency - snapshot id: ", result);
+  console.log("Mint Base Currency - snapshot id: ", result);
   const [signer] = await ethers.getSigners();
 
   const baseCurrency = await getBaseCurrency(signer);
@@ -18,3 +19,10 @@ export async function mintBaseCurrency() {
     parseEther("10000")
   );
 }
+
+mintBaseCurrency()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
