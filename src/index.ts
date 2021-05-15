@@ -41,6 +41,7 @@ export type { ERC20Mock } from "./ERC20Mock";
 export type { ERC20Recoverer } from "./ERC20Recoverer";
 export type { HasInitializer } from "./HasInitializer";
 export type { IERC20 } from "./IERC20";
+export type { WETH9 } from "./WETH9";
 
 export { IMarketplace__factory } from "./factories/IMarketplace__factory";
 export { Marketplace__factory } from "./factories/Marketplace__factory";
@@ -82,3 +83,4 @@ export { ERC20Mock__factory } from "./factories/ERC20Mock__factory";
 export { ERC20Recoverer__factory } from "./factories/ERC20Recoverer__factory";
 export { HasInitializer__factory } from "./factories/HasInitializer__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
+export { WETH9__factory } from "./factories/WETH9__factory";

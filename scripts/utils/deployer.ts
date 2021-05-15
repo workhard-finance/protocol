@@ -95,10 +95,12 @@ export async function getVisionETHLP(signer: Signer): Promise<IERC20> {
   const deployed = await getDB();
   const deployedAddress = await deployed.get(`${network}.VisionLP`).value();
   let uniswapV2Factory: Contract;
+  let wethAddress: string;
   if (deployedAddress) {
     lpAddress = deployedAddress;
   } else {
     if (["mainnet", "rinkeby"].includes(network)) {
+      wethAddress = WETH;
       uniswapV2Factory = await ethers.getContractAt(
         "IUniswapV2Factory",
         UNISWAP_FACTORY
@@ -110,13 +112,17 @@ export async function getVisionETHLP(signer: Signer): Promise<IERC20> {
       uniswapV2Factory = await UniswapV2Factory.deploy(
         await signer.getAddress()
       );
+      const WETHFactory = await ethers.getContractFactory("WETH9", signer);
+      const weth = await WETHFactory.deploy();
+      wethAddress = weth.address;
     }
-    console.log("fac", uniswapV2Factory.address);
-    let deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
-    console.log("deployed", deployedLP);
+    let deployedLP = await uniswapV2Factory.getPair(
+      vision.address,
+      wethAddress
+    );
     if (deployedLP === constants.AddressZero) {
-      await uniswapV2Factory.createPair(vision.address, WETH);
-      deployedLP = await uniswapV2Factory.getPair(vision.address, WETH);
+      await uniswapV2Factory.createPair(vision.address, wethAddress);
+      deployedLP = await uniswapV2Factory.getPair(vision.address, wethAddress);
     }
     lpAddress = deployedLP;
   }

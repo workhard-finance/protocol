@@ -87,16 +87,7 @@ export default {
         version: "0.5.16",
       },
     ],
-    overrides: {
-      "contracts/interfaces/IUniswapV2Factory.sol": {
-        version: "0.5.16",
-        settings: {},
-      },
-      "contracts/interfaces/UniswapV2Factory.sol": {
-        version: "0.5.16",
-        settings: {},
-      },
-    },
+    overrides: {},
   },
   networks: {
     hardhat,
