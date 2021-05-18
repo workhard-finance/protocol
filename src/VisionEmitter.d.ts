@@ -23,6 +23,7 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
   functions: {
     "DENOMINATOR()": FunctionFragment;
     "INITIAL_EMISSION()": FunctionFragment;
+    "allowThirdParty(bool)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
     "burnMiningPoolFactory()": FunctionFragment;
@@ -64,6 +65,10 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "INITIAL_EMISSION",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowThirdParty",
+    values: [boolean]
   ): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
@@ -179,6 +184,10 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "INITIAL_EMISSION",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowThirdParty",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
@@ -360,6 +369,16 @@ export class VisionEmitter extends Contract {
     INITIAL_EMISSION(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "INITIAL_EMISSION()"(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    allowThirdParty(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "allowThirdParty(bool)"(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -604,6 +623,16 @@ export class VisionEmitter extends Contract {
 
   "INITIAL_EMISSION()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  allowThirdParty(
+    _allow: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "allowThirdParty(bool)"(
+    _allow: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   anarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -843,6 +872,13 @@ export class VisionEmitter extends Contract {
     INITIAL_EMISSION(overrides?: CallOverrides): Promise<BigNumber>;
 
     "INITIAL_EMISSION()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowThirdParty(_allow: boolean, overrides?: CallOverrides): Promise<void>;
+
+    "allowThirdParty(bool)"(
+      _allow: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     anarchize(overrides?: CallOverrides): Promise<void>;
 
@@ -1103,6 +1139,16 @@ export class VisionEmitter extends Contract {
 
     "INITIAL_EMISSION()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    allowThirdParty(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "allowThirdParty(bool)"(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1332,6 +1378,16 @@ export class VisionEmitter extends Contract {
 
     "INITIAL_EMISSION()"(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allowThirdParty(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "allowThirdParty(bool)"(
+      _allow: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     anarchize(

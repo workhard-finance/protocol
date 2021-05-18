@@ -35,6 +35,8 @@ contract VisionEmitter is Governed {
     mapping(address => address) public burnMiningPools;
     mapping(address => address) public stakeMiningPools;
 
+    bool thirdPartyEnabled;
+
     struct Rate {
         uint256 numerator;
         uint256 denominator;
@@ -122,11 +124,13 @@ contract VisionEmitter is Governed {
         for (uint256 i = 0; i < _miningPools.length; i++) {
             IMiningPool pool = IMiningPool(_miningPools[i]);
             address _baseToken = pool.baseToken();
-            require(
-                stakeMiningPools[_baseToken] == address(pool) ||
-                    burnMiningPools[_baseToken] == address(pool),
-                "The mining pool should be created via newBurnMiningPool or newStakeMiningPool"
-            );
+            if (!thirdPartyEnabled) {
+                require(
+                    (stakeMiningPools[_baseToken] == address(pool) ||
+                        burnMiningPools[_baseToken] == address(pool)),
+                    "The mining pool should be created via newBurnMiningPool or newStakeMiningPool"
+                );
+            }
             require(_weights[i] < 1e4, "prevent overflow");
             _pools[i] = pool;
             _sum += _weights[i]; // doesn't overflow
@@ -144,6 +148,10 @@ contract VisionEmitter is Governed {
             _sum
         );
         emit EmissionWeightUpdated(_pools.length);
+    }
+
+    function allowThirdParty(bool _allow) public governed {
+        thirdPartyEnabled = _allow;
     }
 
     function setProtocolFund(address _fund) public governed {
