@@ -16,8 +16,8 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    IERC20 public baseToken;
-    IERC20 public token;
+    address public baseToken;
+    address public token;
     ITokenEmitter public tokenEmitter;
 
     uint256 public miningEnds = 0;
@@ -67,9 +67,9 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
         require(_tokenEmitter != address(0));
         require(_baseToken != address(0));
         require(_recoverTo != address(0));
-        token = IERC20(_token);
+        token = _token;
         tokenEmitter = ITokenEmitter(_tokenEmitter);
-        baseToken = IERC20(_baseToken);
+        baseToken = _baseToken;
         ERC20Recoverer.disablePermanently(_token);
         ERC20Recoverer.disablePermanently(_baseToken);
         ERC20Recoverer.setRecoverer(_recoverTo);
@@ -93,7 +93,7 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
         // This keeps the mining rate in the right range, preventing overflows due to
         // very high values of miningRate in the mined and tokenPerMiner functions;
         // (allocated_amount + leftover) must be less than 2^256 / 10^18 to avoid overflow.
-        uint256 balance = token.balanceOf(address(this));
+        uint256 balance = IERC20(token).balanceOf(address(this));
         require(miningRate <= balance.div(miningPeriod), "not enough balance");
 
         lastUpdateTime = block.timestamp;
@@ -128,7 +128,7 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
         uint256 amount = _mined[msg.sender];
         if (amount > 0) {
             _mined[msg.sender] = 0;
-            token.safeTransfer(msg.sender, amount);
+            IERC20(token).safeTransfer(msg.sender, amount);
             emit Mined(msg.sender, amount);
         }
     }
