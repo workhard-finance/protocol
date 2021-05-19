@@ -98,7 +98,7 @@ describe("StableReserve.sol", function () {
       timelock,
       jobBoard.populateTransaction.approveProject(project.id)
     );
-    await jobBoard.connect(manager).executeBudget(project.id, 0, []);
+    await jobBoard.connect(manager).executeBudget(project.id, 0);
   });
   describe("redeem()", async () => {
     beforeEach("compensate", async () => {

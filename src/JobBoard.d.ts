@@ -22,7 +22,7 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 interface JobBoardInterface extends ethers.utils.Interface {
   functions: {
     "acceptableTokens(address)": FunctionFragment;
-    "addAndExecuteBudget(uint256,address,uint256,bytes)": FunctionFragment;
+    "addAndExecuteBudget(uint256,address,uint256)": FunctionFragment;
     "addBudget(uint256,address,uint256)": FunctionFragment;
     "addCurrency(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
@@ -38,7 +38,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     "createProject(string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
     "dividendPool()": FunctionFragment;
-    "executeBudget(uint256,uint256,bytes)": FunctionFragment;
+    "executeBudget(uint256,uint256)": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "forceExecuteBudget(uint256,uint256)": FunctionFragment;
@@ -66,7 +66,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "addAndExecuteBudget",
-    values: [BigNumberish, string, BigNumberish, BytesLike]
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "addBudget",
@@ -121,7 +121,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeBudget",
-    values: [BigNumberish, BigNumberish, BytesLike]
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "forceAnarchize",
@@ -393,15 +393,13 @@ export class JobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+    "addAndExecuteBudget(uint256,address,uint256)"(
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -545,14 +543,12 @@ export class JobBoard extends Contract {
     executeBudget(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "executeBudget(uint256,uint256,bytes)"(
+    "executeBudget(uint256,uint256)"(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -611,11 +607,7 @@ export class JobBoard extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean] & {
-        currency: string;
-        amount: BigNumber;
-        transferred: boolean;
-      }
+      [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
     >;
 
     "projectBudgets(uint256,uint256)"(
@@ -623,11 +615,7 @@ export class JobBoard extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean] & {
-        currency: string;
-        amount: BigNumber;
-        transferred: boolean;
-      }
+      [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
     >;
 
     projectFund(
@@ -734,15 +722,13 @@ export class JobBoard extends Contract {
     projId: BigNumberish,
     token: string,
     amount: BigNumberish,
-    swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+  "addAndExecuteBudget(uint256,address,uint256)"(
     projId: BigNumberish,
     token: string,
     amount: BigNumberish,
-    swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -886,14 +872,12 @@ export class JobBoard extends Contract {
   executeBudget(
     projId: BigNumberish,
     index: BigNumberish,
-    swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "executeBudget(uint256,uint256,bytes)"(
+  "executeBudget(uint256,uint256)"(
     projId: BigNumberish,
     index: BigNumberish,
-    swapData: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -952,11 +936,7 @@ export class JobBoard extends Contract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, boolean] & {
-      currency: string;
-      amount: BigNumber;
-      transferred: boolean;
-    }
+    [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
   >;
 
   "projectBudgets(uint256,uint256)"(
@@ -964,11 +944,7 @@ export class JobBoard extends Contract {
     arg1: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, boolean] & {
-      currency: string;
-      amount: BigNumber;
-      transferred: boolean;
-    }
+    [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
   >;
 
   projectFund(
@@ -1075,15 +1051,13 @@ export class JobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+    "addAndExecuteBudget(uint256,address,uint256)"(
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1217,14 +1191,12 @@ export class JobBoard extends Contract {
     executeBudget(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "executeBudget(uint256,uint256,bytes)"(
+    "executeBudget(uint256,uint256)"(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1279,11 +1251,7 @@ export class JobBoard extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean] & {
-        currency: string;
-        amount: BigNumber;
-        transferred: boolean;
-      }
+      [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
     >;
 
     "projectBudgets(uint256,uint256)"(
@@ -1291,11 +1259,7 @@ export class JobBoard extends Contract {
       arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, boolean] & {
-        currency: string;
-        amount: BigNumber;
-        transferred: boolean;
-      }
+      [BigNumber, boolean] & { amount: BigNumber; transferred: boolean }
     >;
 
     projectFund(
@@ -1465,15 +1429,13 @@ export class JobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+    "addAndExecuteBudget(uint256,address,uint256)"(
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1617,14 +1579,12 @@ export class JobBoard extends Contract {
     executeBudget(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "executeBudget(uint256,uint256,bytes)"(
+    "executeBudget(uint256,uint256)"(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1798,15 +1758,13 @@ export class JobBoard extends Contract {
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "addAndExecuteBudget(uint256,address,uint256,bytes)"(
+    "addAndExecuteBudget(uint256,address,uint256)"(
       projId: BigNumberish,
       token: string,
       amount: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1953,14 +1911,12 @@ export class JobBoard extends Contract {
     executeBudget(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "executeBudget(uint256,uint256,bytes)"(
+    "executeBudget(uint256,uint256)"(
       projId: BigNumberish,
       index: BigNumberish,
-      swapData: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -17,7 +17,6 @@ import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../utils/ExchangeLib.sol";
 
 struct Budget {
-    address currency;
     uint256 amount;
     bool transferred;
 }
@@ -124,11 +123,10 @@ contract JobBoard is
     function addAndExecuteBudget(
         uint256 projId,
         address token,
-        uint256 amount,
-        bytes calldata swapData
+        uint256 amount
     ) public onlyProjectOwner(projId) {
         uint256 budgetIdx = _addBudget(projId, token, amount);
-        executeBudget(projId, budgetIdx, swapData);
+        executeBudget(projId, budgetIdx);
     }
 
     function closeProject(uint256 projId) public onlyProjectOwner(projId) {
@@ -147,17 +145,11 @@ contract JobBoard is
     }
 
     // Operator functions
-    function executeBudget(
-        uint256 projId,
-        uint256 index,
-        bytes calldata swapData
-    ) public onlyApprovedProject(projId) {
-        address currency = projectBudgets[projId][index].currency;
-        if (currency == baseCurrency) {
-            _convertStableToCommit(projId, index, normalTaxRate);
-        } else {
-            _swapAndAllocateFund(projId, index, normalTaxRate, swapData);
-        }
+    function executeBudget(uint256 projId, uint256 index)
+        public
+        onlyApprovedProject(projId)
+    {
+        _convertStableToCommit(projId, index, normalTaxRate);
     }
 
     function receiveGrant(
@@ -251,7 +243,7 @@ contract JobBoard is
         uint256 amount
     ) internal returns (uint256) {
         require(acceptableTokens[token], "Not a supported currency");
-        Budget memory budget = Budget(token, amount, false);
+        Budget memory budget = Budget(amount, false);
         projectBudgets[projId].push(budget);
         emit BudgetAdded(
             projId,
@@ -275,7 +267,7 @@ contract JobBoard is
             Budget storage budget = budgets[i];
             if (!budget.transferred) {
                 budget.transferred = true;
-                IERC20(budget.currency).transfer(projOwner, budget.amount);
+                IERC20(baseCurrency).transfer(projOwner, budget.amount);
                 emit BudgetWithdrawn(projId, i);
             }
         }
@@ -293,87 +285,15 @@ contract JobBoard is
     ) internal {
         Budget storage budget = projectBudgets[projId][index];
         require(budget.transferred == false, "Budget is already transferred.");
-        require(
-            budget.currency == baseCurrency,
-            "use _swapAndAllocateFund instead"
-        );
         // Mark the budget as transferred
         budget.transferred = true;
         // take vision tax from the budget
         uint256 visionTax = budget.amount.mul(taxRate).div(10000);
         uint256 fund = budget.amount.sub(visionTax);
-        _distribute(budget.currency, visionTax);
+        _distribute(baseCurrency, visionTax);
         // Mint commit fund
         _mintCommit(fund);
         projectFund[projId] = projectFund[projId].add(fund);
         emit BudgetExecuted(projId, index);
-    }
-
-    /**
-     * @param projId The hash of the budget to hammer out
-     * @param swapData Fetched payload from 1inch API
-     */
-    function _swapAndAllocateFund(
-        uint256 projId,
-        uint256 index,
-        uint256 taxRate,
-        bytes calldata swapData
-    ) internal {
-        Budget storage budget = projectBudgets[projId][index];
-        require(approvedProjects[projId], "Not an approved project.");
-        require(budget.transferred == false, "Budget is already transferred.");
-        require(
-            budget.currency != baseCurrency,
-            "use _convertStableToCommit instead"
-        );
-        // Mark the budget as transferred
-        budget.transferred = true;
-        // take vision tax from the budget
-        uint256 visionTax = budget.amount.mul(taxRate).div(10000);
-        uint256 fund = budget.amount.sub(visionTax);
-        // Swap and allocate fund
-        _swapOn1Inch(budget, fund, swapData);
-        _mintCommit(fund);
-        projectFund[projId] = projectFund[projId].add(fund);
-        emit BudgetExecuted(projId, index);
-    }
-
-    function _swapOn1Inch(
-        Budget memory budget,
-        uint256 fund,
-        bytes calldata swapData
-    ) internal {
-        // Swap to stable coin and transfer them to the commit pool
-        (
-            uint256 amount,
-            address srcToken,
-            address dstToken,
-            address dstReceiver
-        ) = ExchangeLib.decodeOneInchData(swapData);
-        require(
-            srcToken == budget.currency,
-            "Should convert fund to the designatd stable coin"
-        );
-        require(
-            dstToken == baseCurrency,
-            "Should convert fund to the designatd stable coin"
-        );
-        require(amount == fund, "Input amount is not valid");
-        require(
-            dstReceiver == address(this),
-            "Swapped stable coins should go to this contract"
-        );
-        uint256 prevBal = IERC20(baseCurrency).balanceOf(stableReserve);
-        (bool success, bytes memory result) = oneInch.call(swapData);
-        require(success, "failed to swap tokens");
-        uint256 swappedStables;
-        assembly {
-            swappedStables := mload(add(result, 0x20))
-        }
-        require(
-            swappedStables ==
-                IERC20(baseCurrency).balanceOf(stableReserve).sub(prevBal),
-            "Swapped amount is different with the real swapped amount"
-        );
     }
 }

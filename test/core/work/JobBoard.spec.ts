@@ -159,14 +159,14 @@ describe("JobBoard.sol", function () {
     });
     it("should be run after the project is approved by the governance", async () => {
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0, [])
+        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
       ).to.be.revertedWith("Not an approved project.");
       await runTimelockTx(
         timelock,
         jobBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0, [])
+        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
       ).not.to.reverted;
     });
     it("should emit BudgetExecuted()", async () => {
@@ -175,7 +175,7 @@ describe("JobBoard.sol", function () {
         jobBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0, [])
+        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
       )
         .to.emit(jobBoard, "BudgetExecuted")
         .withArgs(projectMetadata.id, 0);
@@ -186,9 +186,7 @@ describe("JobBoard.sol", function () {
         jobBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       const prevTotalSupply: BigNumber = await commit.totalSupply();
-      await jobBoard
-        .connect(projOwner)
-        .executeBudget(projectMetadata.id, 0, []);
+      await jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0);
       const updatedTotalSupply: BigNumber = await commit.totalSupply();
       expect(await baseCurrency.balanceOf(stableReserve.address)).to.eq(
         parseEther("80")
@@ -200,9 +198,7 @@ describe("JobBoard.sol", function () {
         timelock,
         jobBoard.populateTransaction.approveProject(projectMetadata.id)
       );
-      await jobBoard
-        .connect(projOwner)
-        .executeBudget(projectMetadata.id, 0, []);
+      await jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0);
       const weekNum = await dividendPool.getCurrentEpoch();
       const result = await dividendPool.distributionOfWeek(
         baseCurrency.address,
