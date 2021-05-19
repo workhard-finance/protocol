@@ -11,6 +11,8 @@ export type { IMiningPoolFactory } from "./IMiningPoolFactory";
 export type { ITokenEmitter } from "./ITokenEmitter";
 export type { BurnMining } from "./BurnMining";
 export type { BurnMiningPoolFactory } from "./BurnMiningPoolFactory";
+export type { ERC1155StakeMining } from "./ERC1155StakeMining";
+export type { ERC721StakeMining } from "./ERC721StakeMining";
 export type { MiningPool } from "./MiningPool";
 export type { StakeMining } from "./StakeMining";
 export type { StakeMiningPoolFactory } from "./StakeMiningPoolFactory";
@@ -53,6 +55,8 @@ export { IMiningPoolFactory__factory } from "./factories/IMiningPoolFactory__fac
 export { ITokenEmitter__factory } from "./factories/ITokenEmitter__factory";
 export { BurnMining__factory } from "./factories/BurnMining__factory";
 export { BurnMiningPoolFactory__factory } from "./factories/BurnMiningPoolFactory__factory";
+export { ERC1155StakeMining__factory } from "./factories/ERC1155StakeMining__factory";
+export { ERC721StakeMining__factory } from "./factories/ERC721StakeMining__factory";
 export { MiningPool__factory } from "./factories/MiningPool__factory";
 export { StakeMining__factory } from "./factories/StakeMining__factory";
 export { StakeMiningPoolFactory__factory } from "./factories/StakeMiningPoolFactory__factory";
