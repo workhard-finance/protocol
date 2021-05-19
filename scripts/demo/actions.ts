@@ -4,6 +4,7 @@ import {
   getCommit,
   getCommitMining,
   getDividendPool,
+  getERC20StakeMiningV1Factory,
   getJobBoard,
   getLiquidityMining,
   getProject,
@@ -32,10 +33,14 @@ export async function executeSetEmission() {
   const commitMining = await getCommitMining(signer);
   /** launch Mock DAI staking air drop pool */
   const baseCurrency = await getBaseCurrency(signer);
-  await visionEmitter.newStakeMiningPool(baseCurrency.address);
-  const airdropPool = await visionEmitter.stakeMiningPools(
+  await visionEmitter.newPool(
+    await (await getERC20StakeMiningV1Factory(signer)).poolSig(),
     baseCurrency.address
   );
+
+  const airdropPool = await (
+    await getERC20StakeMiningV1Factory(signer)
+  ).poolAddress(visionEmitter.address, baseCurrency.address);
   /** set airdrop set emission */
   await runTimelockTx(
     timelock,
