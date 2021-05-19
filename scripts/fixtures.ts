@@ -14,9 +14,6 @@ import {
   transferGovernanceOfEmitter,
 } from "./utils/deployer";
 import {
-  BurnMining,
-  BurnMiningPoolFactory__factory,
-  BurnMining__factory,
   COMMIT,
   COMMIT__factory,
   DividendPool,
@@ -37,11 +34,26 @@ import {
   SquareRootVoteCounter__factory,
   StableReserve,
   StableReserve__factory,
-  StakeMining,
-  StakeMiningPoolFactory__factory,
-  StakeMining__factory,
   TeamShare,
   TeamShare__factory,
+  TeamSharePool,
+  TeamSharePool__factory,
+  ERC20BurnMiningV1,
+  ERC20BurnMiningV1__factory,
+  ERC20BurnMiningV1Factory,
+  ERC20BurnMiningV1Factory__factory,
+  ERC20StakeMiningV1,
+  ERC20StakeMiningV1__factory,
+  ERC20StakeMiningV1Factory,
+  ERC20StakeMiningV1Factory__factory,
+  ERC721StakeMiningV1,
+  ERC721StakeMiningV1__factory,
+  ERC721StakeMiningV1Factory,
+  ERC721StakeMiningV1Factory__factory,
+  ERC1155StakeMiningV1,
+  ERC1155StakeMiningV1__factory,
+  ERC1155StakeMiningV1Factory,
+  ERC1155StakeMiningV1Factory__factory,
   TimelockedGovernance,
   TimelockedGovernance__factory,
   VISION,
@@ -69,13 +81,18 @@ export interface GovernanceFixture extends TokenFixture {
   voteCounter: SquareRootVoteCounter;
   timelock: TimelockedGovernance;
   teamShare: TeamShare;
+  teamSharePool: TeamSharePool;
   dividendPool: DividendPool;
 }
 
 export interface MiningFixture extends GovernanceFixture {
   visionEmitter: VisionEmitter;
-  commitMining: BurnMining;
-  liquidityMining: StakeMining;
+  commitMining: ERC20BurnMiningV1;
+  liquidityMining: ERC20StakeMiningV1;
+  erc20BurnMiningV1Factory: ERC20BurnMiningV1Factory;
+  erc20StakeMiningV1Factory: ERC20StakeMiningV1Factory;
+  erc721StakeMiningV1Factory: ERC721StakeMiningV1Factory;
+  erc1155StakeMiningV1Factory: ERC1155StakeMiningV1Factory;
 }
 
 export interface AppFixture extends MiningFixture {
@@ -115,10 +132,9 @@ export async function getTokenFixture(): Promise<TokenFixture> {
   // 6. Deploy RIGHT
   const right = RIGHT__factory.connect(
     (
-      await (await ethers.getContractFactory("RIGHT")).deploy(
-        "https://workhard.finance/RIGHT/",
-        vision.address
-      )
+      await (
+        await ethers.getContractFactory("RIGHT")
+      ).deploy("https://workhard.finance/RIGHT/", vision.address)
     ).address,
     deployer
   );
@@ -135,59 +151,69 @@ export async function getTokenFixture(): Promise<TokenFixture> {
 export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
-  // 6. Deploy team share
+  // 7. Deploy team share
   const teamShare = TeamShare__factory.connect(
     (await (await ethers.getContractFactory("TeamShare")).deploy()).address,
     deployer
   );
-  // 7. Deploy timelock contract
-  const timelock = TimelockedGovernance__factory.connect(
+  // 8. Deploy team share pool
+  const teamSharePool = TeamSharePool__factory.connect(
     (
-      await (await ethers.getContractFactory("TimelockedGovernance")).deploy([
-        deployer.address,
-      ])
+      await (
+        await ethers.getContractFactory("TeamSharePool")
+      ).deploy(teamShare.address)
     ).address,
     deployer
   );
-  // 8. Get VotingEscrowLock
+
+  // 9. Deploy timelock contract
+  const timelock = TimelockedGovernance__factory.connect(
+    (
+      await (
+        await ethers.getContractFactory("TimelockedGovernance")
+      ).deploy([deployer.address])
+    ).address,
+    deployer
+  );
+  // 10. Get VotingEscrowLock
   const veLocker = VotingEscrowLock__factory.connect(
     await tokenFixture.right.veLocker(),
     deployer
   );
-  // 9. Deploy dividend pool
+  // 11. Deploy dividend pool
   const dividendPool = DividendPool__factory.connect(
     (
-      await (await ethers.getContractFactory("DividendPool")).deploy(
-        timelock.address,
-        tokenFixture.right.address
-      )
+      await (
+        await ethers.getContractFactory("DividendPool")
+      ).deploy(timelock.address, tokenFixture.right.address)
     ).address,
     deployer
   );
-  // 9. Deploy vote counter
+  // 12. Deploy vote counter
   const voteCounter = SquareRootVoteCounter__factory.connect(
     (
-      await (await ethers.getContractFactory("SquareRootVoteCounter")).deploy(
-        tokenFixture.right.address
-      )
+      await (
+        await ethers.getContractFactory("SquareRootVoteCounter")
+      ).deploy(tokenFixture.right.address)
     ).address,
     deployer
   );
-  // 10. Deploy farmers union
+  // 13. Deploy Workers Union
   const workersUnion = WorkersUnion__factory.connect(
     (
-      await (await ethers.getContractFactory("WorkersUnion")).deploy(
-        voteCounter.address,
-        timelock.address
-      )
+      await (
+        await ethers.getContractFactory("WorkersUnion")
+      ).deploy(voteCounter.address, timelock.address)
     ).address,
     deployer
   );
-  // 11. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
+
+  // TODO => 37. Transfer the timelock admin to the farmers union and renounce the executor role after 4 weeks
   await transferGovernance(timelock, workersUnion, deployer);
   return {
     ...tokenFixture,
     teamShare,
+    teamSharePool,
     workersUnion,
     voteCounter,
     veLocker,
@@ -201,74 +227,141 @@ export async function getMiningFixture(option?: {
 }): Promise<MiningFixture> {
   const [deployer] = await ethers.getSigners();
   const governanceFixture: GovernanceFixture = await getGovernanceFixture();
-  // 12. Deploy Burn Mining Factory
-  const burnMiningFactory = BurnMiningPoolFactory__factory.connect(
-    (await (await ethers.getContractFactory("BurnMiningPoolFactory")).deploy())
-      .address,
+  // 14. Deploy ERC20BurnMiningV1Factory
+  const erc20BurnMiningV1Factory = ERC20BurnMiningV1Factory__factory.connect(
+    (
+      await (
+        await ethers.getContractFactory("ERC20BurnMiningV1Factory")
+      ).deploy()
+    ).address,
     deployer
   );
-  // 13. Deploy Stake Mining Factory
-  const stakeMiningFactory = StakeMiningPoolFactory__factory.connect(
-    (await (await ethers.getContractFactory("StakeMiningPoolFactory")).deploy())
-      .address,
+  // 15. Deploy ERC20StakeMiningV1Factory
+  const erc20StakeMiningV1Factory = ERC20StakeMiningV1Factory__factory.connect(
+    (
+      await (
+        await ethers.getContractFactory("ERC20StakeMiningV1Factory")
+      ).deploy()
+    ).address,
     deployer
   );
-  // 14. Deploy Vision Token Emitter
+  // 16. Deploy ERC721StakeMiningV1Factory
+  const erc721StakeMiningV1Factory =
+    ERC721StakeMiningV1Factory__factory.connect(
+      (
+        await (
+          await ethers.getContractFactory("ERC721StakeMiningV1Factory")
+        ).deploy()
+      ).address,
+      deployer
+    );
+  // 17. Deploy ERC1155StakeMiningV1Factory
+  const erc1155StakeMiningV1Factory =
+    ERC1155StakeMiningV1Factory__factory.connect(
+      (
+        await (
+          await ethers.getContractFactory("ERC1155StakeMiningV1Factory")
+        ).deploy()
+      ).address,
+      deployer
+    );
+  // 18. Deploy Vision Token Emitter
   const visionEmitter = VisionEmitter__factory.connect(
     (
-      await (await ethers.getContractFactory("VisionEmitter")).deploy(
-        governanceFixture.teamShare.address,
+      await (
+        await ethers.getContractFactory("VisionEmitter")
+      ).deploy(
+        governanceFixture.teamSharePool.address,
         governanceFixture.timelock.address,
         deployer.address,
-        governanceFixture.vision.address,
-        burnMiningFactory.address,
-        stakeMiningFactory.address
+        governanceFixture.vision.address
       )
     ).address,
     deployer
   );
-  // 15. Launch the visionLP liquidity mining pool
-  await visionEmitter.newStakeMiningPool(governanceFixture.visionLP.address, {
-    gasLimit: 2000000,
-  });
-  const liquidityMiningAddr = await visionEmitter.callStatic.stakeMiningPools(
+  // 19. Initialize Team Share Pool
+  await governanceFixture.teamSharePool.initialize(
+    visionEmitter.address,
+    governanceFixture.teamShare.address,
+    governanceFixture.timelock.address
+  );
+
+  // 20. add ERC20BurnMiningV1Factory
+  await visionEmitter.setFactory(erc20BurnMiningV1Factory.address);
+  // 21. add ERC20StakeMiningV1Factory
+  await visionEmitter.setFactory(erc20StakeMiningV1Factory.address);
+  // 22. add ERC721StakeMiningV1Factory
+  await visionEmitter.setFactory(erc721StakeMiningV1Factory.address);
+  // 23. add ERC1155StakeMiningV1Factory
+  await visionEmitter.setFactory(erc1155StakeMiningV1Factory.address);
+
+  // 24. Launch the visionLP liquidity mining pool
+  const erc20StakeMiningV1SigHash = await erc20StakeMiningV1Factory.poolSig();
+  await visionEmitter.newPool(
+    erc20StakeMiningV1SigHash,
+    governanceFixture.visionLP.address,
+    {
+      gasLimit: 2000000,
+    }
+  );
+
+  // 25. Launch the  commit mining pool
+  const erc20BurnMiningV1SigHash = await erc20BurnMiningV1Factory.poolSig();
+  await visionEmitter.newPool(
+    erc20BurnMiningV1SigHash,
+    governanceFixture.commit.address,
+    {
+      gasLimit: 2000000,
+    }
+  );
+  const liquidityMiningPoolAddr = await erc20StakeMiningV1Factory.poolAddress(
+    visionEmitter.address,
     governanceFixture.visionLP.address
   );
-  const liquidityMining = StakeMining__factory.connect(
-    liquidityMiningAddr,
+  const liquidityMining = ERC20StakeMiningV1__factory.connect(
+    liquidityMiningPoolAddr,
     deployer
   );
-  // 16. Launch the commit burn mining pool
-  await visionEmitter.newBurnMiningPool(governanceFixture.commit.address, {
-    gasLimit: 2000000,
-  });
-  const commitMiningAddr = await visionEmitter.callStatic.burnMiningPools(
+  const commitMiningPoolAddr = await erc20BurnMiningV1Factory.poolAddress(
+    visionEmitter.address,
     governanceFixture.commit.address
   );
-  const commitMining = BurnMining__factory.connect(commitMiningAddr, deployer);
+  const commitMining = ERC20BurnMiningV1__factory.connect(
+    commitMiningPoolAddr,
+    deployer
+  );
   if (!option?.skipMinterSetting) {
+    // 27. set vision minter
     await setVisionMinter(governanceFixture.vision, visionEmitter, deployer);
+    // 28. transfer emitter governance to timelock
     await transferGovernanceOfEmitter(
       visionEmitter,
       governanceFixture.timelock,
       deployer
     );
   }
+
   return {
     ...governanceFixture,
     visionEmitter,
     commitMining,
     liquidityMining,
+    erc20BurnMiningV1Factory,
+    erc20StakeMiningV1Factory,
+    erc721StakeMiningV1Factory,
+    erc1155StakeMiningV1Factory,
   };
 }
 
 export async function getAppFixture(): Promise<AppFixture> {
   const [deployer] = await ethers.getSigners();
   const miningFixture: MiningFixture = await getMiningFixture();
-  // 17. Deploy Labor Market
+  // 29. Deploy Stable Reserve
   const stableReserve = StableReserve__factory.connect(
     (
-      await (await ethers.getContractFactory("StableReserve")).deploy(
+      await (
+        await ethers.getContractFactory("StableReserve")
+      ).deploy(
         miningFixture.timelock.address,
         miningFixture.commit.address,
         miningFixture.baseCurrency.address
@@ -276,12 +369,14 @@ export async function getAppFixture(): Promise<AppFixture> {
     ).address,
     deployer
   );
-  // 18. Move Minter Permission to StableReserve
+  // 30. Move Minter Permission to StableReserve
   await setCommitMinter(miningFixture.commit, stableReserve, deployer);
-  // 19. Deploy Project Manager
+  // 31. Deploy JobBoard
   const jobBoard = JobBoard__factory.connect(
     (
-      await (await ethers.getContractFactory("JobBoard")).deploy(
+      await (
+        await ethers.getContractFactory("JobBoard")
+      ).deploy(
         miningFixture.timelock.address,
         miningFixture.project.address,
         miningFixture.dividendPool.address,
@@ -292,10 +387,12 @@ export async function getAppFixture(): Promise<AppFixture> {
     ).address,
     deployer
   );
-  // 20. Deploy Product Market
+  // 32. Deploy ERC1155 Marketplace
   const marketplace = Marketplace__factory.connect(
     (
-      await (await ethers.getContractFactory("Marketplace")).deploy(
+      await (
+        await ethers.getContractFactory("Marketplace")
+      ).deploy(
         miningFixture.timelock.address,
         miningFixture.commit.address,
         miningFixture.dividendPool.address
@@ -303,7 +400,7 @@ export async function getAppFixture(): Promise<AppFixture> {
     ).address,
     deployer
   );
-  // 21. Initialize Stable Reserve
+  // 33. Initialize Stable Reserve
   await initStableReserve(stableReserve, jobBoard, deployer);
   return {
     ...miningFixture,

@@ -5,10 +5,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 import "../../../utils/ERC20Recoverer.sol";
 
-contract BurnMining is MiningPool {
+contract ERC20BurnMiningV1 is MiningPool {
     using SafeMath for uint256;
 
-    constructor() MiningPool() {}
+    constructor() MiningPool() {
+        _registerInterface(ERC20BurnMiningV1(0).burn.selector);
+        _registerInterface(ERC20BurnMiningV1(0).exit.selector);
+        _registerInterface(ERC20BurnMiningV1(0).erc20BurnMiningV1.selector);
+    }
 
     function burn(uint256 amount) public {
         _dispatchMiners(amount);
@@ -21,5 +25,9 @@ contract BurnMining is MiningPool {
         // withdraw all miners
         uint256 numOfMiners = dispatchedMiners[msg.sender];
         _withdrawMiners(numOfMiners);
+    }
+
+    function erc20BurnMiningV1() external pure returns (bool) {
+        return true;
     }
 }

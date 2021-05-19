@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface VisionEmitterInterface extends ethers.utils.Interface {
+interface TokenEmitterInterface extends ethers.utils.Interface {
   functions: {
     "DENOMINATOR()": FunctionFragment;
     "FOUNDER_SHARE_DENOMINATOR()": FunctionFragment;
@@ -286,7 +286,7 @@ interface VisionEmitterInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "TokenEmission"): EventFragment;
 }
 
-export class VisionEmitter extends Contract {
+export class TokenEmitter extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -327,7 +327,7 @@ export class VisionEmitter extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: VisionEmitterInterface;
+  interface: TokenEmitterInterface;
 
   functions: {
     DENOMINATOR(overrides?: CallOverrides): Promise<[BigNumber]>;

@@ -5,10 +5,8 @@
 // Runtime Environment's members available in the global scope.
 import hre, { ethers } from "hardhat";
 import { constants, Contract } from "ethers";
-import lowdb, { LowdbAsync } from "lowdb";
+import lowdb from "lowdb";
 import FileSync from "lowdb/adapters/FileSync";
-import merge from "deepmerge";
-import fs from "fs";
 import {
   Deployed,
   ContractNames,

@@ -19,11 +19,12 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface IMiningPoolFactoryInterface extends ethers.utils.Interface {
+interface MiningPoolFactoryInterface extends ethers.utils.Interface {
   functions: {
     "newPool(address,address,address)": FunctionFragment;
     "poolAddress(address,address)": FunctionFragment;
     "poolSig()": FunctionFragment;
+    "supportsInterface(bytes4)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -35,6 +36,10 @@ interface IMiningPoolFactoryInterface extends ethers.utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "poolSig", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "supportsInterface",
+    values: [BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "newPool", data: BytesLike): Result;
   decodeFunctionResult(
@@ -42,6 +47,10 @@ interface IMiningPoolFactoryInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "poolSig", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
 
   events: {
     "NewMiningPool(address,address,address,address)": EventFragment;
@@ -50,7 +59,7 @@ interface IMiningPoolFactoryInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "NewMiningPool"): EventFragment;
 }
 
-export class IMiningPoolFactory extends Contract {
+export class MiningPoolFactory extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -91,7 +100,7 @@ export class IMiningPoolFactory extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: IMiningPoolFactoryInterface;
+  interface: MiningPoolFactoryInterface;
 
   functions: {
     newPool(
@@ -123,6 +132,16 @@ export class IMiningPoolFactory extends Contract {
     poolSig(overrides?: CallOverrides): Promise<[string]>;
 
     "poolSig()"(overrides?: CallOverrides): Promise<[string]>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
   };
 
   newPool(
@@ -155,6 +174,16 @@ export class IMiningPoolFactory extends Contract {
 
   "poolSig()"(overrides?: CallOverrides): Promise<string>;
 
+  supportsInterface(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  "supportsInterface(bytes4)"(
+    interfaceId: BytesLike,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   callStatic: {
     newPool(
       _emitter: string,
@@ -185,6 +214,16 @@ export class IMiningPoolFactory extends Contract {
     poolSig(overrides?: CallOverrides): Promise<string>;
 
     "poolSig()"(overrides?: CallOverrides): Promise<string>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {
@@ -234,6 +273,16 @@ export class IMiningPoolFactory extends Contract {
     poolSig(overrides?: CallOverrides): Promise<BigNumber>;
 
     "poolSig()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -266,5 +315,15 @@ export class IMiningPoolFactory extends Contract {
     poolSig(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "poolSig()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    supportsInterface(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "supportsInterface(bytes4)"(
+      interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }

@@ -12,16 +12,22 @@ import {
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
-  BurnMining,
-  BurnMining__factory,
+  ERC20BurnMiningV1,
+  ERC20BurnMiningV1__factory,
   COMMIT,
   COMMIT__factory,
-  StakeMining,
-  StakeMining__factory,
+  ERC20StakeMiningV1,
+  ERC20StakeMiningV1__factory,
   TimelockedGovernance,
   VISION,
   VisionEmitter,
   VISION__factory,
+  Project as ERC721,
+  Project__factory as ERC721__factory,
+  Marketplace as ERC1155,
+  Marketplace__factory as ERC1155__factory,
+  Project,
+  ERC20BurnMiningV1Factory,
 } from "../../../src";
 
 chai.use(solidity);
@@ -39,8 +45,8 @@ describe("MiningPool.sol", function () {
   let timelock: TimelockedGovernance;
   let testingStakeToken: VISION;
   let testingBurnToken: COMMIT;
-  let stakeMiningPool: StakeMining;
-  let burnMiningPool: BurnMining;
+  let stakeMiningPool: ERC20StakeMiningV1;
+  let burnMiningPool: ERC20BurnMiningV1;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -55,14 +61,30 @@ describe("MiningPool.sol", function () {
     timelock = fixture.timelock;
     testingStakeToken = await new VISION__factory(deployer).deploy();
     testingBurnToken = await new COMMIT__factory(deployer).deploy();
-    await visionEmitter.newBurnMiningPool(testingBurnToken.address);
-    await visionEmitter.newStakeMiningPool(testingStakeToken.address);
-    burnMiningPool = BurnMining__factory.connect(
-      await visionEmitter.burnMiningPools(testingBurnToken.address),
+    const erc20BurnMiningV1SigHash =
+      await fixture.erc20BurnMiningV1Factory.poolSig();
+    const erc20StakeMiningV1SigHash =
+      await fixture.erc20StakeMiningV1Factory.poolSig();
+    await visionEmitter.newPool(
+      erc20BurnMiningV1SigHash,
+      testingBurnToken.address
+    );
+    await visionEmitter.newPool(
+      erc20StakeMiningV1SigHash,
+      testingStakeToken.address
+    );
+    burnMiningPool = ERC20BurnMiningV1__factory.connect(
+      await fixture.erc20BurnMiningV1Factory.poolAddress(
+        visionEmitter.address,
+        testingBurnToken.address
+      ),
       deployer
     );
-    stakeMiningPool = StakeMining__factory.connect(
-      await visionEmitter.stakeMiningPools(testingStakeToken.address),
+    stakeMiningPool = ERC20StakeMiningV1__factory.connect(
+      await fixture.erc20StakeMiningV1Factory.poolAddress(
+        visionEmitter.address,
+        testingStakeToken.address
+      ),
       deployer
     );
     const prepare = async (account: SignerWithAddress) => {

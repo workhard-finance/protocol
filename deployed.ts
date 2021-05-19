@@ -9,8 +9,10 @@ export type DeployableContracts =
   | "VotingEscrowLock"
   | "WorkersUnion"
   | "SquareRootVoteCounter"
-  | "BurnMiningPoolFactory"
-  | "StakeMiningPoolFactory"
+  | "ERC20BurnMiningV1Factory"
+  | "ERC20StakeMiningV1Factory"
+  | "ERC721StakeMiningV1Factory"
+  | "ERC1155StakeMiningV1Factory"
   | "VisionEmitter"
   | "DividendPool"
   | "BurnMining"
@@ -22,6 +24,7 @@ export type DeployableContracts =
   | "JobBoard"
   | "Project"
   | "TeamShare"
+  | "TeamSharePool"
   | "TimelockedGovernance";
 
 export type MyContracts =

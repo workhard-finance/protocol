@@ -5,10 +5,14 @@ import { autoDeploy, getDB, getRoleHash, record } from "./helper";
 import { deployed, MyNetwork } from "../../deployed";
 
 import {
-  BurnMining,
-  BurnMiningPoolFactory,
-  BurnMiningPoolFactory__factory,
-  BurnMining__factory,
+  ERC20BurnMiningV1,
+  ERC20BurnMiningV1__factory,
+  ERC20BurnMiningV1Factory__factory,
+  ERC20StakeMiningV1,
+  ERC20StakeMiningV1__factory,
+  ERC20StakeMiningV1Factory__factory,
+  ERC721StakeMiningV1Factory__factory,
+  ERC1155StakeMiningV1Factory__factory,
   COMMIT,
   COMMIT__factory,
   DividendPool,
@@ -24,12 +28,10 @@ import {
   Project__factory,
   StableReserve,
   StableReserve__factory,
-  StakeMining,
-  StakeMiningPoolFactory,
-  StakeMiningPoolFactory__factory,
-  StakeMining__factory,
   TeamShare,
   TeamShare__factory,
+  TeamSharePool,
+  TeamSharePool__factory,
   TimelockedGovernance,
   TimelockedGovernance__factory,
   VISION,
@@ -44,6 +46,10 @@ import {
   VotingEscrowToken__factory,
   WorkersUnion,
   WorkersUnion__factory,
+  ERC20BurnMiningV1Factory,
+  ERC20StakeMiningV1Factory,
+  ERC721StakeMiningV1Factory,
+  ERC1155StakeMiningV1Factory,
 } from "../../src";
 import { isAddress } from "ethers/lib/utils";
 
@@ -145,6 +151,12 @@ export async function getTeamShare(signer: Signer): Promise<TeamShare> {
   return TeamShare__factory.connect(teamShare.address, signer);
 }
 
+export async function getTeamSharePool(signer: Signer): Promise<TeamSharePool> {
+  const teamShare = await getTeamShare(signer);
+  const teamSharePool = await autoDeploy("TeamSharePool", teamShare.address);
+  return TeamSharePool__factory.connect(teamSharePool.address, signer);
+}
+
 export async function getTimelockedGovernance(
   signer: Signer
 ): Promise<TimelockedGovernance> {
@@ -202,84 +214,168 @@ export async function getWorkersUnion(signer: Signer): Promise<WorkersUnion> {
   return WorkersUnion__factory.connect(workersUnion.address, signer);
 }
 
-export async function getBurnMiningFactory(
+export async function getERC20BurnMiningV1Factory(
   signer: Signer
-): Promise<BurnMiningPoolFactory> {
-  const burnMiningPoolFactory = await autoDeploy("BurnMiningPoolFactory");
-  return BurnMiningPoolFactory__factory.connect(
-    burnMiningPoolFactory.address,
+): Promise<ERC20BurnMiningV1Factory> {
+  const erc20BurnMiningV1Factory = await autoDeploy("ERC20BurnMiningV1Factory");
+  return ERC20BurnMiningV1Factory__factory.connect(
+    erc20BurnMiningV1Factory.address,
     signer
   );
 }
 
-export async function getStakeMiningFactory(
+export async function getERC20StakeMiningV1Factory(
   signer: Signer
-): Promise<StakeMiningPoolFactory> {
-  const stakeMiningPoolFactory = await autoDeploy("StakeMiningPoolFactory");
-  return StakeMiningPoolFactory__factory.connect(
-    stakeMiningPoolFactory.address,
+): Promise<ERC20StakeMiningV1Factory> {
+  const erc20StakeMiningV1Factory = await autoDeploy(
+    "ERC20StakeMiningV1Factory"
+  );
+  return ERC20StakeMiningV1Factory__factory.connect(
+    erc20StakeMiningV1Factory.address,
+    signer
+  );
+}
+
+export async function getERC721StakeMiningV1Factory(
+  signer: Signer
+): Promise<ERC721StakeMiningV1Factory> {
+  const erc721StakeMiningV1Factory = await autoDeploy(
+    "ERC721StakeMiningV1Factory"
+  );
+  return ERC721StakeMiningV1Factory__factory.connect(
+    erc721StakeMiningV1Factory.address,
+    signer
+  );
+}
+
+export async function getERC1155StakeMiningV1Factory(
+  signer: Signer
+): Promise<ERC1155StakeMiningV1Factory> {
+  const erc1155StakeMiningV1Factory = await autoDeploy(
+    "ERC1155StakeMiningV1Factory"
+  );
+  return ERC1155StakeMiningV1Factory__factory.connect(
+    erc1155StakeMiningV1Factory.address,
     signer
   );
 }
 
 export async function getVisionEmitter(signer: Signer): Promise<VisionEmitter> {
-  const teamShare = await getTeamShare(signer);
+  const teamSharePool = await getTeamSharePool(signer);
   const timelock = await getTimelockedGovernance(signer);
   const vision = await getVision(signer);
-  const burnMiningFactory = await getBurnMiningFactory(signer);
-  const stakeMiningFactory = await getStakeMiningFactory(signer);
   const visionEmitter = await autoDeploy(
     "VisionEmitter",
-    teamShare.address,
+    teamSharePool.address,
     timelock.address,
     await signer.getAddress(),
-    vision.address,
-    burnMiningFactory.address,
-    stakeMiningFactory.address
+    vision.address
   );
   return VisionEmitter__factory.connect(visionEmitter.address, signer);
 }
 
-export async function getLiquidityMining(signer: Signer): Promise<StakeMining> {
+export async function initTeamSharePool(signer: Signer): Promise<void> {
+  const teamShare = await getTeamShare(signer);
+  const timelock = await getTimelockedGovernance(signer);
+  const teamSharePool = await getTeamSharePool(signer);
+  const visionEmitter = await getVisionEmitter(signer);
+  await teamSharePool.initialize(
+    visionEmitter.address,
+    teamShare.address,
+    timelock.address
+  );
+}
+
+export async function addERC20StakeMiningFactory(
+  signer: Signer
+): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const erc20StakeMiningV1Factory = await getERC20StakeMiningV1Factory(signer);
+  await visionEmitter.setFactory(erc20StakeMiningV1Factory.address);
+}
+
+export async function addERC20BurnMiningFactory(signer: Signer): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const erc20BurnMiningV1Factory = await getERC20BurnMiningV1Factory(signer);
+  await visionEmitter.setFactory(erc20BurnMiningV1Factory.address);
+}
+
+export async function addERC721StakeMiningFactory(
+  signer: Signer
+): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const erc721StakeMiningV1Factory = await getERC721StakeMiningV1Factory(
+    signer
+  );
+  await visionEmitter.setFactory(erc721StakeMiningV1Factory.address);
+}
+
+export async function addERC1155StakeMiningFactory(
+  signer: Signer
+): Promise<void> {
+  const visionEmitter = await getVisionEmitter(signer);
+  const erc1155StakeMiningV1Factory = await getERC1155StakeMiningV1Factory(
+    signer
+  );
+  await visionEmitter.setFactory(erc1155StakeMiningV1Factory.address);
+}
+
+export async function getLiquidityMining(
+  signer: Signer
+): Promise<ERC20StakeMiningV1> {
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = await getDB();
   const deployedAddress = await deployed
     .get(`${network}.LiquidityMining`)
     .value();
   let poolAddr: string;
+  const erc20StakeMiningV1Factory = await getERC20StakeMiningV1Factory(signer);
+  const erc20StakeMiningV1SigHash = await erc20StakeMiningV1Factory.poolSig();
   if (deployedAddress) {
     poolAddr = deployedAddress;
   } else {
     const visionEmitter = await getVisionEmitter(signer);
     const visionEthLP = await getVisionETHLP(signer);
-    await visionEmitter.newStakeMiningPool(visionEthLP.address, {
-      gasLimit: 2000000,
-    });
-    poolAddr = await visionEmitter.callStatic.stakeMiningPools(
+    await visionEmitter.newPool(
+      erc20StakeMiningV1SigHash,
+      visionEthLP.address,
+      {
+        gasLimit: 2000000,
+      }
+    );
+    poolAddr = await erc20StakeMiningV1Factory.poolAddress(
+      visionEmitter.address,
       visionEthLP.address
     );
     record(hre.network.name as MyNetwork, "LiquidityMining", poolAddr);
   }
-  return StakeMining__factory.connect(poolAddr, signer);
+  return ERC20StakeMiningV1__factory.connect(poolAddr, signer);
 }
 
-export async function getCommitMining(signer: Signer): Promise<BurnMining> {
+export async function getCommitMining(
+  signer: Signer
+): Promise<ERC20BurnMiningV1> {
   const network: MyNetwork = hre.network.name as MyNetwork;
   const deployed = await getDB();
   const deployedAddress = await deployed.get(`${network}.CommitMining`).value();
   let poolAddr: string;
+  const erc20BurnMiningV1Factory = await getERC20BurnMiningV1Factory(signer);
+  const erc20BurnMiningV1SigHash = await erc20BurnMiningV1Factory.poolSig();
   if (deployedAddress) {
     poolAddr = deployedAddress;
   } else {
     const visionEmitter = await getVisionEmitter(signer);
     const commit = await getCommit(signer);
-    await visionEmitter.newBurnMiningPool(commit.address, {
+    await visionEmitter.newPool(erc20BurnMiningV1SigHash, commit.address, {
       gasLimit: 2000000,
     });
-    poolAddr = await visionEmitter.callStatic.burnMiningPools(commit.address);
+    poolAddr = await erc20BurnMiningV1Factory.poolAddress(
+      visionEmitter.address,
+      commit.address
+    );
     record(hre.network.name as MyNetwork, "CommitMining", poolAddr);
   }
-  return BurnMining__factory.connect(poolAddr, signer);
+  return ERC20BurnMiningV1__factory.connect(poolAddr, signer);
 }
 
 export async function setEmissionRate(signer: Signer): Promise<void> {

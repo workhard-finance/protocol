@@ -23,9 +23,9 @@ interface ITokenEmitterInterface extends ethers.utils.Interface {
   functions: {
     "distribute()": FunctionFragment;
     "emissionPeriod()": FunctionFragment;
-    "setEmissionPeriod(uint256)": FunctionFragment;
-    "setWeight(uint256,uint256,uint256,uint256)": FunctionFragment;
-    "start(address,address)": FunctionFragment;
+    "poolTypes(address)": FunctionFragment;
+    "start()": FunctionFragment;
+    "token()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -36,30 +36,18 @@ interface ITokenEmitterInterface extends ethers.utils.Interface {
     functionFragment: "emissionPeriod",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "setEmissionPeriod",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setWeight",
-    values: [BigNumberish, BigNumberish, BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "start",
-    values: [string, string]
-  ): string;
+  encodeFunctionData(functionFragment: "poolTypes", values: [string]): string;
+  encodeFunctionData(functionFragment: "start", values?: undefined): string;
+  encodeFunctionData(functionFragment: "token", values?: undefined): string;
 
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "emissionPeriod",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "setEmissionPeriod",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "setWeight", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "poolTypes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "start", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
 
   events: {};
 }
@@ -120,43 +108,24 @@ export class ITokenEmitter extends Contract {
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    setEmissionPeriod(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    poolTypes(pool: string, overrides?: CallOverrides): Promise<[string]>;
 
-    "setEmissionPeriod(uint256)"(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setWeight(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setWeight(uint256,uint256,uint256,uint256)"(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "poolTypes(address)"(
+      pool: string,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     start(
-      _liquidityMining: string,
-      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "start(address,address)"(
-      _liquidityMining: string,
-      _commitMining: string,
+    "start()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    token(overrides?: CallOverrides): Promise<[string]>;
+
+    "token()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   distribute(
@@ -171,43 +140,24 @@ export class ITokenEmitter extends Contract {
 
   "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  setEmissionPeriod(
-    _emissionPeriod: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  poolTypes(pool: string, overrides?: CallOverrides): Promise<string>;
 
-  "setEmissionPeriod(uint256)"(
-    _emissionPeriod: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setWeight(
-    commit: BigNumberish,
-    liquidity: BigNumberish,
-    dev: BigNumberish,
-    caller: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setWeight(uint256,uint256,uint256,uint256)"(
-    commit: BigNumberish,
-    liquidity: BigNumberish,
-    dev: BigNumberish,
-    caller: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "poolTypes(address)"(
+    pool: string,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   start(
-    _liquidityMining: string,
-    _commitMining: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "start(address,address)"(
-    _liquidityMining: string,
-    _commitMining: string,
+  "start()"(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  token(overrides?: CallOverrides): Promise<string>;
+
+  "token()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     distribute(overrides?: CallOverrides): Promise<void>;
@@ -218,43 +168,20 @@ export class ITokenEmitter extends Contract {
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setEmissionPeriod(
-      _emissionPeriod: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    poolTypes(pool: string, overrides?: CallOverrides): Promise<string>;
 
-    "setEmissionPeriod(uint256)"(
-      _emissionPeriod: BigNumberish,
+    "poolTypes(address)"(
+      pool: string,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<string>;
 
-    setWeight(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    start(overrides?: CallOverrides): Promise<void>;
 
-    "setWeight(uint256,uint256,uint256,uint256)"(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "start()"(overrides?: CallOverrides): Promise<void>;
 
-    start(
-      _liquidityMining: string,
-      _commitMining: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    token(overrides?: CallOverrides): Promise<string>;
 
-    "start(address,address)"(
-      _liquidityMining: string,
-      _commitMining: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    "token()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {};
@@ -272,43 +199,24 @@ export class ITokenEmitter extends Contract {
 
     "emissionPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    setEmissionPeriod(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    poolTypes(pool: string, overrides?: CallOverrides): Promise<BigNumber>;
 
-    "setEmissionPeriod(uint256)"(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setWeight(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setWeight(uint256,uint256,uint256,uint256)"(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    "poolTypes(address)"(
+      pool: string,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     start(
-      _liquidityMining: string,
-      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "start(address,address)"(
-      _liquidityMining: string,
-      _commitMining: string,
+    "start()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    token(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "token()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -326,42 +234,26 @@ export class ITokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    setEmissionPeriod(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    poolTypes(
+      pool: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "setEmissionPeriod(uint256)"(
-      _emissionPeriod: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setWeight(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setWeight(uint256,uint256,uint256,uint256)"(
-      commit: BigNumberish,
-      liquidity: BigNumberish,
-      dev: BigNumberish,
-      caller: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    "poolTypes(address)"(
+      pool: string,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     start(
-      _liquidityMining: string,
-      _commitMining: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "start(address,address)"(
-      _liquidityMining: string,
-      _commitMining: string,
+    "start()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "token()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

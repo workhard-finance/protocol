@@ -12,12 +12,12 @@ import {
 import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
-  BurnMining,
-  BurnMining__factory,
+  ERC20BurnMiningV1,
+  ERC20BurnMiningV1__factory,
   COMMIT,
   COMMIT__factory,
-  StakeMining,
-  StakeMining__factory,
+  ERC20StakeMiningV1,
+  ERC20StakeMiningV1__factory,
   TimelockedGovernance,
   VISION,
   VisionEmitter,
@@ -35,8 +35,8 @@ describe("VisionEmitter.sol", function () {
   let fixture: MiningFixture;
   let vision: VISION;
   let visionEmitter: VisionEmitter;
-  let commitMining: BurnMining;
-  let liquidityMining: StakeMining;
+  let commitMining: ERC20BurnMiningV1;
+  let liquidityMining: ERC20StakeMiningV1;
   let timelock: TimelockedGovernance;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   let initialEmission;
@@ -123,54 +123,93 @@ describe("VisionEmitter.sol", function () {
       expect(await visionEmitter.getPoolWeight(1)).to.be.eq(4745);
     });
   });
-  describe("newBurnMiningPool & newStakeMiningPool", async () => {
+  describe("newPool", async () => {
     let testingStakeToken: VISION;
     let testingBurnToken: COMMIT;
     beforeEach(async () => {
       testingStakeToken = await new VISION__factory(deployer).deploy();
       testingBurnToken = await new COMMIT__factory(deployer).deploy();
     });
-    it("newBurnMiningPool", async () => {
-      const burnMiningPoolFactoryAddr = await visionEmitter.burnMiningPoolFactory();
-      const BurnMining = await ethers.getContractFactory("BurnMining");
-      const newBurnMiningPoolAddr = getCreate2Address(
-        burnMiningPoolFactoryAddr,
-        [vision.address, visionEmitter.address, testingBurnToken.address],
-        BurnMining.bytecode
+    it("newPool: ERC20BurnMiningV1", async () => {
+      const poolAddress = fixture.erc20BurnMiningV1Factory.address;
+      const ERC20BurnMiningV1 = await ethers.getContractFactory(
+        "ERC20BurnMiningV1"
       );
-      await expect(visionEmitter.newBurnMiningPool(testingBurnToken.address))
-        .to.emit(visionEmitter, "NewBurnMiningPool")
-        .withArgs(testingBurnToken.address, newBurnMiningPoolAddr);
+      const expectedAddress = getCreate2Address(
+        poolAddress,
+        [visionEmitter.address, testingBurnToken.address],
+        ERC20BurnMiningV1.bytecode
+      );
+      const erc20BurnMiningV1SigHash =
+        await fixture.erc20BurnMiningV1Factory.poolSig();
+      await expect(
+        visionEmitter.newPool(
+          erc20BurnMiningV1SigHash,
+          testingBurnToken.address
+        )
+      )
+        .to.emit(visionEmitter, "NewMiningPool")
+        .withArgs(
+          erc20BurnMiningV1SigHash,
+          testingBurnToken.address,
+          expectedAddress
+        );
     });
-    it("newStakeMiningPool", async () => {
-      const stakeMiningPoolFactoryAddr = await visionEmitter.stakeMiningPoolFactory();
-      const StakeMining = await ethers.getContractFactory("StakeMining");
-      const newStakeMiningPoolAddr = getCreate2Address(
-        stakeMiningPoolFactoryAddr,
-        [vision.address, visionEmitter.address, testingStakeToken.address],
-        StakeMining.bytecode
+    it("newPool: ERC20StakeMiningV1", async () => {
+      const poolAddress = fixture.erc20StakeMiningV1Factory.address;
+      const ERC20StakeMiningV1 = await ethers.getContractFactory(
+        "ERC20StakeMiningV1"
       );
-      await expect(visionEmitter.newStakeMiningPool(testingStakeToken.address))
-        .to.emit(visionEmitter, "NewStakeMiningPool")
-        .withArgs(testingStakeToken.address, newStakeMiningPoolAddr);
+      const expectedAddress = getCreate2Address(
+        poolAddress,
+        [visionEmitter.address, testingStakeToken.address],
+        ERC20StakeMiningV1.bytecode
+      );
+      const erc20StakeMiningV1SigHash =
+        await fixture.erc20StakeMiningV1Factory.poolSig();
+      await expect(
+        visionEmitter.newPool(
+          erc20StakeMiningV1SigHash,
+          testingStakeToken.address
+        )
+      )
+        .to.emit(visionEmitter, "NewMiningPool")
+        .withArgs(
+          erc20StakeMiningV1SigHash,
+          testingStakeToken.address,
+          expectedAddress
+        );
     });
   });
   describe("start() & distribute()", async () => {
     let testingStakeToken: VISION;
     let testingBurnToken: COMMIT;
-    let testingStakeMiningPool: StakeMining;
-    let testingBurnMiningPool: BurnMining;
+    let testingERC20StakeMiningV1Pool: ERC20StakeMiningV1;
+    let testingERC20BurnMiningV1Pool: ERC20BurnMiningV1;
     beforeEach(async () => {
       testingStakeToken = await new VISION__factory(deployer).deploy();
       testingBurnToken = await new COMMIT__factory(deployer).deploy();
-      await visionEmitter.newBurnMiningPool(testingBurnToken.address);
-      await visionEmitter.newStakeMiningPool(testingStakeToken.address);
-      testingBurnMiningPool = BurnMining__factory.connect(
-        await visionEmitter.burnMiningPools(testingBurnToken.address),
+
+      await visionEmitter.newPool(
+        await fixture.erc20BurnMiningV1Factory.poolSig(),
+        testingBurnToken.address
+      );
+      await visionEmitter.newPool(
+        await fixture.erc20StakeMiningV1Factory.poolSig(),
+        testingStakeToken.address
+      );
+      testingERC20BurnMiningV1Pool = ERC20BurnMiningV1__factory.connect(
+        await fixture.erc20BurnMiningV1Factory.poolAddress(
+          visionEmitter.address,
+          testingBurnToken.address
+        ),
         deployer
       );
-      testingStakeMiningPool = StakeMining__factory.connect(
-        await visionEmitter.stakeMiningPools(testingStakeToken.address),
+      testingERC20StakeMiningV1Pool = ERC20StakeMiningV1__factory.connect(
+        await fixture.erc20StakeMiningV1Factory.poolAddress(
+          visionEmitter.address,
+          testingStakeToken.address
+        ),
         deployer
       );
     });
@@ -187,7 +226,10 @@ describe("VisionEmitter.sol", function () {
         await runTimelockTx(
           timelock,
           visionEmitter.populateTransaction.setEmission(
-            [testingBurnMiningPool.address, testingStakeMiningPool.address],
+            [
+              testingERC20BurnMiningV1Pool.address,
+              testingERC20StakeMiningV1Pool.address,
+            ],
             [4745, 4745],
             500,
             10
@@ -242,7 +284,7 @@ describe("VisionEmitter.sol", function () {
             formatEther(stat.totalSupply.toString())
           ).toFixed(2);
           it(`emission of week ${weekNum}(${per}% of the 1 year supply) should be ${emission} and total supply should be ${totalSupply}`, async () => {
-            // await testingStakeMiningPool.connect(alice).stake();
+            // await testingERC20StakeMiningV1Pool.connect(alice).stake();
             for (let w = 0; w < weekNum; w++) {
               await goToNextWeek();
               await visionEmitter.distribute();

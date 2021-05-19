@@ -8,17 +8,25 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
+import "@openzeppelin/contracts/introspection/ERC165.sol";
 import "../../../core/tokens/COMMIT.sol";
 import "../../../core/emission/interfaces/ITokenEmitter.sol";
+import "../../../core/emission/interfaces/IMiningPool.sol";
 import "../../../utils/ERC20Recoverer.sol";
 
-contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
+contract MiningPool is
+    ReentrancyGuard,
+    Pausable,
+    ERC20Recoverer,
+    ERC165,
+    IMiningPool
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    address public baseToken;
-    address public token;
-    ITokenEmitter public tokenEmitter;
+    address public override baseToken;
+    address public override token;
+    address public override tokenEmitter;
 
     uint256 public miningEnds = 0;
     uint256 public miningRate = 0;
@@ -54,21 +62,23 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
         _;
     }
 
-    constructor() ERC20Recoverer() {}
+    constructor() ERC20Recoverer() ERC165() {
+        _registerInterface(MiningPool(0).allocate.selector);
+    }
 
     function initialize(
-        address _token,
         address _tokenEmitter,
         address _baseToken,
         address _recoverTo
-    ) public {
+    ) public override {
+        address _token = ITokenEmitter(_tokenEmitter).token();
         require(address(token) == address(0), "Already initialized");
         require(_token != address(0));
         require(_tokenEmitter != address(0));
         require(_baseToken != address(0));
         require(_recoverTo != address(0));
         token = _token;
-        tokenEmitter = ITokenEmitter(_tokenEmitter);
+        tokenEmitter = _tokenEmitter;
         baseToken = _baseToken;
         ERC20Recoverer.disablePermanently(_token);
         ERC20Recoverer.disablePermanently(_baseToken);
@@ -77,10 +87,11 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
 
     function allocate(uint256 amount)
         public
+        override
         onlyTokenEmitter
         recordMining(address(0))
     {
-        uint256 miningPeriod = tokenEmitter.emissionPeriod();
+        uint256 miningPeriod = ITokenEmitter(tokenEmitter).emissionPeriod();
         if (block.timestamp >= miningEnds) {
             miningRate = amount.div(miningPeriod);
         } else {
@@ -161,7 +172,7 @@ contract MiningPool is ReentrancyGuard, Pausable, ERC20Recoverer {
     }
 
     function getMineableForPeriod() public view returns (uint256) {
-        uint256 miningPeriod = tokenEmitter.emissionPeriod();
+        uint256 miningPeriod = ITokenEmitter(tokenEmitter).emissionPeriod();
         return miningRate.mul(miningPeriod);
     }
 }

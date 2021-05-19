@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
+interface ERC1155StakeMiningV1Interface extends ethers.utils.Interface {
   functions: {
     "_mined(address)": FunctionFragment;
     "allocate(uint256)": FunctionFragment;
@@ -29,9 +29,10 @@ interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
     "dispatchableMiners(uint256)": FunctionFragment;
     "dispatchedMiners(address)": FunctionFragment;
     "enable(address)": FunctionFragment;
+    "erc1155StakeMiningV1()": FunctionFragment;
     "exit(uint256)": FunctionFragment;
     "getMineableForPeriod()": FunctionFragment;
-    "initialize(address,address,address,address)": FunctionFragment;
+    "initialize(address,address,address)": FunctionFragment;
     "lastTimeMiningApplicable()": FunctionFragment;
     "lastUpdateTime()": FunctionFragment;
     "mine()": FunctionFragment;
@@ -76,6 +77,10 @@ interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "enable", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "erc1155StakeMiningV1",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "exit", values: [BigNumberish]): string;
   encodeFunctionData(
     functionFragment: "getMineableForPeriod",
@@ -83,7 +88,7 @@ interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "initialize",
-    values: [string, string, string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "lastTimeMiningApplicable",
@@ -176,6 +181,10 @@ interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "enable", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "erc1155StakeMiningV1",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "exit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getMineableForPeriod",
@@ -263,7 +272,7 @@ interface ERC1155StakeMiningInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
 
-export class ERC1155StakeMining extends Contract {
+export class ERC1155StakeMiningV1 extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -304,7 +313,7 @@ export class ERC1155StakeMining extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: ERC1155StakeMiningInterface;
+  interface: ERC1155StakeMiningV1Interface;
 
   functions: {
     _mined(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -378,6 +387,10 @@ export class ERC1155StakeMining extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    erc1155StakeMiningV1(overrides?: CallOverrides): Promise<[boolean]>;
+
+    "erc1155StakeMiningV1()"(overrides?: CallOverrides): Promise<[boolean]>;
+
     exit(
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -393,15 +406,13 @@ export class ERC1155StakeMining extends Contract {
     "getMineableForPeriod()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     initialize(
-      _token: string,
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "initialize(address,address,address,address)"(
-      _token: string,
+    "initialize(address,address,address)"(
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
@@ -653,6 +664,10 @@ export class ERC1155StakeMining extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  erc1155StakeMiningV1(overrides?: CallOverrides): Promise<boolean>;
+
+  "erc1155StakeMiningV1()"(overrides?: CallOverrides): Promise<boolean>;
+
   exit(
     tokenId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -668,15 +683,13 @@ export class ERC1155StakeMining extends Contract {
   "getMineableForPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   initialize(
-    _token: string,
     _tokenEmitter: string,
     _baseToken: string,
     _recoverTo: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "initialize(address,address,address,address)"(
-    _token: string,
+  "initialize(address,address,address)"(
     _tokenEmitter: string,
     _baseToken: string,
     _recoverTo: string,
@@ -920,6 +933,10 @@ export class ERC1155StakeMining extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    erc1155StakeMiningV1(overrides?: CallOverrides): Promise<boolean>;
+
+    "erc1155StakeMiningV1()"(overrides?: CallOverrides): Promise<boolean>;
+
     exit(tokenId: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
     "exit(uint256)"(
@@ -932,15 +949,13 @@ export class ERC1155StakeMining extends Contract {
     "getMineableForPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      _token: string,
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "initialize(address,address,address,address)"(
-      _token: string,
+    "initialize(address,address,address)"(
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
@@ -1229,6 +1244,10 @@ export class ERC1155StakeMining extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    erc1155StakeMiningV1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "erc1155StakeMiningV1()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     exit(
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1244,15 +1263,13 @@ export class ERC1155StakeMining extends Contract {
     "getMineableForPeriod()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     initialize(
-      _token: string,
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "initialize(address,address,address,address)"(
-      _token: string,
+    "initialize(address,address,address)"(
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
@@ -1509,6 +1526,14 @@ export class ERC1155StakeMining extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    erc1155StakeMiningV1(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "erc1155StakeMiningV1()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     exit(
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1528,15 +1553,13 @@ export class ERC1155StakeMining extends Contract {
     ): Promise<PopulatedTransaction>;
 
     initialize(
-      _token: string,
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "initialize(address,address,address,address)"(
-      _token: string,
+    "initialize(address,address,address)"(
       _tokenEmitter: string,
       _baseToken: string,
       _recoverTo: string,

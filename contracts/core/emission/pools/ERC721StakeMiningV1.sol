@@ -9,12 +9,19 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "../../../utils/ERC20Recoverer.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
-contract ERC721StakeMining is MiningPool, ERC721Holder {
+contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
     using SafeMath for uint256;
 
     mapping(uint256 => address) staker;
 
-    constructor() MiningPool() {}
+    constructor() MiningPool() {
+        _registerInterface(ERC721StakeMiningV1(0).stake.selector);
+        _registerInterface(ERC721StakeMiningV1(0).mine.selector);
+        _registerInterface(ERC721StakeMiningV1(0).withdraw.selector);
+        _registerInterface(ERC721StakeMiningV1(0).exit.selector);
+        _registerInterface(ERC721StakeMiningV1(0).dispatchableMiners.selector);
+        _registerInterface(ERC721StakeMiningV1(0).erc721StakeMiningV1.selector);
+    }
 
     function stake(uint256 id) public {
         try
@@ -73,5 +80,9 @@ contract ERC721StakeMining is MiningPool, ERC721Holder {
     {
         if (IERC721(baseToken).ownerOf(tokenId) != address(0)) return 1;
         else return 0;
+    }
+
+    function erc721StakeMiningV1() external pure returns (bool) {
+        return true;
     }
 }

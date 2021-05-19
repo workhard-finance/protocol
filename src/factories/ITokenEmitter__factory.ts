@@ -40,60 +40,40 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "_emissionPeriod",
-        type: "uint256",
-      },
-    ],
-    name: "setEmissionPeriod",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "commit",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "liquidity",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "dev",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "caller",
-        type: "uint256",
-      },
-    ],
-    name: "setWeight",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
-        name: "_liquidityMining",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_commitMining",
+        name: "pool",
         type: "address",
       },
     ],
+    name: "poolTypes",
+    outputs: [
+      {
+        internalType: "bytes4",
+        name: "",
+        type: "bytes4",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "start",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "token",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
 ];

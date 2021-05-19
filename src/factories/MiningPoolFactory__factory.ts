@@ -5,14 +5,14 @@
 import { Contract, Signer } from "ethers";
 import { Provider } from "@ethersproject/providers";
 
-import type { IMiningPoolFactory } from "../IMiningPoolFactory";
+import type { MiningPoolFactory } from "../MiningPoolFactory";
 
-export class IMiningPoolFactory__factory {
+export class MiningPoolFactory__factory {
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): IMiningPoolFactory {
-    return new Contract(address, _abi, signerOrProvider) as IMiningPoolFactory;
+  ): MiningPoolFactory {
+    return new Contract(address, _abi, signerOrProvider) as MiningPoolFactory;
   }
 }
 
@@ -70,7 +70,7 @@ const _abi = [
     outputs: [
       {
         internalType: "address",
-        name: "",
+        name: "_pool",
         type: "address",
       },
     ],
@@ -109,6 +109,25 @@ const _abi = [
         internalType: "bytes4",
         name: "",
         type: "bytes4",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4",
+      },
+    ],
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

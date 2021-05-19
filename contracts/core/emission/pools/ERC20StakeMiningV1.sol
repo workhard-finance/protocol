@@ -6,11 +6,17 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "../../../utils/ERC20Recoverer.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
-contract StakeMining is MiningPool {
+contract ERC20StakeMiningV1 is MiningPool {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    constructor() MiningPool() {}
+    constructor() MiningPool() {
+        _registerInterface(ERC20StakeMiningV1(0).stake.selector);
+        _registerInterface(ERC20StakeMiningV1(0).mine.selector);
+        _registerInterface(ERC20StakeMiningV1(0).withdraw.selector);
+        _registerInterface(ERC20StakeMiningV1(0).exit.selector);
+        _registerInterface(ERC20StakeMiningV1(0).erc20StakeMiningV1.selector);
+    }
 
     function stake(uint256 amount) public {
         IERC20(baseToken).safeTransferFrom(msg.sender, address(this), amount);
@@ -29,5 +35,9 @@ contract StakeMining is MiningPool {
     function exit() public {
         mine();
         withdraw(dispatchedMiners[msg.sender]);
+    }
+
+    function erc20StakeMiningV1() external pure returns (bool) {
+        return true;
     }
 }

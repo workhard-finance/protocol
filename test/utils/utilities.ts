@@ -51,18 +51,13 @@ export const runTimelockTx = async (
 
 export const getCreate2Address = (
   factoryAddress: string,
-  [token, emitter, baseToken]: [string, string, string],
+  [emitter, baseToken]: [string, string],
   bytecode: string
 ): string => {
   const create2Inputs = [
     "0xff",
     factoryAddress,
-    keccak256(
-      solidityPack(
-        ["address", "address", "address"],
-        [token, emitter, baseToken]
-      )
-    ),
+    keccak256(solidityPack(["address", "address"], [emitter, baseToken])),
     keccak256(bytecode),
   ];
   const sanitizedInputs = `0x${create2Inputs.map((i) => i.slice(2)).join("")}`;

@@ -13,4 +13,16 @@ library Utils {
             }
         }
     }
+
+    function find(bytes4[] memory arr, bytes4 sig)
+        internal
+        pure
+        returns (bool exist, uint256 index)
+    {
+        for (uint256 i = 0; i < arr.length; i += 1) {
+            if (arr[i] == sig) {
+                return (true, i);
+            }
+        }
+    }
 }

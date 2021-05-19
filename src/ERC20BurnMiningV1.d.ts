@@ -19,15 +19,18 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface MiningPoolInterface extends ethers.utils.Interface {
+interface ERC20BurnMiningV1Interface extends ethers.utils.Interface {
   functions: {
     "_mined(address)": FunctionFragment;
     "allocate(uint256)": FunctionFragment;
     "baseToken()": FunctionFragment;
+    "burn(uint256)": FunctionFragment;
     "disable(address)": FunctionFragment;
     "disablePermanently(address)": FunctionFragment;
     "dispatchedMiners(address)": FunctionFragment;
     "enable(address)": FunctionFragment;
+    "erc20BurnMiningV1()": FunctionFragment;
+    "exit()": FunctionFragment;
     "getMineableForPeriod()": FunctionFragment;
     "initialize(address,address,address)": FunctionFragment;
     "lastTimeMiningApplicable()": FunctionFragment;
@@ -55,6 +58,7 @@ interface MiningPoolInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "baseToken", values?: undefined): string;
+  encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
   encodeFunctionData(functionFragment: "disable", values: [string]): string;
   encodeFunctionData(
     functionFragment: "disablePermanently",
@@ -65,6 +69,11 @@ interface MiningPoolInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "enable", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "erc20BurnMiningV1",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "exit", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getMineableForPeriod",
     values?: undefined
@@ -133,6 +142,7 @@ interface MiningPoolInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "_mined", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "allocate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "disable", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "disablePermanently",
@@ -143,6 +153,11 @@ interface MiningPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "enable", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "erc20BurnMiningV1",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "exit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getMineableForPeriod",
     data: BytesLike
@@ -218,7 +233,7 @@ interface MiningPoolInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
 
-export class MiningPool extends Contract {
+export class ERC20BurnMiningV1 extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -259,7 +274,7 @@ export class MiningPool extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: MiningPoolInterface;
+  interface: ERC20BurnMiningV1Interface;
 
   functions: {
     _mined(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -282,6 +297,16 @@ export class MiningPool extends Contract {
     baseToken(overrides?: CallOverrides): Promise<[string]>;
 
     "baseToken()"(overrides?: CallOverrides): Promise<[string]>;
+
+    burn(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "burn(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     disable(
       _contract: string,
@@ -320,6 +345,18 @@ export class MiningPool extends Contract {
 
     "enable(address)"(
       _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    erc20BurnMiningV1(overrides?: CallOverrides): Promise<[boolean]>;
+
+    "erc20BurnMiningV1()"(overrides?: CallOverrides): Promise<[boolean]>;
+
+    exit(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "exit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -471,6 +508,16 @@ export class MiningPool extends Contract {
 
   "baseToken()"(overrides?: CallOverrides): Promise<string>;
 
+  burn(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "burn(uint256)"(
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   disable(
     _contract: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -505,6 +552,18 @@ export class MiningPool extends Contract {
 
   "enable(address)"(
     _contract: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  erc20BurnMiningV1(overrides?: CallOverrides): Promise<boolean>;
+
+  "erc20BurnMiningV1()"(overrides?: CallOverrides): Promise<boolean>;
+
+  exit(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "exit()"(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -651,6 +710,13 @@ export class MiningPool extends Contract {
 
     "baseToken()"(overrides?: CallOverrides): Promise<string>;
 
+    burn(amount: BigNumberish, overrides?: CallOverrides): Promise<void>;
+
+    "burn(uint256)"(
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     disable(_contract: string, overrides?: CallOverrides): Promise<void>;
 
     "disable(address)"(
@@ -684,6 +750,14 @@ export class MiningPool extends Contract {
       _contract: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    erc20BurnMiningV1(overrides?: CallOverrides): Promise<boolean>;
+
+    "erc20BurnMiningV1()"(overrides?: CallOverrides): Promise<boolean>;
+
+    exit(overrides?: CallOverrides): Promise<void>;
+
+    "exit()"(overrides?: CallOverrides): Promise<void>;
 
     getMineableForPeriod(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -871,6 +945,16 @@ export class MiningPool extends Contract {
 
     "baseToken()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    burn(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "burn(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     disable(
       _contract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -908,6 +992,18 @@ export class MiningPool extends Contract {
 
     "enable(address)"(
       _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    erc20BurnMiningV1(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "erc20BurnMiningV1()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    exit(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "exit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1061,6 +1157,16 @@ export class MiningPool extends Contract {
 
     "baseToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    burn(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "burn(uint256)"(
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     disable(
       _contract: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1098,6 +1204,20 @@ export class MiningPool extends Contract {
 
     "enable(address)"(
       _contract: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    erc20BurnMiningV1(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "erc20BurnMiningV1()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    exit(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "exit()"(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
