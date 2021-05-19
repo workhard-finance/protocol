@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../core/governance/interfaces/IVotingEscrowToken.sol";
 import "../../core/governance/interfaces/IVotingEscrowLock.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
@@ -20,7 +21,12 @@ struct Distribution {
 }
 
 /** @title Dividend Pool */
-contract DividendPool is IDividendPool, Governed, HasInitializer {
+contract DividendPool is
+    IDividendPool,
+    Governed,
+    HasInitializer,
+    ReentrancyGuard
+{
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Utils for address[];
@@ -55,7 +61,11 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
 
     // distribution
 
-    function distribute(address _token, uint256 _amount) public override {
+    function distribute(address _token, uint256 _amount)
+        public
+        override
+        nonReentrant
+    {
         require(distributable[_token], "Not allowed");
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 newBalance = IERC20(_token).balanceOf(address(this));
@@ -69,24 +79,19 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
 
     // claim
 
-    function claim(address token) public {
+    function claim(address token) public nonReentrant {
         uint256 prevEpochTimestamp = block.timestamp - epochUnit;
-        claimUpTo(token, prevEpochTimestamp);
+        _claimUpTo(token, prevEpochTimestamp);
     }
 
-    function claimUpTo(address token, uint256 timestamp) public {
-        uint256 epoch = getEpoch(timestamp);
-        uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
-        for (uint256 i = 0; i < myLocks; i++) {
-            uint256 lockId =
-                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(msg.sender, i);
-            _claim(token, lockId, epoch);
-        }
+    function claimUpTo(address token, uint256 timestamp) public nonReentrant {
+        _claimUpTo(token, timestamp);
     }
 
-    function claimBatch(address[] memory tokens) public {
+    function claimBatch(address[] memory tokens) public nonReentrant {
+        uint256 prevEpochTimestamp = block.timestamp - epochUnit;
         for (uint256 i = 0; i < tokens.length; i++) {
-            claim(tokens[i]);
+            _claimUpTo(tokens[i], prevEpochTimestamp);
         }
     }
 
@@ -173,6 +178,16 @@ contract DividendPool is IDividendPool, Governed, HasInitializer {
             acc += _claimable(distribution, lockId, currentEpoch - 1);
         }
         return acc;
+    }
+
+    function _claimUpTo(address token, uint256 timestamp) internal {
+        uint256 epoch = getEpoch(timestamp);
+        uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
+        for (uint256 i = 0; i < myLocks; i++) {
+            uint256 lockId =
+                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(msg.sender, i);
+            _claim(token, lockId, epoch);
+        }
     }
 
     function _claim(

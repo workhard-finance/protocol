@@ -67,142 +67,151 @@ describe("DividendPool.sol", function () {
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
-    await runTimelockTx(
-      timelock,
-      dividendPool.populateTransaction.addToken(testingRewardToken.address)
-    );
   });
-  describe("getCurrentEpoch()", async () => {
-    it("should start from 0", async () => {
-      expect(await dividendPool.getCurrentEpoch()).eq(0);
-    });
-    it("should increment by weekly", async () => {
-      let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-      expect(await dividendPool.getCurrentEpoch()).eq(0);
-      await goTo(4 * week);
-      expect(await dividendPool.getCurrentEpoch()).eq(4);
-      await goTo(3 * week);
-      expect(await dividendPool.getCurrentEpoch()).eq(7);
+  describe("epoch test", async () => {
+    describe("getCurrentEpoch()", async () => {
+      it("should start from 0", async () => {
+        expect(await dividendPool.getCurrentEpoch()).eq(0);
+      });
+      it("should increment by weekly", async () => {
+        let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        expect(await dividendPool.getCurrentEpoch()).eq(0);
+        await goTo(4 * week);
+        expect(await dividendPool.getCurrentEpoch()).eq(4);
+        await goTo(3 * week);
+        expect(await dividendPool.getCurrentEpoch()).eq(7);
+      });
     });
   });
-  describe("distributedTokens()", () => {
-    it("should return testing reward token after it's distributed", async () => {
-      const list = await dividendPool.distributedTokens();
-      expect(list).includes(testingRewardToken.address);
-    });
-  });
-  describe("totalDistributed()", () => {
-    it("should increase the amount when new distribution exists", async () => {
-      const total0 = await dividendPool.totalDistributed(
-        testingRewardToken.address
-      );
-      expect(total0).eq(0);
-      await dividendPool
-        .connect(distributor)
-        .distribute(testingRewardToken.address, parseEther("100"));
-      const total1 = await dividendPool.totalDistributed(
-        testingRewardToken.address
-      );
-      expect(total1).eq(parseEther("100"));
-    });
-  });
-  describe("claimable()", () => {
-    it("distribution should be claimable after 1 epoch", async () => {
-      await goTo(1 * week);
-      await veLocker.connect(alice).createLock(parseEther("100"), 208);
-      const claimable0 = await dividendPool
-        .connect(alice)
-        .claimable(testingRewardToken.address);
-      expect(claimable0).eq(0);
-      await dividendPool
-        .connect(distributor)
-        .distribute(testingRewardToken.address, parseEther("100"));
-      const claimable1 = await dividendPool
-        .connect(alice)
-        .claimable(testingRewardToken.address);
-      expect(claimable1).eq(0);
-      await goToNextWeek();
-      const claimable2 = await dividendPool
-        .connect(alice)
-        .claimable(testingRewardToken.address);
-      almostEquals(claimable2, parseEther("100"));
-    });
-  });
-  describe("claim() & claimUpTo()", async () => {
+
+  describe("distribution test", () => {
     beforeEach(async () => {
-      const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-      await goTo(1 * week);
-      await veLocker
-        .connect(alice)
-        .createLockUntil(parseEther("100"), timestamp + 4 * year);
-      await veLocker
-        .connect(bob)
-        .createLockUntil(parseEther("10"), timestamp + 4 * year);
-      await veLocker
-        .connect(carl)
-        .createLockUntil(parseEther("100"), timestamp + 4 * year);
-      await dividendPool
-        .connect(distributor)
-        .distribute(testingRewardToken.address, parseEther("100"));
+      await runTimelockTx(
+        timelock,
+        dividendPool.populateTransaction.addToken(testingRewardToken.address)
+      );
     });
-    describe("claim()", () => {
-      it("can claim rewards from next week", async () => {
-        const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
-        await dividendPool.connect(alice).claim(testingRewardToken.address);
-        const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
-        expect(aliceBal1).eq(0);
-        expect(aliceBal0).eq(0);
-        await goTo(1 * week);
-        await dividendPool.connect(alice).claim(testingRewardToken.address);
-        const aliceBal2 = await testingRewardToken.balanceOf(alice.address);
-        almostEquals(
-          aliceBal2.sub(aliceBal1),
-          parseEther("100").mul(100).div(210)
+    describe("distributedTokens()", () => {
+      it("should return testing reward token after it's distributed", async () => {
+        const list = await dividendPool.distributedTokens();
+        expect(list).includes(testingRewardToken.address);
+      });
+    });
+    describe("totalDistributed()", () => {
+      it("should increase the amount when new distribution exists", async () => {
+        const total0 = await dividendPool.totalDistributed(
+          testingRewardToken.address
         );
-      });
-      it("should not be double claimed", async () => {
-        await goTo(1 * week);
-        await dividendPool.connect(alice).claim(testingRewardToken.address);
-        const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
-        await goTo(1 * week);
-        await dividendPool.connect(alice).claim(testingRewardToken.address);
-        const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
-        expect(aliceBal1).eq(aliceBal0);
-      });
-      it("should accumulate the rewards", async () => {
-        const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
-        await goTo(1 * week);
+        expect(total0).eq(0);
         await dividendPool
           .connect(distributor)
           .distribute(testingRewardToken.address, parseEther("100"));
-        await goTo(1 * week);
-        await dividendPool
-          .connect(distributor)
-          .distribute(testingRewardToken.address, parseEther("100"));
-        await goTo(1 * week);
-        await dividendPool.connect(alice).claim(testingRewardToken.address);
-        const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
-        almostEquals(
-          aliceBal1.sub(aliceBal0),
-          parseEther("300").mul(100).div(210)
+        const total1 = await dividendPool.totalDistributed(
+          testingRewardToken.address
         );
+        expect(total1).eq(parseEther("100"));
       });
     });
-    describe("claimUpTo()", () => {
-      it("should be reverted since the target timestamp is bein updated", async () => {
-        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-        await expect(
-          dividendPool
-            .connect(alice)
-            .claimUpTo(testingRewardToken.address, timestamp)
-        ).to.be.reverted;
-      });
-      it("can claim after the epoch changes", async () => {
-        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+    describe("claimable()", () => {
+      it("distribution should be claimable after 1 epoch", async () => {
         await goTo(1 * week);
-        await dividendPool
+        await veLocker.connect(alice).createLock(parseEther("100"), 208);
+        const claimable0 = await dividendPool
           .connect(alice)
-          .claimUpTo(testingRewardToken.address, timestamp);
+          .claimable(testingRewardToken.address);
+        expect(claimable0).eq(0);
+        await dividendPool
+          .connect(distributor)
+          .distribute(testingRewardToken.address, parseEther("100"));
+        const claimable1 = await dividendPool
+          .connect(alice)
+          .claimable(testingRewardToken.address);
+        expect(claimable1).eq(0);
+        await goToNextWeek();
+        const claimable2 = await dividendPool
+          .connect(alice)
+          .claimable(testingRewardToken.address);
+        almostEquals(claimable2, parseEther("100"));
+      });
+    });
+    describe("claim() & claimUpTo()", async () => {
+      beforeEach(async () => {
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await goTo(1 * week);
+        await veLocker
+          .connect(alice)
+          .createLockUntil(parseEther("100"), timestamp + 4 * year);
+        await veLocker
+          .connect(bob)
+          .createLockUntil(parseEther("10"), timestamp + 4 * year);
+        await veLocker
+          .connect(carl)
+          .createLockUntil(parseEther("100"), timestamp + 4 * year);
+        await dividendPool
+          .connect(distributor)
+          .distribute(testingRewardToken.address, parseEther("100"));
+      });
+      describe("claim()", () => {
+        it("can claim rewards from next week", async () => {
+          const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
+          await dividendPool.connect(alice).claim(testingRewardToken.address);
+          const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
+          expect(aliceBal1).eq(0);
+          expect(aliceBal0).eq(0);
+          await goTo(1 * week);
+          await dividendPool.connect(alice).claim(testingRewardToken.address);
+          const aliceBal2 = await testingRewardToken.balanceOf(alice.address);
+          almostEquals(
+            aliceBal2.sub(aliceBal1),
+            parseEther("100").mul(100).div(210)
+          );
+        });
+        it("should not be double claimed", async () => {
+          await goTo(1 * week);
+          await dividendPool.connect(alice).claim(testingRewardToken.address);
+          const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
+          await goTo(1 * week);
+          await dividendPool.connect(alice).claim(testingRewardToken.address);
+          const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
+          expect(aliceBal1).eq(aliceBal0);
+        });
+        it("should accumulate the rewards", async () => {
+          const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
+          await goTo(1 * week);
+          await dividendPool
+            .connect(distributor)
+            .distribute(testingRewardToken.address, parseEther("100"));
+          await goTo(1 * week);
+          await dividendPool
+            .connect(distributor)
+            .distribute(testingRewardToken.address, parseEther("100"));
+          await goTo(1 * week);
+          await dividendPool.connect(alice).claim(testingRewardToken.address);
+          const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
+          almostEquals(
+            aliceBal1.sub(aliceBal0),
+            parseEther("300").mul(100).div(210)
+          );
+        });
+      });
+      describe("claimUpTo()", () => {
+        it("should be reverted since the target timestamp is bein updated", async () => {
+          const timestamp = (await ethers.provider.getBlock("latest"))
+            .timestamp;
+          await expect(
+            dividendPool
+              .connect(alice)
+              .claimUpTo(testingRewardToken.address, timestamp)
+          ).to.be.reverted;
+        });
+        it("can claim after the epoch changes", async () => {
+          const timestamp = (await ethers.provider.getBlock("latest"))
+            .timestamp;
+          await goTo(1 * week);
+          await dividendPool
+            .connect(alice)
+            .claimUpTo(testingRewardToken.address, timestamp);
+        });
       });
     });
   });

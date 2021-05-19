@@ -4,12 +4,13 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../../core/emission/interfaces/IMiningPool.sol";
 import "../../core/emission/interfaces/IMiningPoolFactory.sol";
 import "../../core/tokens/VISION.sol";
 import "../../core/governance/Governed.sol";
 
-contract VisionEmitter is Governed {
+contract VisionEmitter is Governed, ReentrancyGuard {
     using SafeMath for uint256;
 
     uint256 public constant INITIAL_EMISSION = 24000000 ether; // 1e24
@@ -182,7 +183,7 @@ contract VisionEmitter is Governed {
         emit EmissionRateUpdated(rate);
     }
 
-    function distribute() public {
+    function distribute() public nonReentrant {
         // current week from the mining start;
         uint256 weekNum =
             block.timestamp.sub(emissionStarted).div(emissionPeriod);
