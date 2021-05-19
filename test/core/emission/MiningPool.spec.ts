@@ -22,12 +22,15 @@ import {
   VISION,
   VisionEmitter,
   VISION__factory,
-  Project as ERC721,
-  Project__factory as ERC721__factory,
-  Marketplace as ERC1155,
-  Marketplace__factory as ERC1155__factory,
-  Project,
-  ERC20BurnMiningV1Factory,
+  ERC721,
+  ERC721__factory,
+  ERC1155,
+  ERC1155__factory,
+  ERC721StakeMiningV1,
+  ERC1155StakeMiningV1,
+  Project__factory,
+  ERC721StakeMiningV1__factory,
+  ERC1155StakeMiningV1__factory,
 } from "../../../src";
 
 chai.use(solidity);
@@ -45,8 +48,12 @@ describe("MiningPool.sol", function () {
   let timelock: TimelockedGovernance;
   let testingStakeToken: VISION;
   let testingBurnToken: COMMIT;
-  let stakeMiningPool: ERC20StakeMiningV1;
-  let burnMiningPool: ERC20BurnMiningV1;
+  let testingERC721: ERC721;
+  let testingERC1155: ERC1155;
+  let erc20StakeMining: ERC20StakeMiningV1;
+  let erc20BurnMining: ERC20BurnMiningV1;
+  let erc721StakeMining: ERC721StakeMiningV1;
+  let erc1155StakeMining: ERC1155StakeMiningV1;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -61,6 +68,8 @@ describe("MiningPool.sol", function () {
     timelock = fixture.timelock;
     testingStakeToken = await new VISION__factory(deployer).deploy();
     testingBurnToken = await new COMMIT__factory(deployer).deploy();
+    testingERC721 = await new ERC721__factory(deployer).deploy();
+    testingERC1155 = await new ERC1155__factory(deployer).deploy();
     const erc20BurnMiningV1SigHash =
       await fixture.erc20BurnMiningV1Factory.poolSig();
     const erc20StakeMiningV1SigHash =
@@ -73,34 +82,63 @@ describe("MiningPool.sol", function () {
       erc20StakeMiningV1SigHash,
       testingStakeToken.address
     );
-    burnMiningPool = ERC20BurnMiningV1__factory.connect(
+    erc20BurnMining = ERC20BurnMiningV1__factory.connect(
       await fixture.erc20BurnMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingBurnToken.address
       ),
       deployer
     );
-    stakeMiningPool = ERC20StakeMiningV1__factory.connect(
+    erc20StakeMining = ERC20StakeMiningV1__factory.connect(
       await fixture.erc20StakeMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingStakeToken.address
       ),
       deployer
     );
+    erc721StakeMining = ERC721StakeMiningV1__factory.connect(
+      await fixture.erc721StakeMiningV1Factory.poolAddress(
+        visionEmitter.address,
+        testingERC721.address
+      ),
+      deployer
+    );
+    erc1155StakeMining = ERC1155StakeMiningV1__factory.connect(
+      await fixture.erc1155StakeMiningV1Factory.poolAddress(
+        visionEmitter.address,
+        testingERC1155.address
+      ),
+      deployer
+    );
     const prepare = async (account: SignerWithAddress) => {
       await testingStakeToken.mint(account.address, parseEther("10000"));
       await testingBurnToken.mint(account.address, parseEther("10000"));
+      await testingERC1155.mint(account.address, 0, 10);
       await testingStakeToken
         .connect(account)
-        .approve(stakeMiningPool.address, parseEther("10000"));
+        .approve(erc20StakeMining.address, parseEther("10000"));
       await testingBurnToken
         .connect(account)
-        .approve(burnMiningPool.address, parseEther("10000"));
+        .approve(erc20BurnMining.address, parseEther("10000"));
+      await testingERC721
+        .connect(account)
+        .setApprovalForAll(erc721StakeMining.address, true);
+      await testingERC1155
+        .connect(account)
+        .setApprovalForAll(erc1155StakeMining.address, true);
     };
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
-
+    await testingERC721.mint(alice.address, 0);
+    await testingERC721.mint(alice.address, 1);
+    await testingERC721.mint(alice.address, 2);
+    await testingERC721.mint(bob.address, 3);
+    await testingERC721.mint(bob.address, 4);
+    await testingERC721.mint(bob.address, 5);
+    await testingERC721.mint(carl.address, 6);
+    await testingERC721.mint(carl.address, 7);
+    await testingERC721.mint(carl.address, 8);
     await runTimelockTx(
       timelock,
       visionEmitter.populateTransaction.start(),
@@ -109,7 +147,7 @@ describe("MiningPool.sol", function () {
     await runTimelockTx(
       timelock,
       visionEmitter.populateTransaction.setEmission(
-        [burnMiningPool.address, stakeMiningPool.address],
+        [erc20BurnMining.address, erc20StakeMining.address],
         [4745, 4745],
         500,
         10
@@ -125,27 +163,27 @@ describe("MiningPool.sol", function () {
     describe("Stake Mining Pool", async () => {
       it("should return the value depending on the staking period", async () => {
         const bal0 = await vision.balanceOf(alice.address);
-        await stakeMiningPool.connect(alice).stake(parseEther("100"));
+        await erc20StakeMining.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(10000);
-        await stakeMiningPool.connect(alice).exit();
+        await erc20StakeMining.connect(alice).exit();
         const bal1 = await vision.balanceOf(alice.address);
-        await stakeMiningPool.connect(alice).stake(parseEther("100"));
+        await erc20StakeMining.connect(alice).stake(parseEther("100"));
         await setNextBlockTimestamp(20000);
-        await stakeMiningPool.connect(alice).exit();
+        await erc20StakeMining.connect(alice).exit();
         const bal2 = await vision.balanceOf(alice.address);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of stake", async () => {
-        await stakeMiningPool.connect(alice).stake(parseEther("100"));
+        await erc20StakeMining.connect(alice).stake(parseEther("100"));
         await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
-        await stakeMiningPool.connect(bob).stake(parseEther("100"));
+        await erc20StakeMining.connect(bob).stake(parseEther("100"));
         await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
-        await stakeMiningPool.connect(carl).stake(parseEther("100"));
+        await erc20StakeMining.connect(carl).stake(parseEther("100"));
         await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
 
-        await stakeMiningPool.connect(alice).exit();
-        await stakeMiningPool.connect(bob).exit();
-        await stakeMiningPool.connect(carl).exit();
+        await erc20StakeMining.connect(alice).exit();
+        await erc20StakeMining.connect(bob).exit();
+        await erc20StakeMining.connect(carl).exit();
 
         const aliceReward = await vision.balanceOf(alice.address);
         const bobReward = await vision.balanceOf(bob.address);
@@ -161,27 +199,99 @@ describe("MiningPool.sol", function () {
     describe("Burn Mining Pool", async () => {
       it("should return the value depending on the burned period", async () => {
         const bal0 = await vision.balanceOf(alice.address);
-        await burnMiningPool.connect(alice).burn(parseEther("100"));
+        await erc20BurnMining.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(10000);
-        await burnMiningPool.connect(alice).exit();
+        await erc20BurnMining.connect(alice).exit();
         const bal1 = await vision.balanceOf(alice.address);
-        await burnMiningPool.connect(alice).burn(parseEther("100"));
+        await erc20BurnMining.connect(alice).burn(parseEther("100"));
         await setNextBlockTimestamp(20000);
-        await burnMiningPool.connect(alice).exit();
+        await erc20BurnMining.connect(alice).exit();
         const bal2 = await vision.balanceOf(alice.address);
         expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
       });
       it("should share the reward by the amount of burn", async () => {
-        await burnMiningPool.connect(alice).burn(parseEther("100"));
+        await erc20BurnMining.connect(alice).burn(parseEther("100"));
         await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
-        await burnMiningPool.connect(bob).burn(parseEther("100"));
+        await erc20BurnMining.connect(bob).burn(parseEther("100"));
         await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
-        await burnMiningPool.connect(carl).burn(parseEther("100"));
+        await erc20BurnMining.connect(carl).burn(parseEther("100"));
         await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
 
-        await burnMiningPool.connect(alice).exit();
-        await burnMiningPool.connect(bob).exit();
-        await burnMiningPool.connect(carl).exit();
+        await erc20BurnMining.connect(alice).exit();
+        await erc20BurnMining.connect(bob).exit();
+        await erc20BurnMining.connect(carl).exit();
+
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          bobReward.div(833333333333).div(1e9)
+        );
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          carlReward.div(333333333333).div(1e9)
+        );
+      });
+    });
+    describe("ERC721 Stake Mining Pool", async () => {
+      it("should return the value depending on the staking period", async () => {
+        const bal0 = await vision.balanceOf(alice.address);
+        await erc721StakeMining.connect(alice).stake(0);
+        await setNextBlockTimestamp(10000);
+        await erc721StakeMining.connect(alice).exit();
+        const bal1 = await vision.balanceOf(alice.address);
+        await erc721StakeMining.connect(alice).stake(1);
+        await setNextBlockTimestamp(20000);
+        await erc721StakeMining.connect(alice).exit();
+        const bal2 = await vision.balanceOf(alice.address);
+        expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
+      });
+      it("should share the reward by the amount of stake", async () => {
+        await erc721StakeMining.connect(alice).stake(0);
+        await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
+        await erc721StakeMining.connect(bob).stake(3);
+        await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
+        await erc721StakeMining.connect(carl).stake(6);
+        await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
+
+        await erc721StakeMining.connect(alice).exit();
+        await erc721StakeMining.connect(bob).exit();
+        await erc721StakeMining.connect(carl).exit();
+
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          bobReward.div(833333333333).div(1e9)
+        );
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          carlReward.div(333333333333).div(1e9)
+        );
+      });
+    });
+    describe("ERC1155 Stake Mining Pool", async () => {
+      it("should return the value depending on the staking period", async () => {
+        const bal0 = await vision.balanceOf(alice.address);
+        await erc1155StakeMining.connect(alice).stake(0, 5);
+        await setNextBlockTimestamp(10000);
+        await erc1155StakeMining.connect(alice).exit(0);
+        const bal1 = await vision.balanceOf(alice.address);
+        await erc1155StakeMining.connect(alice).stake(0, 5);
+        await setNextBlockTimestamp(20000);
+        await erc1155StakeMining.connect(alice).exit(0);
+        const bal2 = await vision.balanceOf(alice.address);
+        expect(bal2.sub(bal1)).eq(bal1.sub(bal0).mul(2));
+      });
+      it("should share the reward by the amount of stake", async () => {
+        await erc1155StakeMining.connect(alice).stake(0, 5);
+        await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
+        await erc1155StakeMining.connect(bob).stake(0, 5);
+        await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
+        await erc1155StakeMining.connect(carl).stake(0, 5);
+        await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
+
+        await erc1155StakeMining.connect(alice).exit(0);
+        await erc1155StakeMining.connect(bob).exit(0);
+        await erc1155StakeMining.connect(carl).exit(0);
 
         const aliceReward = await vision.balanceOf(alice.address);
         const bobReward = await vision.balanceOf(bob.address);

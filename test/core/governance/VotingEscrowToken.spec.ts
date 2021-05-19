@@ -6,8 +6,8 @@ import { parseEther } from "ethers/lib/utils";
 import { almostEquals, goTo } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
-  ERC20Mock,
-  ERC20Mock__factory,
+  ERC20,
+  ERC20__factory,
   VotingEscrowLock,
   VotingEscrowLock__factory,
   VotingEscrowToken,
@@ -21,7 +21,7 @@ describe("VotingEscrowToken.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let token: ERC20Mock;
+  let token: ERC20;
   let veToken: VotingEscrowToken;
   let veLocker: VotingEscrowLock;
   before(async () => {
@@ -29,7 +29,7 @@ describe("VotingEscrowToken.sol", function () {
     alice = signers[0];
     bob = signers[1];
     carl = signers[2];
-    token = await new ERC20Mock__factory(alice).deploy();
+    token = await new ERC20__factory(alice).deploy();
     veToken = await new VotingEscrowToken__factory(alice).deploy(
       "Voting Escrow Token",
       "veToken",

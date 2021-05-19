@@ -8,7 +8,7 @@ import { AppFixture, getAppFixture } from "../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
-  ERC20Mock,
+  ERC20,
   Marketplace,
   StableReserve,
   TimelockedGovernance,
@@ -27,7 +27,7 @@ describe("Marketplace.sol", function () {
   let marketplace: Marketplace;
   let stableReserve: StableReserve;
   let commit: COMMIT;
-  let baseCurrency: ERC20Mock;
+  let baseCurrency: ERC20;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
   beforeEach(async () => {

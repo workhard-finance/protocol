@@ -13,8 +13,8 @@ import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   DividendPool,
-  ERC20Mock,
-  ERC20Mock__factory,
+  ERC20,
+  ERC20__factory,
   TimelockedGovernance,
   VISION,
   VotingEscrowLock,
@@ -37,7 +37,7 @@ describe("DividendPool.sol", function () {
   let dividendPool: DividendPool;
   let veLocker: VotingEscrowLock;
   let timelock: TimelockedGovernance;
-  let testingRewardToken: ERC20Mock;
+  let testingRewardToken: ERC20;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   beforeEach(async () => {
     signers = await ethers.getSigners();
@@ -51,7 +51,7 @@ describe("DividendPool.sol", function () {
     dividendPool = fixture.dividendPool;
     veLocker = fixture.veLocker;
     timelock = fixture.timelock;
-    testingRewardToken = await new ERC20Mock__factory(deployer).deploy();
+    testingRewardToken = await new ERC20__factory(deployer).deploy();
     await testingRewardToken
       .connect(deployer)
       .mint(distributor.address, parseEther("10000"));

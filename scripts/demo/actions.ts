@@ -17,7 +17,7 @@ import { goToNextWeek, runTimelockTx } from "../../test/utils/utilities";
 import { BigNumber, constants } from "ethers";
 import { goTo } from "../../test/utils/utilities";
 import { parseEther } from "ethers/lib/utils";
-import { ERC20Mock__factory } from "../../src";
+import { ERC20__factory } from "../../src";
 
 export async function executeSetEmission() {
   console.log(
@@ -92,7 +92,7 @@ export async function mintBaseCurrency() {
   const [signer] = await ethers.getSigners();
 
   const baseCurrency = await getBaseCurrency(signer);
-  await ERC20Mock__factory.connect(baseCurrency.address, signer).mint(
+  await ERC20__factory.connect(baseCurrency.address, signer).mint(
     signer.address,
     parseEther("10000")
   );
@@ -226,7 +226,7 @@ export async function distributeReward() {
   const [signer] = await ethers.getSigners();
 
   const baseCurrency = await getBaseCurrency(signer);
-  await ERC20Mock__factory.connect(baseCurrency.address, signer).mint(
+  await ERC20__factory.connect(baseCurrency.address, signer).mint(
     signer.address,
     parseEther("10000")
   );

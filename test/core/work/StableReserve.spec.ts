@@ -13,7 +13,7 @@ import { AppFixture, getAppFixture } from "../../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
-  ERC20Mock,
+  ERC20,
   JobBoard,
   StableReserve,
   TimelockedGovernance,
@@ -34,7 +34,7 @@ describe("StableReserve.sol", function () {
   let commit: COMMIT;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
-  let baseCurrency: ERC20Mock;
+  let baseCurrency: ERC20;
   let project: {
     id: BigNumberish;
     title: string;

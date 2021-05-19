@@ -17,7 +17,7 @@ import {
   COMMIT__factory,
   DividendPool,
   DividendPool__factory,
-  ERC20Mock__factory,
+  ERC20__factory,
   IERC20,
   IERC20__factory,
   JobBoard,
@@ -72,7 +72,7 @@ export async function getBaseCurrency(signer: Signer): Promise<IERC20> {
     stablecoin = "0x6b175474e89094c44da98b954eedeac495271d0f";
   } else {
     // deploy!
-    const mockERC20 = await new ERC20Mock__factory(signer).deploy();
+    const mockERC20 = await new ERC20__factory(signer).deploy();
     stablecoin = mockERC20.address;
   }
   record(hre.network.name as MyNetwork, "BaseCurrency", stablecoin);

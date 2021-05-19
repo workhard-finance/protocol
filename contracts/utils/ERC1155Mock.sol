@@ -2,9 +2,9 @@
 pragma solidity ^0.7.0;
 
 import {
-    ERC20Burnable,
-    ERC20 as _ERC20
-} from "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+    ERC1155Burnable,
+    ERC1155 as _ERC1155
+} from "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
 
 /**
  * @title Commit Token
@@ -14,10 +14,10 @@ import {
  *      of redeemable stable coins. Therefore, it's 1:1 pegged to the given stable coin
  *      or expected to have higher value than the redeemable coin values.
  */
-contract ERC20 is ERC20Burnable {
+contract ERC1155 is ERC1155Burnable {
     address public minter;
 
-    constructor() _ERC20("ERC20Mock", "MOCK") {
+    constructor() _ERC1155("ERC1155Mock") {
         minter = msg.sender;
     }
 
@@ -26,8 +26,12 @@ contract ERC20 is ERC20Burnable {
         _;
     }
 
-    function mint(address to, uint256 amount) public onlyMinter {
-        _mint(to, amount);
+    function mint(
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public onlyMinter {
+        _mint(to, id, amount, bytes(""));
     }
 
     function setMinter(address _minter) public onlyMinter {

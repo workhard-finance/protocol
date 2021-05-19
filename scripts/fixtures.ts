@@ -18,8 +18,8 @@ import {
   COMMIT__factory,
   DividendPool,
   DividendPool__factory,
-  ERC20Mock,
-  ERC20Mock__factory,
+  ERC20,
+  ERC20__factory,
   IERC20,
   IERC20__factory,
   JobBoard,
@@ -67,7 +67,7 @@ import {
 } from "../src";
 
 export interface TokenFixture {
-  baseCurrency: ERC20Mock;
+  baseCurrency: ERC20;
   vision: VISION;
   commit: COMMIT;
   project: Project;
@@ -104,8 +104,12 @@ export interface AppFixture extends MiningFixture {
 export async function getTokenFixture(): Promise<TokenFixture> {
   const [deployer] = await ethers.getSigners();
   // 1. Get base currency. (In mainnet use DAI & for testing deploy new)
-  const baseCurrency = ERC20Mock__factory.connect(
-    (await (await ethers.getContractFactory("ERC20Mock")).deploy()).address,
+  const baseCurrency = ERC20__factory.connect(
+    (
+      await (
+        await ethers.getContractFactory("contracts/utils/ERC20Mock.sol:ERC20")
+      ).deploy()
+    ).address,
     deployer
   );
   // 2. Deploy vision token
