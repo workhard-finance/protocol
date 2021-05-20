@@ -76,7 +76,7 @@ contract Marketplace is
         // check the product is for sale
         Product storage product = products[id];
         require(product.manufacturer != address(0), "Product not exists");
-        uint256 stock = product.maxSupply - product.totalSupply;
+        uint256 stock = product.maxSupply.sub(product.totalSupply);
         require(product.maxSupply == 0 || amount <= stock, "Sold out");
         require(product.maxSupply == 0 || stock > 0, "Not for sale.");
         uint256 totalPayment = product.price.mul(amount); // SafeMath prevents overflow

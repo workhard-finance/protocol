@@ -216,7 +216,7 @@ contract VotingEscrowLock is
             "new end timestamp should be greater than before"
         );
 
-        uint256 increment = (newLock.amount - prevLock.amount);
+        uint256 increment = (newLock.amount - prevLock.amount); // require prevents underflow
         // 2. transfer
         IERC20(baseToken).safeTransferFrom(
             msg.sender,

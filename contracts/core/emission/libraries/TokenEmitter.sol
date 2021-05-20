@@ -253,7 +253,7 @@ contract TokenEmitter is
         // Founder
         _mintAndNotifyAllocation(
             IMiningPool(founderPool),
-            emission - (IERC20(token).totalSupply() - prevSupply)
+            emission.sub(IERC20(token).totalSupply().sub(prevSupply))
         );
         emit TokenEmission(emission);
         _updateEmission();
@@ -286,7 +286,7 @@ contract TokenEmitter is
             );
         // Emission will be continuously halved until it reaches to its minimum emission. It will be about 10 weeks.
         uint256 cutEmission =
-            emission.mul(DENOMINATOR - emissionCutRate).div(DENOMINATOR);
+            emission.mul(DENOMINATOR.sub(emissionCutRate)).div(DENOMINATOR);
         emission = Math.max(cutEmission, minEmission);
         return emission;
     }

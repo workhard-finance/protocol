@@ -11,7 +11,6 @@ import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IGrantReceiver.sol";
 import "../../core/tokens/COMMIT.sol";
 import "../../core/governance/Governed.sol";
-import "../../utils/ExchangeLib.sol";
 import "../../utils/ERC20Recoverer.sol";
 
 /**

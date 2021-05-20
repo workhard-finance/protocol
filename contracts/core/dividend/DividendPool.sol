@@ -88,7 +88,7 @@ contract DividendPool is
     // claim
 
     function claim(address token) public nonReentrant {
-        uint256 prevEpochTimestamp = block.timestamp - epochUnit;
+        uint256 prevEpochTimestamp = block.timestamp - epochUnit; // safe from underflow
         _claimUpTo(token, prevEpochTimestamp);
     }
 
@@ -97,7 +97,7 @@ contract DividendPool is
     }
 
     function claimBatch(address[] memory tokens) public nonReentrant {
-        uint256 prevEpochTimestamp = block.timestamp - epochUnit;
+        uint256 prevEpochTimestamp = block.timestamp - epochUnit; // safe from underflow
         for (uint256 i = 0; i < tokens.length; i++) {
             _claimUpTo(tokens[i], prevEpochTimestamp);
         }
@@ -113,7 +113,7 @@ contract DividendPool is
     }
 
     function getEpoch(uint256 timestamp) public view returns (uint256) {
-        return (timestamp - genesis) / epochUnit;
+        return (timestamp - genesis) / epochUnit; // safe from underflow
     }
 
     function totalDistributed(address token)
@@ -155,12 +155,13 @@ contract DividendPool is
     function claimable(address _token) public view override returns (uint256) {
         Distribution storage distribution = distributions[_token];
         uint256 currentEpoch = getCurrentEpoch();
+        if (currentEpoch == 0) return 0;
         uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
         uint256 acc;
         for (uint256 i = 0; i < myLocks; i++) {
             uint256 lockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(msg.sender, i);
-            acc += _claimable(distribution, lockId, currentEpoch - 1);
+            acc = acc.add(_claimable(distribution, lockId, currentEpoch - 1));
         }
         return acc;
     }
