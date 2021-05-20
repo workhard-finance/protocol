@@ -10,7 +10,6 @@ import {
   setCommitMinter,
   initStableReserve,
   WETH,
-  ONE_INCH,
   transferGovernanceOfEmitter,
 } from "./utils/deployer";
 import {
@@ -385,8 +384,7 @@ export async function getAppFixture(): Promise<AppFixture> {
         miningFixture.project.address,
         miningFixture.dividendPool.address,
         stableReserve.address,
-        miningFixture.baseCurrency.address,
-        ONE_INCH
+        miningFixture.baseCurrency.address
       )
     ).address,
     deployer

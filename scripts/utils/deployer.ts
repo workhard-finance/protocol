@@ -54,7 +54,6 @@ import {
 import { isAddress } from "ethers/lib/utils";
 
 export const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-export const ONE_INCH = "0x111111125434b319222CdBf8C261674aDB56F3ae";
 const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
 
 export async function getBaseCurrency(signer: Signer): Promise<IERC20> {
@@ -440,8 +439,7 @@ export async function getJobBoard(signer: Signer): Promise<JobBoard> {
     project.address,
     dividendPool.address,
     stableReserve.address,
-    baseCurrency.address,
-    ONE_INCH
+    baseCurrency.address
   );
   return JobBoard__factory.connect(jobBoard.address, signer);
 }

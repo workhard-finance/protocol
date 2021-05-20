@@ -45,14 +45,12 @@ interface JobBoardInterface extends ethers.utils.Interface {
     "getTotalBudgets(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
-    "oneInch()": FunctionFragment;
     "project()": FunctionFragment;
     "projectBudgets(uint256,uint256)": FunctionFragment;
     "projectFund(uint256)": FunctionFragment;
     "receiveGrant(address,uint256,bytes)": FunctionFragment;
     "removeCurrency(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
-    "setExchange(address)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setTaxRate(uint256)": FunctionFragment;
     "setTaxRateForUndeclared(uint256)": FunctionFragment;
@@ -144,7 +142,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
     functionFragment: "normalTaxRate",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "oneInch", values?: undefined): string;
   encodeFunctionData(functionFragment: "project", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "projectBudgets",
@@ -166,7 +163,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
     functionFragment: "setAnarchyPoint",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "setExchange", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setGovernance",
     values: [string]
@@ -266,7 +262,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
     functionFragment: "normalTaxRate",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "oneInch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "project", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "projectBudgets",
@@ -286,10 +281,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setAnarchyPoint",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setExchange",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -594,10 +585,6 @@ export class JobBoard extends Contract {
 
     "normalTaxRate()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    oneInch(overrides?: CallOverrides): Promise<[string]>;
-
-    "oneInch()"(overrides?: CallOverrides): Promise<[string]>;
-
     project(overrides?: CallOverrides): Promise<[string]>;
 
     "project()"(overrides?: CallOverrides): Promise<[string]>;
@@ -659,16 +646,6 @@ export class JobBoard extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setExchange(
-      _oneInch: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setExchange(address)"(
-      _oneInch: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -923,10 +900,6 @@ export class JobBoard extends Contract {
 
   "normalTaxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-  oneInch(overrides?: CallOverrides): Promise<string>;
-
-  "oneInch()"(overrides?: CallOverrides): Promise<string>;
-
   project(overrides?: CallOverrides): Promise<string>;
 
   "project()"(overrides?: CallOverrides): Promise<string>;
@@ -988,16 +961,6 @@ export class JobBoard extends Contract {
 
   "setAnarchyPoint(uint256)"(
     timestamp: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setExchange(
-    _oneInch: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setExchange(address)"(
-    _oneInch: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1238,10 +1201,6 @@ export class JobBoard extends Contract {
 
     "normalTaxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    oneInch(overrides?: CallOverrides): Promise<string>;
-
-    "oneInch()"(overrides?: CallOverrides): Promise<string>;
-
     project(overrides?: CallOverrides): Promise<string>;
 
     "project()"(overrides?: CallOverrides): Promise<string>;
@@ -1300,13 +1259,6 @@ export class JobBoard extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setExchange(_oneInch: string, overrides?: CallOverrides): Promise<void>;
-
-    "setExchange(address)"(
-      _oneInch: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1630,10 +1582,6 @@ export class JobBoard extends Contract {
 
     "normalTaxRate()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    oneInch(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "oneInch()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     project(overrides?: CallOverrides): Promise<BigNumber>;
 
     "project()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1691,16 +1639,6 @@ export class JobBoard extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setExchange(
-      _oneInch: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setExchange(address)"(
-      _oneInch: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1964,10 +1902,6 @@ export class JobBoard extends Contract {
 
     "normalTaxRate()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    oneInch(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "oneInch()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     project(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "project()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -2025,16 +1959,6 @@ export class JobBoard extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setExchange(
-      _oneInch: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setExchange(address)"(
-      _oneInch: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

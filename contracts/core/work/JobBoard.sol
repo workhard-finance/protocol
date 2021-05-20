@@ -36,8 +36,6 @@ contract JobBoard is
 
     IProject public immutable project;
 
-    address public oneInch;
-
     uint256 public normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
 
     uint256 public taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
@@ -78,11 +76,9 @@ contract JobBoard is
         address _project,
         address _dividendPool,
         address _stableReserve,
-        address _baseCurrency,
-        address _oneInchExchange
+        address _baseCurrency
     ) Governed() CommitMinter(_stableReserve) Distributor(_dividendPool) {
         baseCurrency = _baseCurrency;
-        oneInch = _oneInchExchange;
         project = IProject(_project);
         acceptableTokens[_baseCurrency] = true;
         Governed.setGovernance(_gov);
@@ -216,10 +212,6 @@ contract JobBoard is
         _withdrawAllBudgets(projId);
         approvedProjects[projId] = false;
         emit ProjectClosed(projId);
-    }
-
-    function setExchange(address _oneInch) public governed {
-        oneInch = _oneInch;
     }
 
     function setTaxRate(uint256 rate) public governed {
