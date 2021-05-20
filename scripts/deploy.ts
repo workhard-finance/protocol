@@ -11,8 +11,8 @@ import {
   getERC20BurnMiningV1Factory,
   getERC721StakeMiningV1Factory,
   getERC1155StakeMiningV1Factory,
-  initTeamSharePool,
-  getTeamSharePool,
+  initFounderSharePool,
+  getFounderSharePool,
   addERC20StakeMiningFactory,
   addERC20BurnMiningFactory,
   addERC721StakeMiningFactory,
@@ -27,7 +27,7 @@ import {
   getProject,
   getRight,
   getStableReserve,
-  getTeamShare,
+  getFounderShare,
   getTimelockedGovernance,
   getVeLocker,
   getVision,
@@ -66,11 +66,11 @@ async function main() {
   await sequence(network, 6, "Deploy $RIGHT", async () => {
     return (await getRight(deployer)).address;
   });
-  await sequence(network, 7, "Deploy TeamShare", async () => {
-    return (await getTeamShare(deployer)).address;
+  await sequence(network, 7, "Deploy FounderShare", async () => {
+    return (await getFounderShare(deployer)).address;
   });
-  await sequence(network, 8, "Deploy TeamSharePool", async () => {
-    return (await getTeamSharePool(deployer)).address;
+  await sequence(network, 8, "Deploy FounderSharePool", async () => {
+    return (await getFounderSharePool(deployer)).address;
   });
   await sequence(network, 9, "Deploy TimelockedGovernance", async () => {
     return (await getTimelockedGovernance(deployer)).address;
@@ -107,8 +107,8 @@ async function main() {
   await sequence(network, 18, "Deploy VisionEmitter", async () => {
     return (await getVisionEmitter(deployer)).address;
   });
-  await sequence(network, 19, "Initialize TeamShare", async () => {
-    await initTeamSharePool(deployer);
+  await sequence(network, 19, "Initialize FounderShare", async () => {
+    await initFounderSharePool(deployer);
     return "success";
   });
   await sequence(network, 20, "add ERC20BurnMiningV1Factory", async () => {

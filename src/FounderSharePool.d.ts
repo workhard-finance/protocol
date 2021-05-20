@@ -19,7 +19,7 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface TeamSharePoolInterface extends ethers.utils.Interface {
+interface FounderSharePoolInterface extends ethers.utils.Interface {
   functions: {
     "_mined(address)": FunctionFragment;
     "allocate(uint256)": FunctionFragment;
@@ -233,7 +233,7 @@ interface TeamSharePoolInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Withdrawn"): EventFragment;
 }
 
-export class TeamSharePool extends Contract {
+export class FounderSharePool extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -274,7 +274,7 @@ export class TeamSharePool extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: TeamSharePoolInterface;
+  interface: FounderSharePoolInterface;
 
   functions: {
     _mined(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;

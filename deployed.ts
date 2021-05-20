@@ -23,8 +23,8 @@ export type DeployableContracts =
   | "Marketplace"
   | "JobBoard"
   | "Project"
-  | "TeamShare"
-  | "TeamSharePool"
+  | "FounderShare"
+  | "FounderSharePool"
   | "TimelockedGovernance";
 
 export type MyContracts =

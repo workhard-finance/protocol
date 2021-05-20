@@ -28,10 +28,10 @@ import {
   Project__factory,
   StableReserve,
   StableReserve__factory,
-  TeamShare,
-  TeamShare__factory,
-  TeamSharePool,
-  TeamSharePool__factory,
+  FounderShare,
+  FounderShare__factory,
+  FounderSharePool,
+  FounderSharePool__factory,
   TimelockedGovernance,
   TimelockedGovernance__factory,
   VISION,
@@ -145,15 +145,17 @@ export async function getRight(signer: Signer): Promise<VotingEscrowToken> {
   return VotingEscrowToken__factory.connect(right.address, signer);
 }
 
-export async function getTeamShare(signer: Signer): Promise<TeamShare> {
-  const teamShare = await autoDeploy("TeamShare");
-  return TeamShare__factory.connect(teamShare.address, signer);
+export async function getFounderShare(signer: Signer): Promise<FounderShare> {
+  const teamShare = await autoDeploy("FounderShare");
+  return FounderShare__factory.connect(teamShare.address, signer);
 }
 
-export async function getTeamSharePool(signer: Signer): Promise<TeamSharePool> {
-  const teamShare = await getTeamShare(signer);
-  const teamSharePool = await autoDeploy("TeamSharePool", teamShare.address);
-  return TeamSharePool__factory.connect(teamSharePool.address, signer);
+export async function getFounderSharePool(
+  signer: Signer
+): Promise<FounderSharePool> {
+  const teamShare = await getFounderShare(signer);
+  const teamSharePool = await autoDeploy("FounderSharePool", teamShare.address);
+  return FounderSharePool__factory.connect(teamSharePool.address, signer);
 }
 
 export async function getTimelockedGovernance(
@@ -260,7 +262,7 @@ export async function getERC1155StakeMiningV1Factory(
 }
 
 export async function getVisionEmitter(signer: Signer): Promise<VisionEmitter> {
-  const teamSharePool = await getTeamSharePool(signer);
+  const teamSharePool = await getFounderSharePool(signer);
   const timelock = await getTimelockedGovernance(signer);
   const vision = await getVision(signer);
   const visionEmitter = await autoDeploy(
@@ -273,10 +275,10 @@ export async function getVisionEmitter(signer: Signer): Promise<VisionEmitter> {
   return VisionEmitter__factory.connect(visionEmitter.address, signer);
 }
 
-export async function initTeamSharePool(signer: Signer): Promise<void> {
-  const teamShare = await getTeamShare(signer);
+export async function initFounderSharePool(signer: Signer): Promise<void> {
+  const teamShare = await getFounderShare(signer);
   const timelock = await getTimelockedGovernance(signer);
-  const teamSharePool = await getTeamSharePool(signer);
+  const teamSharePool = await getFounderSharePool(signer);
   const visionEmitter = await getVisionEmitter(signer);
   await teamSharePool.initialize(
     visionEmitter.address,

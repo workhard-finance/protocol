@@ -33,10 +33,10 @@ import {
   SquareRootVoteCounter__factory,
   StableReserve,
   StableReserve__factory,
-  TeamShare,
-  TeamShare__factory,
-  TeamSharePool,
-  TeamSharePool__factory,
+  FounderShare,
+  FounderShare__factory,
+  FounderSharePool,
+  FounderSharePool__factory,
   ERC20BurnMiningV1,
   ERC20BurnMiningV1__factory,
   ERC20BurnMiningV1Factory,
@@ -79,8 +79,8 @@ export interface GovernanceFixture extends TokenFixture {
   workersUnion: WorkersUnion;
   voteCounter: SquareRootVoteCounter;
   timelock: TimelockedGovernance;
-  teamShare: TeamShare;
-  teamSharePool: TeamSharePool;
+  teamShare: FounderShare;
+  teamSharePool: FounderSharePool;
   dividendPool: DividendPool;
 }
 
@@ -155,15 +155,15 @@ export async function getGovernanceFixture(): Promise<GovernanceFixture> {
   const [deployer] = await ethers.getSigners();
   const tokenFixture: TokenFixture = await getTokenFixture();
   // 7. Deploy team share
-  const teamShare = TeamShare__factory.connect(
-    (await (await ethers.getContractFactory("TeamShare")).deploy()).address,
+  const teamShare = FounderShare__factory.connect(
+    (await (await ethers.getContractFactory("FounderShare")).deploy()).address,
     deployer
   );
   // 8. Deploy team share pool
-  const teamSharePool = TeamSharePool__factory.connect(
+  const teamSharePool = FounderSharePool__factory.connect(
     (
       await (
-        await ethers.getContractFactory("TeamSharePool")
+        await ethers.getContractFactory("FounderSharePool")
       ).deploy(teamShare.address)
     ).address,
     deployer
