@@ -27,6 +27,7 @@ interface VISIONInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "initialize(string,string)": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "minter()": FunctionFragment;
     "name()": FunctionFragment;
@@ -54,6 +55,10 @@ interface VISIONInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "mint",
@@ -88,6 +93,7 @@ interface VISIONInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
@@ -215,6 +221,18 @@ export class VISION extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(string,string)"(
+      name_: string,
+      symbol_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     mint(
       to: string,
       amount: BigNumberish,
@@ -336,6 +354,18 @@ export class VISION extends Contract {
   "increaseAllowance(address,uint256)"(
     spender: string,
     addedValue: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initialize(
+    name_: string,
+    symbol_: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(string,string)"(
+    name_: string,
+    symbol_: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -462,6 +492,18 @@ export class VISION extends Contract {
       addedValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    initialize(
+      name_: string,
+      symbol_: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(string,string)"(
+      name_: string,
+      symbol_: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     mint(
       to: string,
@@ -605,6 +647,18 @@ export class VISION extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(string,string)"(
+      name_: string,
+      symbol_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     mint(
       to: string,
       amount: BigNumberish,
@@ -730,6 +784,18 @@ export class VISION extends Contract {
     "increaseAllowance(address,uint256)"(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      name_: string,
+      symbol_: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(string,string)"(
+      name_: string,
+      symbol_: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

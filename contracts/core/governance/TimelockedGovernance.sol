@@ -3,6 +3,7 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/TimelockController.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
  * @notice Gnosis Safe Multisig wallet has the Ownership of this contract.
@@ -11,12 +12,28 @@ import "@openzeppelin/contracts/access/TimelockController.sol";
  *      TimelockedGovernance -controls-> COMMIT, JobBoard, Market, DividendPool, and VisionEmitter
  *      VisionEmitter -controls-> VISION
  */
-contract TimelockedGovernance is TimelockController {
+contract TimelockedGovernance is TimelockController, Initializable {
     mapping(bytes32 => bool) public nonCancelable;
 
-    constructor(address[] memory _devs)
-        TimelockController(1 days, _devs, _devs)
-    {}
+    constructor()
+        TimelockController(1 days, new address[](0), new address[](0))
+    {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
+    }
+
+    function initialize(
+        uint256 delay,
+        address multisig,
+        address workersUnion
+    ) public initializer {
+        TimelockController(this).updateDelay(delay);
+        _setupRole(TIMELOCK_ADMIN_ROLE, workersUnion);
+        _setupRole(PROPOSER_ROLE, workersUnion);
+        _setupRole(PROPOSER_ROLE, multisig);
+        _setupRole(EXECUTOR_ROLE, workersUnion);
+        _setupRole(EXECUTOR_ROLE, multisig);
+    }
 
     function cancel(bytes32 id) public override {
         require(!nonCancelable[id], "non-cancelable");

@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../core/governance/interfaces/IVotingEscrowToken.sol";
 import "../../core/governance/interfaces/IVotingEscrowLock.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../core/governance/Governed.sol";
 import "../../utils/Utils.sol";
-import "../../utils/HasInitializer.sol";
 
 struct Distribution {
     uint256 totalDistribution;
@@ -24,33 +24,37 @@ struct Distribution {
 contract DividendPool is
     IDividendPool,
     Governed,
-    HasInitializer,
+    Initializable,
     ReentrancyGuard
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Utils for address[];
 
-    address public immutable override veVISION; // a.k.a RIGHT
-    address public immutable override veLocker;
+    address public override veVISION; // a.k.a RIGHT
+    address public override veLocker;
 
     mapping(address => Distribution) public distributions;
 
-    mapping(address => bool) public override distributable;
+    mapping(address => bool) public override distributed;
 
-    address[] public override distributedToken;
+    address[] internal _featuredRewards;
 
     /** @notice The block timestamp when the contract is deployed */
-    uint256 public immutable genesis;
+    uint256 public genesis;
 
     uint256 public constant epochUnit = 1 weeks; // default 1 epoch is 1 week
 
     mapping(address => bool) admin;
 
-    constructor(address _gov, address _RIGHT) Governed() {
+    event NewReward(address token);
+
+    event NewDistribution(address indexed token, uint256 amount);
+
+    function initialize(address _gov, address _RIGHT) public initializer {
         veVISION = _RIGHT;
         veLocker = IVotingEscrowToken(_RIGHT).veLocker();
-        Governed.setGovernance(_gov);
+        Governed.initialize(_gov);
         genesis = (block.timestamp / epochUnit) * epochUnit;
     }
 
@@ -66,15 +70,19 @@ contract DividendPool is
         override
         nonReentrant
     {
-        require(distributable[_token], "Not allowed");
+        if (!distributed[_token]) {
+            distributed[_token] = true;
+            emit NewReward(_token);
+        }
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 newBalance = IERC20(_token).balanceOf(address(this));
         Distribution storage distribution = distributions[_token];
-        uint256 increment = newBalance - distribution.balance;
+        uint256 increment = newBalance.sub(distribution.balance);
         distribution.balance = newBalance;
         distribution.totalDistribution += increment;
         uint256 weekNum = getCurrentEpoch();
         distribution.tokenPerWeek[weekNum] += increment;
+        emit NewDistribution(_token, _amount);
     }
 
     // claim
@@ -95,20 +103,6 @@ contract DividendPool is
         }
     }
 
-    // governance or initializer
-
-    function setAdmin(address _admin, bool active) public override governed {
-        admin[_admin] = active;
-    }
-
-    function addToken(address token) public override onlyAdmin {
-        _addToken(token);
-    }
-
-    function removeToken(address token) public override onlyAdmin {
-        _removeToken(token);
-    }
-
     /** @notice 1 epoch is 1 week */
     function getCurrentEpoch() public view override returns (uint256) {
         return getEpoch(block.timestamp);
@@ -120,15 +114,6 @@ contract DividendPool is
 
     function getEpoch(uint256 timestamp) public view returns (uint256) {
         return (timestamp - genesis) / epochUnit;
-    }
-
-    function distributedTokens()
-        public
-        view
-        override
-        returns (address[] memory _tokens)
-    {
-        return distributedToken;
     }
 
     function totalDistributed(address token)
@@ -180,6 +165,14 @@ contract DividendPool is
         return acc;
     }
 
+    function featuredRewards() public view override returns (address[] memory) {
+        return _featuredRewards;
+    }
+
+    function setFeaturedRewards(address[] memory featured) public governed {
+        _featuredRewards = featured;
+    }
+
     function _claimUpTo(address token, uint256 timestamp) internal {
         uint256 epoch = getEpoch(timestamp);
         uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
@@ -198,6 +191,7 @@ contract DividendPool is
         Distribution storage distribution = distributions[_token];
         uint256 amount = _claimable(distribution, _tokenId, _epoch);
         distribution.claimStartWeekNum[_tokenId] = _epoch + 1;
+        distribution.balance = distribution.balance.sub(amount);
         IERC20(_token).safeTransfer(msg.sender, amount);
     }
 
@@ -231,19 +225,5 @@ contract DividendPool is
             epochCursor += 1;
         }
         return accumulated;
-    }
-
-    function _addToken(address token) internal {
-        require(!distributable[token], "Token already registered");
-        distributable[token] = true;
-        (bool exist, ) = distributedToken.find(token);
-        if (!exist) {
-            distributedToken.push(token);
-        }
-    }
-
-    function _removeToken(address token) internal {
-        require(distributable[token], "Token not registered");
-        distributable[token] = false;
     }
 }

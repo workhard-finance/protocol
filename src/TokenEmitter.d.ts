@@ -40,20 +40,22 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
     "getNumberOfPools()": FunctionFragment;
     "getPoolWeight(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "minEmissionRatePerWeek()": FunctionFragment;
     "newPool(bytes4,address)": FunctionFragment;
     "poolTypes(address)": FunctionFragment;
     "pools(uint256)": FunctionFragment;
-    "protocolFund()": FunctionFragment;
+    "protocolPool()": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setEmission(address[],uint256[],uint256,uint256)": FunctionFragment;
     "setEmissionCutRate(uint256)": FunctionFragment;
     "setFactory(address)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "setMinimumRate(uint256)": FunctionFragment;
-    "setProtocolFund(address)": FunctionFragment;
+    "setTreasury(address)": FunctionFragment;
     "start()": FunctionFragment;
     "token()": FunctionFragment;
+    "treasury()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -123,6 +125,7 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "minEmissionRatePerWeek",
     values?: undefined
@@ -134,7 +137,7 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "poolTypes", values: [string]): string;
   encodeFunctionData(functionFragment: "pools", values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: "protocolFund",
+    functionFragment: "protocolPool",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -158,12 +161,10 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
     functionFragment: "setMinimumRate",
     values: [BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "setProtocolFund",
-    values: [string]
-  ): string;
+  encodeFunctionData(functionFragment: "setTreasury", values: [string]): string;
   encodeFunctionData(functionFragment: "start", values?: undefined): string;
   encodeFunctionData(functionFragment: "token", values?: undefined): string;
+  encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "DENOMINATOR",
@@ -226,6 +227,7 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "minEmissionRatePerWeek",
     data: BytesLike
@@ -234,7 +236,7 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "poolTypes", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pools", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "protocolFund",
+    functionFragment: "protocolPool",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -259,11 +261,12 @@ interface TokenEmitterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setProtocolFund",
+    functionFragment: "setTreasury",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "start", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "token", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
 
   events: {
     "Anarchized()": EventFragment;
@@ -387,9 +390,10 @@ export class TokenEmitter extends Contract {
     emissionWeight(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        protocolFund: BigNumber;
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        treasury: BigNumber;
         caller: BigNumber;
+        protocol: BigNumber;
         dev: BigNumber;
         sum: BigNumber;
       }
@@ -398,9 +402,10 @@ export class TokenEmitter extends Contract {
     "emissionWeight()"(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        protocolFund: BigNumber;
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        treasury: BigNumber;
         caller: BigNumber;
+        protocol: BigNumber;
         dev: BigNumber;
         sum: BigNumber;
       }
@@ -447,6 +452,24 @@ export class TokenEmitter extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(uint256,uint256,uint256,uint256,address,address,address,address,address)"(
+      _initialEmission: BigNumberish,
+      _minEmissionRatePerWeek: BigNumberish,
+      _emissionCutRate: BigNumberish,
+      _founderShare: BigNumberish,
+      _founderPool: string,
+      _treasury: string,
+      _gov: string,
+      _token: string,
+      _protocolPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     minEmissionRatePerWeek(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "minEmissionRatePerWeek()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -477,9 +500,9 @@ export class TokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    protocolFund(overrides?: CallOverrides): Promise<[string]>;
+    protocolPool(overrides?: CallOverrides): Promise<[string]>;
 
-    "protocolFund()"(overrides?: CallOverrides): Promise<[string]>;
+    "protocolPool()"(overrides?: CallOverrides): Promise<[string]>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -494,7 +517,7 @@ export class TokenEmitter extends Contract {
     setEmission(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -502,7 +525,7 @@ export class TokenEmitter extends Contract {
     "setEmission(address[],uint256[],uint256,uint256)"(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -547,13 +570,13 @@ export class TokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setProtocolFund(
-      _fund: string,
+    setTreasury(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "setProtocolFund(address)"(
-      _fund: string,
+    "setTreasury(address)"(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -568,6 +591,10 @@ export class TokenEmitter extends Contract {
     token(overrides?: CallOverrides): Promise<[string]>;
 
     "token()"(overrides?: CallOverrides): Promise<[string]>;
+
+    treasury(overrides?: CallOverrides): Promise<[string]>;
+
+    "treasury()"(overrides?: CallOverrides): Promise<[string]>;
   };
 
   DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -625,9 +652,10 @@ export class TokenEmitter extends Contract {
   emissionWeight(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      protocolFund: BigNumber;
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      treasury: BigNumber;
       caller: BigNumber;
+      protocol: BigNumber;
       dev: BigNumber;
       sum: BigNumber;
     }
@@ -636,9 +664,10 @@ export class TokenEmitter extends Contract {
   "emissionWeight()"(
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, BigNumber, BigNumber, BigNumber] & {
-      protocolFund: BigNumber;
+    [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+      treasury: BigNumber;
       caller: BigNumber;
+      protocol: BigNumber;
       dev: BigNumber;
       sum: BigNumber;
     }
@@ -685,6 +714,24 @@ export class TokenEmitter extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(uint256,uint256,uint256,uint256,address,address,address,address,address)"(
+    _initialEmission: BigNumberish,
+    _minEmissionRatePerWeek: BigNumberish,
+    _emissionCutRate: BigNumberish,
+    _founderShare: BigNumberish,
+    _founderPool: string,
+    _treasury: string,
+    _gov: string,
+    _token: string,
+    _protocolPool: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   minEmissionRatePerWeek(overrides?: CallOverrides): Promise<BigNumber>;
 
   "minEmissionRatePerWeek()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -715,9 +762,9 @@ export class TokenEmitter extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  protocolFund(overrides?: CallOverrides): Promise<string>;
+  protocolPool(overrides?: CallOverrides): Promise<string>;
 
-  "protocolFund()"(overrides?: CallOverrides): Promise<string>;
+  "protocolPool()"(overrides?: CallOverrides): Promise<string>;
 
   setAnarchyPoint(
     timestamp: BigNumberish,
@@ -732,7 +779,7 @@ export class TokenEmitter extends Contract {
   setEmission(
     _miningPools: string[],
     _weights: BigNumberish[],
-    _protocolFund: BigNumberish,
+    _treasury: BigNumberish,
     _caller: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -740,7 +787,7 @@ export class TokenEmitter extends Contract {
   "setEmission(address[],uint256[],uint256,uint256)"(
     _miningPools: string[],
     _weights: BigNumberish[],
-    _protocolFund: BigNumberish,
+    _treasury: BigNumberish,
     _caller: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -785,13 +832,13 @@ export class TokenEmitter extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setProtocolFund(
-    _fund: string,
+  setTreasury(
+    _treasury: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "setProtocolFund(address)"(
-    _fund: string,
+  "setTreasury(address)"(
+    _treasury: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -806,6 +853,10 @@ export class TokenEmitter extends Contract {
   token(overrides?: CallOverrides): Promise<string>;
 
   "token()"(overrides?: CallOverrides): Promise<string>;
+
+  treasury(overrides?: CallOverrides): Promise<string>;
+
+  "treasury()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     DENOMINATOR(overrides?: CallOverrides): Promise<BigNumber>;
@@ -857,9 +908,10 @@ export class TokenEmitter extends Contract {
     emissionWeight(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        protocolFund: BigNumber;
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        treasury: BigNumber;
         caller: BigNumber;
+        protocol: BigNumber;
         dev: BigNumber;
         sum: BigNumber;
       }
@@ -868,9 +920,10 @@ export class TokenEmitter extends Contract {
     "emissionWeight()"(
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, BigNumber, BigNumber, BigNumber] & {
-        protocolFund: BigNumber;
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+        treasury: BigNumber;
         caller: BigNumber;
+        protocol: BigNumber;
         dev: BigNumber;
         sum: BigNumber;
       }
@@ -913,6 +966,24 @@ export class TokenEmitter extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(uint256,uint256,uint256,uint256,address,address,address,address,address)"(
+      _initialEmission: BigNumberish,
+      _minEmissionRatePerWeek: BigNumberish,
+      _emissionCutRate: BigNumberish,
+      _founderShare: BigNumberish,
+      _founderPool: string,
+      _treasury: string,
+      _gov: string,
+      _token: string,
+      _protocolPool: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     minEmissionRatePerWeek(overrides?: CallOverrides): Promise<BigNumber>;
 
     "minEmissionRatePerWeek()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -943,9 +1014,9 @@ export class TokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    protocolFund(overrides?: CallOverrides): Promise<string>;
+    protocolPool(overrides?: CallOverrides): Promise<string>;
 
-    "protocolFund()"(overrides?: CallOverrides): Promise<string>;
+    "protocolPool()"(overrides?: CallOverrides): Promise<string>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -960,7 +1031,7 @@ export class TokenEmitter extends Contract {
     setEmission(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -968,7 +1039,7 @@ export class TokenEmitter extends Contract {
     "setEmission(address[],uint256[],uint256,uint256)"(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1007,10 +1078,10 @@ export class TokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setProtocolFund(_fund: string, overrides?: CallOverrides): Promise<void>;
+    setTreasury(_treasury: string, overrides?: CallOverrides): Promise<void>;
 
-    "setProtocolFund(address)"(
-      _fund: string,
+    "setTreasury(address)"(
+      _treasury: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1021,6 +1092,10 @@ export class TokenEmitter extends Contract {
     token(overrides?: CallOverrides): Promise<string>;
 
     "token()"(overrides?: CallOverrides): Promise<string>;
+
+    treasury(overrides?: CallOverrides): Promise<string>;
+
+    "treasury()"(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -1162,6 +1237,24 @@ export class TokenEmitter extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(uint256,uint256,uint256,uint256,address,address,address,address,address)"(
+      _initialEmission: BigNumberish,
+      _minEmissionRatePerWeek: BigNumberish,
+      _emissionCutRate: BigNumberish,
+      _founderShare: BigNumberish,
+      _founderPool: string,
+      _treasury: string,
+      _gov: string,
+      _token: string,
+      _protocolPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     minEmissionRatePerWeek(overrides?: CallOverrides): Promise<BigNumber>;
 
     "minEmissionRatePerWeek()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1192,9 +1285,9 @@ export class TokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    protocolFund(overrides?: CallOverrides): Promise<BigNumber>;
+    protocolPool(overrides?: CallOverrides): Promise<BigNumber>;
 
-    "protocolFund()"(overrides?: CallOverrides): Promise<BigNumber>;
+    "protocolPool()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -1209,7 +1302,7 @@ export class TokenEmitter extends Contract {
     setEmission(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1217,7 +1310,7 @@ export class TokenEmitter extends Contract {
     "setEmission(address[],uint256[],uint256,uint256)"(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1262,13 +1355,13 @@ export class TokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setProtocolFund(
-      _fund: string,
+    setTreasury(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "setProtocolFund(address)"(
-      _fund: string,
+    "setTreasury(address)"(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1283,6 +1376,10 @@ export class TokenEmitter extends Contract {
     token(overrides?: CallOverrides): Promise<BigNumber>;
 
     "token()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    treasury(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "treasury()"(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1406,6 +1503,24 @@ export class TokenEmitter extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(uint256,uint256,uint256,uint256,address,address,address,address,address)"(
+      _initialEmission: BigNumberish,
+      _minEmissionRatePerWeek: BigNumberish,
+      _emissionCutRate: BigNumberish,
+      _founderShare: BigNumberish,
+      _founderPool: string,
+      _treasury: string,
+      _gov: string,
+      _token: string,
+      _protocolPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     minEmissionRatePerWeek(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1446,9 +1561,9 @@ export class TokenEmitter extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    protocolFund(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    protocolPool(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    "protocolFund()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    "protocolPool()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -1463,7 +1578,7 @@ export class TokenEmitter extends Contract {
     setEmission(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1471,7 +1586,7 @@ export class TokenEmitter extends Contract {
     "setEmission(address[],uint256[],uint256,uint256)"(
       _miningPools: string[],
       _weights: BigNumberish[],
-      _protocolFund: BigNumberish,
+      _treasury: BigNumberish,
       _caller: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1516,13 +1631,13 @@ export class TokenEmitter extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setProtocolFund(
-      _fund: string,
+    setTreasury(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "setProtocolFund(address)"(
-      _fund: string,
+    "setTreasury(address)"(
+      _treasury: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1537,5 +1652,9 @@ export class TokenEmitter extends Contract {
     token(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "token()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "treasury()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

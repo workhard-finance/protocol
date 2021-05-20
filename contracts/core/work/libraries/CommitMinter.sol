@@ -8,12 +8,12 @@ import "../../../core/work/interfaces/IStableReserve.sol";
 contract CommitMinter {
     using SafeERC20 for IERC20;
 
-    address public immutable stableReserve;
-    address public immutable commitToken;
+    address public stableReserve;
+    address public commitToken;
 
-    constructor(address _stableReserve) {
+    function _setup(address _stableReserve, address _commit) internal {
         stableReserve = _stableReserve;
-        commitToken = IStableReserve(_stableReserve).commitToken();
+        commitToken = _commit;
     }
 
     function _mintCommit(uint256 amount) internal virtual {

@@ -2,6 +2,7 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
 /**
  * @title Commit Token
@@ -11,11 +12,16 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
  *      of redeemable stable coins. Therefore, it's 1:1 pegged to the given stable coin
  *      or expected to have higher value than the redeemable coin values.
  */
-contract COMMIT is ERC20Burnable {
-    address public minter;
+contract COMMIT is ERC20Burnable, Initializable {
+    using SafeMath for uint256;
 
-    constructor() ERC20("Workhard Commit Token", "COMMIT") {
-        minter = msg.sender;
+    address public minter;
+    string private _name;
+    string private _symbol;
+
+    constructor() ERC20("", "") {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
     }
 
     modifier onlyMinter {
@@ -23,11 +29,32 @@ contract COMMIT is ERC20Burnable {
         _;
     }
 
+    function initialize(string memory name_, string memory symbol_)
+        public
+        initializer
+    {
+        _name = name_;
+        _symbol = symbol_;
+        minter = msg.sender;
+    }
+
     function mint(address to, uint256 amount) public onlyMinter {
         _mint(to, amount);
     }
 
     function setMinter(address _minter) public onlyMinter {
+        _setMinter(_minter);
+    }
+
+    function _setMinter(address _minter) internal {
         minter = _minter;
+    }
+
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
     }
 }

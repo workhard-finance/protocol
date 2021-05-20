@@ -6,11 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IGrantReceiver.sol";
 import "../../core/tokens/COMMIT.sol";
 import "../../core/governance/Governed.sol";
-import "../../utils/HasInitializer.sol";
 import "../../utils/ExchangeLib.sol";
 import "../../utils/ERC20Recoverer.sol";
 
@@ -21,7 +21,7 @@ contract StableReserve is
     ERC20Recoverer,
     Governed,
     IStableReserve,
-    HasInitializer
+    Initializable
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -29,7 +29,7 @@ contract StableReserve is
 
     address public override commitToken;
 
-    address public immutable override baseCurrency;
+    address public override baseCurrency;
 
     uint256 public priceOfCOMMIT = 20000; // denominator = 10000, ~= $2
 
@@ -41,17 +41,17 @@ contract StableReserve is
 
     address private _deployer;
 
-    constructor(
+    function initialize(
         address _gov,
         address _commitToken,
         address _baseCurrency
-    ) ERC20Recoverer() Governed() HasInitializer() {
+    ) public initializer {
         commitToken = _commitToken;
         baseCurrency = _baseCurrency;
         ERC20Recoverer.disablePermanently(_baseCurrency);
         ERC20Recoverer.disablePermanently(_commitToken);
         ERC20Recoverer.setRecoverer(_gov);
-        Governed.setGovernance(_gov);
+        Governed.initialize(_gov);
         _deployer = msg.sender;
         _setMinter(gov, true);
     }

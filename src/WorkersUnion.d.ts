@@ -34,6 +34,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     "getVotesFor(address,bytes32)": FunctionFragment;
     "getVotingStatus(bytes32)": FunctionFragment;
     "gov()": FunctionFragment;
+    "initialize(address,address,uint256)": FunctionFragment;
     "launch()": FunctionFragment;
     "manualVote(bytes32,uint256[],bool)": FunctionFragment;
     "paused()": FunctionFragment;
@@ -98,6 +99,10 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "launch", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "manualVote",
@@ -193,6 +198,7 @@ interface WorkersUnionInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "launch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "manualVote", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -406,6 +412,18 @@ export class WorkersUnion extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
+
+    "initialize(address,address,uint256)"(
+      _voteCounter: string,
+      _timelockGov: string,
+      _launchDelay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -740,6 +758,18 @@ export class WorkersUnion extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  "initialize(address,address,uint256)"(
+    _voteCounter: string,
+    _timelockGov: string,
+    _launchDelay: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   launch(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -1064,6 +1094,18 @@ export class WorkersUnion extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
+
+    "initialize(address,address,uint256)"(
+      _voteCounter: string,
+      _timelockGov: string,
+      _launchDelay: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     launch(overrides?: CallOverrides): Promise<void>;
 
@@ -1481,6 +1523,18 @@ export class WorkersUnion extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    "initialize(address,address,uint256)"(
+      _voteCounter: string,
+      _timelockGov: string,
+      _launchDelay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1757,6 +1811,18 @@ export class WorkersUnion extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "initialize(address,address,uint256)"(
+      _voteCounter: string,
+      _timelockGov: string,
+      _launchDelay: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     launch(
       overrides?: Overrides & { from?: string | Promise<string> }

@@ -8,11 +8,9 @@ interface IDividendPool {
 
     function distribute(address token, uint256 amount) external;
 
-    function distributable(address token) external view returns (bool);
+    function distributed(address token) external view returns (bool);
 
-    function distributedToken(uint256 index) external view returns (address);
-
-    function distributedTokens() external view returns (address[] memory);
+    function featuredRewards() external view returns (address[] memory);
 
     function getCurrentEpoch() external view returns (uint256);
 
@@ -31,11 +29,4 @@ interface IDividendPool {
         external
         view
         returns (uint256);
-
-    /** governance */
-    function addToken(address token) external;
-
-    function removeToken(address token) external;
-
-    function setAdmin(address admin, bool active) external;
 }

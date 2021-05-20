@@ -24,19 +24,6 @@ const _abi = [
         name: "token",
         type: "address",
       },
-    ],
-    name: "addToken",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
       {
         internalType: "uint256",
         name: "veLockId",
@@ -80,25 +67,6 @@ const _abi = [
         name: "token",
         type: "address",
       },
-    ],
-    name: "distributable",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
       {
         internalType: "uint256",
         name: "amount",
@@ -113,30 +81,17 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "uint256",
-        name: "index",
-        type: "uint256",
-      },
-    ],
-    name: "distributedToken",
-    outputs: [
-      {
         internalType: "address",
-        name: "",
+        name: "token",
         type: "address",
       },
     ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "distributedTokens",
+    name: "distributed",
     outputs: [
       {
-        internalType: "address[]",
+        internalType: "bool",
         name: "",
-        type: "address[]",
+        type: "bool",
       },
     ],
     stateMutability: "view",
@@ -187,6 +142,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "featuredRewards",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getCurrentEpoch",
     outputs: [
       {
@@ -196,37 +164,6 @@ const _abi = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "token",
-        type: "address",
-      },
-    ],
-    name: "removeToken",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "admin",
-        type: "address",
-      },
-      {
-        internalType: "bool",
-        name: "active",
-        type: "bool",
-      },
-    ],
-    name: "setAdmin",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {

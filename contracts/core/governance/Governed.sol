@@ -6,6 +6,8 @@ import "../../utils/Utils.sol";
 contract Governed {
     using Utils for address[];
 
+    bool private initialized;
+
     address public gov;
 
     uint256 public anarchizedAt = 0;
@@ -31,6 +33,12 @@ contract Governed {
         (bool exists, ) = list.find(msg.sender);
         require(exists, "Not authorized");
         _;
+    }
+
+    function initialize(address _gov) public {
+        require(!initialized, "Initialized");
+        initialized = true;
+        gov = _gov;
     }
 
     function setGovernance(address _gov) public governed {

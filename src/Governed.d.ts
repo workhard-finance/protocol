@@ -26,6 +26,7 @@ interface GovernedInterface extends ethers.utils.Interface {
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
   };
@@ -44,6 +45,7 @@ interface GovernedInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "setAnarchyPoint",
     values: [BigNumberish]
@@ -67,6 +69,7 @@ interface GovernedInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setAnarchyPoint",
     data: BytesLike
@@ -157,6 +160,16 @@ export class Governed extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
+    initialize(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -206,6 +219,16 @@ export class Governed extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  initialize(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setAnarchyPoint(
     timestamp: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -246,6 +269,13 @@ export class Governed extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
+
+    initialize(_gov: string, overrides?: CallOverrides): Promise<void>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,
@@ -306,6 +336,16 @@ export class Governed extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    initialize(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setAnarchyPoint(
       timestamp: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -357,6 +397,16 @@ export class Governed extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    initialize(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     setAnarchyPoint(
       timestamp: BigNumberish,

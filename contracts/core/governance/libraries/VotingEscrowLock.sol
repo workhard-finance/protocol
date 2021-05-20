@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/EnumerableMap.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
 import "../../../core/governance/libraries/VotingEscrowToken.sol";
 import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
-import "../../../utils/HasInitializer.sol";
 
 /**
  * @dev Voting Escrow Lock is the refactored solidity implementation of veCRV.
@@ -24,7 +24,7 @@ contract VotingEscrowLock is
     IVotingEscrowLock,
     ERC721,
     ReentrancyGuard,
-    HasInitializer
+    Initializable
 {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -40,6 +40,9 @@ contract VotingEscrowLock is
     mapping(address => EnumerableSet.UintSet) private _delegated;
     EnumerableMap.UintToAddressMap private _rightOwners;
 
+    string private _name;
+    string private _symbol;
+
     event LockCreated(uint256 veLockId);
     event LockUpdate(uint256 veLockId, uint256 amount, uint256 end);
     event Withdraw(uint256 veLockId, uint256 amount);
@@ -53,16 +56,23 @@ contract VotingEscrowLock is
         _;
     }
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
+    constructor() ERC721("", "") {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
+    }
+
+    function initialize(
+        string memory _veLockName,
+        string memory _veLockSymbol,
         string memory _baseURI,
         address _baseToken,
         address _veToken
-    ) ERC721(_name, _symbol) {
+    ) public initializer {
         _setBaseURI(_baseURI);
         baseToken = _baseToken;
         veToken = _veToken;
+        _name = _veLockName;
+        _symbol = _veLockSymbol;
     }
 
     function createLock(uint256 amount, uint256 epochs) public override {
@@ -163,6 +173,14 @@ contract VotingEscrowLock is
             "VotingEscrowLock: delegate query for the zero address"
         );
         return _delegated[voter].at(idx);
+    }
+
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
     }
 
     function _updateLock(

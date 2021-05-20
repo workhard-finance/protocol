@@ -6,14 +6,21 @@ import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../../core/emission/interfaces/ITokenEmitter.sol";
 import "../../../core/emission/interfaces/IMiningPool.sol";
 import "../../../core/emission/interfaces/IMiningPoolFactory.sol";
 import "../../../core/governance/Governed.sol";
+import "../../../core/dividend/interfaces/IDividendPool.sol";
 import "../../../utils/IERC20Mintable.sol";
 import "../../../utils/Utils.sol";
 
-contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
+contract TokenEmitter is
+    Governed,
+    ReentrancyGuard,
+    ITokenEmitter,
+    Initializable
+{
     using ERC165Checker for address;
     using SafeMath for uint256;
     using Utils for bytes4[];
@@ -27,13 +34,15 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
 
     uint256 public emission;
 
-    uint256 public immutable INITIAL_EMISSION;
+    uint256 public INITIAL_EMISSION;
 
-    uint256 public immutable FOUNDER_SHARE_DENOMINATOR;
+    uint256 public FOUNDER_SHARE_DENOMINATOR;
 
     address public founderPool;
 
-    address public protocolFund;
+    address public treasury;
+
+    address public protocolPool;
 
     uint256 public constant override emissionPeriod = 1 weeks;
 
@@ -45,8 +54,9 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
 
     struct EmissionWeight {
         uint256[] pools;
-        uint256 protocolFund;
+        uint256 treasury;
         uint256 caller;
+        uint256 protocol;
         uint256 dev;
         uint256 sum;
     }
@@ -64,25 +74,27 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
     event EmissionWeightUpdated(uint256 numberOfPools);
     event NewMiningPool(bytes4 poolTypes, address baseToken, address pool);
 
-    constructor(
+    function initialize(
         uint256 _initialEmission,
         uint256 _minEmissionRatePerWeek,
         uint256 _emissionCutRate,
         uint256 _founderShare,
         address _founderPool,
-        address _protocolFund,
+        address _treasury,
         address _gov,
-        address _token
-    ) Governed() {
+        address _token,
+        address _protocolPool
+    ) public initializer {
         // set params
         INITIAL_EMISSION = _initialEmission;
         emission = _initialEmission;
         minEmissionRatePerWeek = _minEmissionRatePerWeek;
         emissionCutRate = _emissionCutRate;
+        protocolPool = _protocolPool;
 
         // set contract addresses
         token = _token;
-        setProtocolFund(_protocolFund);
+        setTreasury(_treasury);
         require(
             _founderPool.supportsInterface(IMiningPool(0).allocate.selector),
             "Cannot allocate reward"
@@ -92,9 +104,12 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
             ? DENOMINATOR / _founderShare
             : 0;
         founderPool = _founderPool;
-        Governed.setGovernance(_gov);
+        Governed.initialize(_gov);
     }
 
+    /**
+     * StakeMiningV1:
+     */
     function newPool(bytes4 sig, address _token) public returns (address) {
         address _factory = factories[sig];
         require(_factory != address(0), "Factory not exists");
@@ -116,7 +131,7 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
     function setEmission(
         address[] memory _miningPools,
         uint256[] memory _weights,
-        uint256 _protocolFund,
+        uint256 _treasury,
         uint256 _caller
     ) public governed {
         require(
@@ -124,7 +139,7 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
             "Both should have the same length."
         );
         IMiningPool[] memory _pools = new IMiningPool[](_miningPools.length);
-        uint256 _sum = _protocolFund + _caller; // doesn't overflow
+        uint256 _sum = _treasury + _caller; // doesn't overflow
         for (uint256 i = 0; i < _miningPools.length; i++) {
             IMiningPool pool = IMiningPool(_miningPools[i]);
             require(
@@ -135,18 +150,21 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
             _pools[i] = pool;
             _sum += _weights[i]; // doesn't overflow
         }
-        require(_protocolFund < 1e4, "prevent overflow");
+        require(_treasury < 1e4, "prevent overflow");
         require(_caller < 1e4, "prevent overflow");
         uint256 _dev =
             FOUNDER_SHARE_DENOMINATOR != 0
                 ? _sum / FOUNDER_SHARE_DENOMINATOR
                 : 0; // doesn't overflow;
         _sum += _dev;
+        uint256 _protocol = protocolPool == address(0) ? 0 : _sum / 33;
+        _sum += _protocol;
         pools = _pools;
         emissionWeight = EmissionWeight(
             _weights,
-            _protocolFund,
+            _treasury,
             _caller,
+            _protocol,
             _dev,
             _sum
         );
@@ -166,8 +184,8 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
         factories[_sig] = _factory;
     }
 
-    function setProtocolFund(address _fund) public governed {
-        protocolFund = _fund;
+    function setTreasury(address _treasury) public governed {
+        treasury = _treasury;
     }
 
     function start() public override governed {
@@ -217,15 +235,22 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
 
         // Protocol fund(protocol treasury)
         IERC20Mintable(token).mint(
-            protocolFund,
-            emissionWeight.protocolFund.mul(emission).div(weightSum)
+            treasury,
+            emissionWeight.treasury.mul(emission).div(weightSum)
         );
         // Caller
         IERC20Mintable(token).mint(
             msg.sender,
             emissionWeight.caller.mul(emission).div(weightSum)
         );
-        // Frontier
+        // Protocol
+        IERC20Mintable(token).mint(
+            protocolPool,
+            emissionWeight.protocol.mul(emission).div(weightSum)
+        );
+        // balance diff automatically distributed. no approval needed
+        IDividendPool(protocolPool).distribute(token, 0);
+        // Founder
         _mintAndNotifyAllocation(
             IMiningPool(founderPool),
             emission - (IERC20(token).totalSupply() - prevSupply)
@@ -249,12 +274,11 @@ contract TokenEmitter is Governed, ReentrancyGuard, ITokenEmitter {
         try _miningPool.allocate(_amount) {
             // success
         } catch {
-            // pool does not receive the emission
+            // pool does not handled the emission
         }
     }
 
     function _updateEmission() private returns (uint256) {
-        if (emissionWeekNum == 0) return 0;
         // Minimum emission 0.05% per week will make 2.63% of inflation per year
         uint256 minEmission =
             IERC20(token).totalSupply().mul(minEmissionRatePerWeek).div(

@@ -11,6 +11,7 @@ import {
   PopulatedTransaction,
   Contract,
   ContractTransaction,
+  Overrides,
   CallOverrides,
 } from "ethers";
 import { BytesLike } from "@ethersproject/bytes";
@@ -22,6 +23,7 @@ interface VoteCounterInterface extends ethers.utils.Interface {
   functions: {
     "getTotalVotes()": FunctionFragment;
     "getVotes(uint256,uint256)": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "voterOf(uint256)": FunctionFragment;
     "votingRights(address)": FunctionFragment;
   };
@@ -34,6 +36,7 @@ interface VoteCounterInterface extends ethers.utils.Interface {
     functionFragment: "getVotes",
     values: [BigNumberish, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "voterOf",
     values: [BigNumberish]
@@ -48,6 +51,7 @@ interface VoteCounterInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getVotes", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "voterOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "votingRights",
@@ -117,6 +121,16 @@ export class VoteCounter extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    initialize(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address)"(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     voterOf(
       veLockId: BigNumberish,
       overrides?: CallOverrides
@@ -154,6 +168,16 @@ export class VoteCounter extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  initialize(
+    _veToken: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address)"(
+    _veToken: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   voterOf(veLockId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   "voterOf(uint256)"(
@@ -184,6 +208,13 @@ export class VoteCounter extends Contract {
       timestamp: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    initialize(_veToken: string, overrides?: CallOverrides): Promise<void>;
+
+    "initialize(address)"(
+      _veToken: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     voterOf(veLockId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
@@ -222,6 +253,16 @@ export class VoteCounter extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    initialize(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     voterOf(
       veLockId: BigNumberish,
       overrides?: CallOverrides
@@ -255,6 +296,16 @@ export class VoteCounter extends Contract {
       veLockId: BigNumberish,
       timestamp: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _veToken: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     voterOf(

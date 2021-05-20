@@ -21,7 +21,6 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface DividendPoolInterface extends ethers.utils.Interface {
   functions: {
-    "addToken(address)": FunctionFragment;
     "anarchize()": FunctionFragment;
     "anarchizedAt()": FunctionFragment;
     "claim(address)": FunctionFragment;
@@ -29,14 +28,13 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "claimStartWeek(address,uint256)": FunctionFragment;
     "claimUpTo(address,uint256)": FunctionFragment;
     "claimable(address)": FunctionFragment;
-    "distributable(address)": FunctionFragment;
     "distribute(address,uint256)": FunctionFragment;
-    "distributedToken(uint256)": FunctionFragment;
-    "distributedTokens()": FunctionFragment;
+    "distributed(address)": FunctionFragment;
     "distributionBalance(address)": FunctionFragment;
     "distributionOfWeek(address,uint256)": FunctionFragment;
     "distributions(address)": FunctionFragment;
     "epochUnit()": FunctionFragment;
+    "featuredRewards()": FunctionFragment;
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "genesis()": FunctionFragment;
@@ -44,16 +42,15 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     "getEpoch(uint256)": FunctionFragment;
     "getNextEpoch()": FunctionFragment;
     "gov()": FunctionFragment;
-    "removeToken(address)": FunctionFragment;
-    "setAdmin(address,bool)": FunctionFragment;
+    "initialize(address,address)": FunctionFragment;
     "setAnarchyPoint(uint256)": FunctionFragment;
+    "setFeaturedRewards(address[])": FunctionFragment;
     "setGovernance(address)": FunctionFragment;
     "totalDistributed(address)": FunctionFragment;
     "veLocker()": FunctionFragment;
     "veVISION()": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "addToken", values: [string]): string;
   encodeFunctionData(functionFragment: "anarchize", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "anarchizedAt",
@@ -74,21 +71,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "claimable", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "distributable",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "distribute",
     values: [string, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "distributedToken",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "distributedTokens",
-    values?: undefined
-  ): string;
+  encodeFunctionData(functionFragment: "distributed", values: [string]): string;
   encodeFunctionData(
     functionFragment: "distributionBalance",
     values: [string]
@@ -102,6 +88,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "epochUnit", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "featuredRewards",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "forceAnarchize",
     values?: undefined
@@ -124,14 +114,17 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
-  encodeFunctionData(functionFragment: "removeToken", values: [string]): string;
   encodeFunctionData(
-    functionFragment: "setAdmin",
-    values: [string, boolean]
+    functionFragment: "initialize",
+    values: [string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "setAnarchyPoint",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setFeaturedRewards",
+    values: [string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "setGovernance",
@@ -144,7 +137,6 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   encodeFunctionData(functionFragment: "veLocker", values?: undefined): string;
   encodeFunctionData(functionFragment: "veVISION", values?: undefined): string;
 
-  decodeFunctionResult(functionFragment: "addToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "anarchize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "anarchizedAt",
@@ -158,17 +150,9 @@ interface DividendPoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "claimUpTo", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "claimable", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "distributable",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "distribute", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "distributedToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "distributedTokens",
+    functionFragment: "distributed",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -184,6 +168,10 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "epochUnit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "featuredRewards",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "forceAnarchize",
     data: BytesLike
@@ -203,13 +191,13 @@ interface DividendPoolInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "removeToken",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "setAdmin", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setAnarchyPoint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setFeaturedRewards",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -225,11 +213,15 @@ interface DividendPoolInterface extends ethers.utils.Interface {
 
   events: {
     "Anarchized()": EventFragment;
+    "NewDistribution(address,uint256)": EventFragment;
     "NewGovernance(address,address)": EventFragment;
+    "NewReward(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Anarchized"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewDistribution"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernance"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "NewReward"): EventFragment;
 }
 
 export class DividendPool extends Contract {
@@ -276,16 +268,6 @@ export class DividendPool extends Contract {
   interface: DividendPoolInterface;
 
   functions: {
-    addToken(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "addToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -349,13 +331,6 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    distributable(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
-
-    "distributable(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     distribute(
       _token: string,
       _amount: BigNumberish,
@@ -368,23 +343,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    distributedToken(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
+    distributed(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
-    "distributedToken(uint256)"(
-      arg0: BigNumberish,
+    "distributed(address)"(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    distributedTokens(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { _tokens: string[] }>;
-
-    "distributedTokens()"(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { _tokens: string[] }>;
+    ): Promise<[boolean]>;
 
     distributionBalance(
       token: string,
@@ -432,6 +396,10 @@ export class DividendPool extends Contract {
 
     "epochUnit()"(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    featuredRewards(overrides?: CallOverrides): Promise<[string[]]>;
+
+    "featuredRewards()"(overrides?: CallOverrides): Promise<[string[]]>;
+
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -470,25 +438,14 @@ export class DividendPool extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
 
-    removeToken(
-      token: string,
+    "initialize(address,address)"(
+      _gov: string,
+      _RIGHT: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "removeToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setAdmin(
-      _admin: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "setAdmin(address,bool)"(
-      _admin: string,
-      active: boolean,
+    "initialize(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -499,6 +456,16 @@ export class DividendPool extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setFeaturedRewards(
+      featured: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setFeaturedRewards(address[])"(
+      featured: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -530,16 +497,6 @@ export class DividendPool extends Contract {
 
     "veVISION()"(overrides?: CallOverrides): Promise<[string]>;
   };
-
-  addToken(
-    token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "addToken(address)"(
-    token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   anarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -604,13 +561,6 @@ export class DividendPool extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  distributable(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  "distributable(address)"(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   distribute(
     _token: string,
     _amount: BigNumberish,
@@ -623,19 +573,12 @@ export class DividendPool extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  distributedToken(
-    arg0: BigNumberish,
+  distributed(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  "distributed(address)"(
+    arg0: string,
     overrides?: CallOverrides
-  ): Promise<string>;
-
-  "distributedToken(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  distributedTokens(overrides?: CallOverrides): Promise<string[]>;
-
-  "distributedTokens()"(overrides?: CallOverrides): Promise<string[]>;
+  ): Promise<boolean>;
 
   distributionBalance(
     token: string,
@@ -683,6 +626,10 @@ export class DividendPool extends Contract {
 
   "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  featuredRewards(overrides?: CallOverrides): Promise<string[]>;
+
+  "featuredRewards()"(overrides?: CallOverrides): Promise<string[]>;
+
   forceAnarchize(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -721,25 +668,14 @@ export class DividendPool extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
-  removeToken(
-    token: string,
+  "initialize(address,address)"(
+    _gov: string,
+    _RIGHT: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "removeToken(address)"(
-    token: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setAdmin(
-    _admin: string,
-    active: boolean,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "setAdmin(address,bool)"(
-    _admin: string,
-    active: boolean,
+  "initialize(address)"(
+    _gov: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -750,6 +686,16 @@ export class DividendPool extends Contract {
 
   "setAnarchyPoint(uint256)"(
     timestamp: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setFeaturedRewards(
+    featured: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setFeaturedRewards(address[])"(
+    featured: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -782,13 +728,6 @@ export class DividendPool extends Contract {
   "veVISION()"(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
-    addToken(token: string, overrides?: CallOverrides): Promise<void>;
-
-    "addToken(address)"(
-      token: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     anarchize(overrides?: CallOverrides): Promise<void>;
 
     "anarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -839,13 +778,6 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    distributable(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-    "distributable(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     distribute(
       _token: string,
       _amount: BigNumberish,
@@ -858,19 +790,12 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    distributedToken(
-      arg0: BigNumberish,
+    distributed(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    "distributed(address)"(
+      arg0: string,
       overrides?: CallOverrides
-    ): Promise<string>;
-
-    "distributedToken(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    distributedTokens(overrides?: CallOverrides): Promise<string[]>;
-
-    "distributedTokens()"(overrides?: CallOverrides): Promise<string[]>;
+    ): Promise<boolean>;
 
     distributionBalance(
       token: string,
@@ -918,6 +843,10 @@ export class DividendPool extends Contract {
 
     "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    featuredRewards(overrides?: CallOverrides): Promise<string[]>;
+
+    "featuredRewards()"(overrides?: CallOverrides): Promise<string[]>;
+
     forceAnarchize(overrides?: CallOverrides): Promise<void>;
 
     "forceAnarchize()"(overrides?: CallOverrides): Promise<void>;
@@ -952,22 +881,14 @@ export class DividendPool extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
 
-    removeToken(token: string, overrides?: CallOverrides): Promise<void>;
-
-    "removeToken(address)"(
-      token: string,
+    "initialize(address,address)"(
+      _gov: string,
+      _RIGHT: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setAdmin(
-      _admin: string,
-      active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setAdmin(address,bool)"(
-      _admin: string,
-      active: boolean,
+    "initialize(address)"(
+      _gov: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -978,6 +899,16 @@ export class DividendPool extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setFeaturedRewards(
+      featured: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "setFeaturedRewards(address[])"(
+      featured: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1010,6 +941,14 @@ export class DividendPool extends Contract {
   filters: {
     Anarchized(): TypedEventFilter<[], {}>;
 
+    NewDistribution(
+      token: string | null,
+      amount: null
+    ): TypedEventFilter<
+      [string, BigNumber],
+      { token: string; amount: BigNumber }
+    >;
+
     NewGovernance(
       _prevGovernance: string | null,
       _newGovernance: string | null
@@ -1017,19 +956,11 @@ export class DividendPool extends Contract {
       [string, string],
       { _prevGovernance: string; _newGovernance: string }
     >;
+
+    NewReward(token: null): TypedEventFilter<[string], { token: string }>;
   };
 
   estimateGas: {
-    addToken(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "addToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1093,13 +1024,6 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    distributable(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-    "distributable(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     distribute(
       _token: string,
       _amount: BigNumberish,
@@ -1112,19 +1036,12 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    distributedToken(
-      arg0: BigNumberish,
+    distributed(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "distributed(address)"(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    "distributedToken(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    distributedTokens(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "distributedTokens()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     distributionBalance(
       token: string,
@@ -1158,6 +1075,10 @@ export class DividendPool extends Contract {
     epochUnit(overrides?: CallOverrides): Promise<BigNumber>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    featuredRewards(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "featuredRewards()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1197,25 +1118,14 @@ export class DividendPool extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    removeToken(
-      token: string,
+    "initialize(address,address)"(
+      _gov: string,
+      _RIGHT: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "removeToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setAdmin(
-      _admin: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "setAdmin(address,bool)"(
-      _admin: string,
-      active: boolean,
+    "initialize(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1226,6 +1136,16 @@ export class DividendPool extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setFeaturedRewards(
+      featured: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setFeaturedRewards(address[])"(
+      featured: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1259,16 +1179,6 @@ export class DividendPool extends Contract {
   };
 
   populateTransaction: {
-    addToken(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "addToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     anarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1335,16 +1245,6 @@ export class DividendPool extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    distributable(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "distributable(address)"(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     distribute(
       _token: string,
       _amount: BigNumberish,
@@ -1357,19 +1257,13 @@ export class DividendPool extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    distributedToken(
-      arg0: BigNumberish,
+    distributed(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "distributedToken(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    distributedTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "distributedTokens()"(
+    "distributed(address)"(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1408,6 +1302,12 @@ export class DividendPool extends Contract {
     epochUnit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "epochUnit()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    featuredRewards(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "featuredRewards()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     forceAnarchize(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1451,25 +1351,14 @@ export class DividendPool extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    removeToken(
-      token: string,
+    "initialize(address,address)"(
+      _gov: string,
+      _RIGHT: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "removeToken(address)"(
-      token: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setAdmin(
-      _admin: string,
-      active: boolean,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "setAdmin(address,bool)"(
-      _admin: string,
-      active: boolean,
+    "initialize(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1480,6 +1369,16 @@ export class DividendPool extends Contract {
 
     "setAnarchyPoint(uint256)"(
       timestamp: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setFeaturedRewards(
+      featured: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setFeaturedRewards(address[])"(
+      featured: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

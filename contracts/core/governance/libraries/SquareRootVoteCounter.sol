@@ -6,8 +6,6 @@ import "../../../utils/Sqrt.sol";
 contract SquareRootVoteCounter is VoteCounter {
     using Sqrt for uint256;
 
-    constructor(address _veToken) VoteCounter(_veToken) {}
-
     function getVotes(uint256 veLockId, uint256 timestamp)
         public
         view

@@ -33,6 +33,7 @@ interface StableReserveInterface extends ethers.utils.Interface {
     "gov()": FunctionFragment;
     "grant(address,uint256,bytes)": FunctionFragment;
     "init(address)": FunctionFragment;
+    "initialize(address,address,address)": FunctionFragment;
     "mintable()": FunctionFragment;
     "minters(address)": FunctionFragment;
     "nonRecoverable(address)": FunctionFragment;
@@ -82,6 +83,10 @@ interface StableReserveInterface extends ethers.utils.Interface {
     values: [string, BigNumberish, BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "init", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, string]
+  ): string;
   encodeFunctionData(functionFragment: "mintable", values?: undefined): string;
   encodeFunctionData(functionFragment: "minters", values: [string]): string;
   encodeFunctionData(
@@ -160,6 +165,7 @@ interface StableReserveInterface extends ethers.utils.Interface {
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grant", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "init", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mintable", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "minters", data: BytesLike): Result;
   decodeFunctionResult(
@@ -348,6 +354,18 @@ export class StableReserve extends Contract {
 
     "init(address)"(
       minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _baseCurrency: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -562,6 +580,18 @@ export class StableReserve extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  "initialize(address,address,address)"(
+    _gov: string,
+    _commitToken: string,
+    _baseCurrency: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   mintable(overrides?: CallOverrides): Promise<BigNumber>;
 
   "mintable()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -749,6 +779,18 @@ export class StableReserve extends Contract {
     init(minter: string, overrides?: CallOverrides): Promise<void>;
 
     "init(address)"(minter: string, overrides?: CallOverrides): Promise<void>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _baseCurrency: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     mintable(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -982,6 +1024,18 @@ export class StableReserve extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _baseCurrency: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     mintable(overrides?: CallOverrides): Promise<BigNumber>;
 
     "mintable()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1193,6 +1247,18 @@ export class StableReserve extends Contract {
 
     "init(address)"(
       minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _baseCurrency: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

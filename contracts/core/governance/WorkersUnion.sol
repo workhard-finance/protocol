@@ -5,6 +5,7 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../core/governance/Governed.sol";
 import "../../core/governance/TimelockedGovernance.sol";
@@ -34,7 +35,7 @@ struct VotingRule {
 /**
  * @notice referenced openzeppelin's TimelockController.sol
  */
-contract WorkersUnion is Pausable, Governed {
+contract WorkersUnion is Pausable, Governed, Initializable {
     using SafeMath for uint256;
     using Sqrt for uint256;
 
@@ -73,19 +74,23 @@ contract WorkersUnion is Pausable, Governed {
     event Vote(bytes32 txHash, address voter, bool forVote);
     event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
-    constructor(address _voteCounter, address _timelockGov) {
+    function initialize(
+        address _voteCounter,
+        address _timelockGov,
+        uint256 _launchDelay
+    ) public initializer {
         votingRule = VotingRule(
             1 days, // minimum pending for vote
             1 weeks, // maximum pending for vote
             1 weeks, // minimum voting period
             4 weeks, // maximum voting period
-            1 gwei, // minimum votes for proposing
-            10 gwei, // minimum votes
+            0 gwei, // minimum votes for proposing
+            0 gwei, // minimum votes
             IVoteCounter(_voteCounter)
         );
-        setGovernance(_timelockGov);
+        Governed.initialize(_timelockGov);
         _pause();
-        _launch = block.timestamp + 4 weeks;
+        _launch = block.timestamp.add(_launchDelay);
     }
 
     /**

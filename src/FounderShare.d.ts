@@ -29,7 +29,11 @@ interface FounderShareInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "initialize(string,string,address)": FunctionFragment;
+    "mint(address,uint256)": FunctionFragment;
+    "minter()": FunctionFragment;
     "name()": FunctionFragment;
+    "setMinter(address)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
@@ -59,7 +63,17 @@ interface FounderShareInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mint",
+    values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "minter", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "setMinter", values: [string]): string;
   encodeFunctionData(functionFragment: "symbol", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "totalSupply",
@@ -88,7 +102,11 @@ interface FounderShareInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "minter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "setMinter", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "symbol", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "totalSupply",
@@ -234,9 +252,49 @@ export class FounderShare extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(string,string,address)"(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    mint(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mint(address,uint256)"(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    minter(overrides?: CallOverrides): Promise<[string]>;
+
+    "minter()"(overrides?: CallOverrides): Promise<[string]>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
     "name()"(overrides?: CallOverrides): Promise<[string]>;
+
+    setMinter(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "setMinter(address)"(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<[string]>;
 
@@ -354,9 +412,49 @@ export class FounderShare extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  initialize(
+    name_: string,
+    symbol_: string,
+    to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(string,string,address)"(
+    name_: string,
+    symbol_: string,
+    to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  mint(
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mint(address,uint256)"(
+    to: string,
+    amount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  minter(overrides?: CallOverrides): Promise<string>;
+
+  "minter()"(overrides?: CallOverrides): Promise<string>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
   "name()"(overrides?: CallOverrides): Promise<string>;
+
+  setMinter(
+    _minter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "setMinter(address)"(
+    _minter: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -471,9 +569,46 @@ export class FounderShare extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(string,string,address)"(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    mint(
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "mint(address,uint256)"(
+      to: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    minter(overrides?: CallOverrides): Promise<string>;
+
+    "minter()"(overrides?: CallOverrides): Promise<string>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
     "name()"(overrides?: CallOverrides): Promise<string>;
+
+    setMinter(_minter: string, overrides?: CallOverrides): Promise<void>;
+
+    "setMinter(address)"(
+      _minter: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     symbol(overrides?: CallOverrides): Promise<string>;
 
@@ -612,9 +747,49 @@ export class FounderShare extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(string,string,address)"(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    mint(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mint(address,uint256)"(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    minter(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "minter()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     "name()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    setMinter(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "setMinter(address)"(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     symbol(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -736,9 +911,49 @@ export class FounderShare extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    initialize(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(string,string,address)"(
+      name_: string,
+      symbol_: string,
+      to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    mint(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mint(address,uint256)"(
+      to: string,
+      amount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    minter(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "minter()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "name()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    setMinter(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "setMinter(address)"(
+      _minter: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     symbol(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

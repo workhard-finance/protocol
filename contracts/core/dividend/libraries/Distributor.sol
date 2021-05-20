@@ -8,9 +8,9 @@ import "../../../core/dividend/interfaces/IDividendPool.sol";
 contract Distributor {
     using SafeERC20 for IERC20;
 
-    IDividendPool public immutable dividendPool;
+    IDividendPool public dividendPool;
 
-    constructor(address _dividendPool) {
+    function _setup(address _dividendPool) internal {
         dividendPool = IDividendPool(_dividendPool);
     }
 

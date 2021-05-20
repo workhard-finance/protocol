@@ -7,6 +7,7 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/math/Math.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
 import "../../../core/governance/libraries/VotingEscrowLock.sol";
 import "../../../core/governance/interfaces/IVotingEscrowToken.sol";
@@ -17,7 +18,7 @@ import "../../../utils/Int128.sol";
  *      Its original code https://github.com/curvefi/curve-dao-contracts/blob/master/contracts/VotingEscrow.vy
  */
 
-contract VotingEscrowToken is ERC20, IVotingEscrowToken {
+contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
     using Int128 for uint256;
 
     address public override veLocker;
@@ -29,26 +30,27 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     Point[] public pointHistory;
     mapping(uint256 => Point[]) public lockPointHistory;
 
+    string private _name;
+    string private _symbol;
+
     modifier onlyVELock() {
         require(msg.sender == veLocker, "Only ve lock contract can call this.");
         _;
     }
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        string memory _uri,
-        address _erc20
-    ) ERC20(_name, _symbol) {
-        VotingEscrowLock _veLocker =
-            new VotingEscrowLock(
-                string(abi.encodePacked(_name, " Locker")),
-                string(abi.encodePacked(_symbol, "_LOCK")),
-                _uri,
-                _erc20,
-                address(this)
-            );
-        veLocker = address(_veLocker);
+    constructor() ERC20("", "") {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
+    }
+
+    function initialize(
+        string memory _veTokenName,
+        string memory _veTokenSymbol,
+        address _veLocker
+    ) public initializer {
+        _name = _veTokenName;
+        _symbol = _veTokenSymbol;
+        veLocker = _veLocker;
     }
 
     function checkpoint(uint256 maxRecord) external override {
@@ -81,6 +83,14 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken {
     }
 
     // View functions
+
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
+    }
 
     function balanceOf(address account)
         public

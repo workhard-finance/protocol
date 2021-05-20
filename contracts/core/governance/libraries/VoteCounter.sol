@@ -3,16 +3,17 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/EnumerableMap.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../../core/governance/interfaces/IVoteCounter.sol";
 import "../../../core/governance/interfaces/IVotingEscrowToken.sol";
 import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
 import "../../../utils/Sqrt.sol";
 
-contract VoteCounter is IVoteCounter {
+contract VoteCounter is IVoteCounter, Initializable {
     IVotingEscrowLock veLock;
     IVotingEscrowToken veToken;
 
-    constructor(address _veToken) {
+    function initialize(address _veToken) public initializer {
         veToken = IVotingEscrowToken(_veToken);
         veLock = IVotingEscrowLock(IVotingEscrowToken(_veToken).veLocker());
     }

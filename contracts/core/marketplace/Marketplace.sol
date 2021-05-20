@@ -6,11 +6,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../utils/ERC20Recoverer.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../core/governance/Governed.sol";
-import "../../apps/marketplace/interfaces/IMarketplace.sol";
+import "../../core/marketplace/interfaces/IMarketplace.sol";
 
 contract Marketplace is
     Distributor,
@@ -18,7 +19,8 @@ contract Marketplace is
     Governed,
     ReentrancyGuard,
     ERC1155Burnable,
-    IMarketplace
+    IMarketplace,
+    Initializable
 {
     struct Product {
         address manufacturer;
@@ -33,7 +35,7 @@ contract Marketplace is
     using SafeERC20 for ERC20Burnable;
     using SafeMath for uint256;
 
-    ERC20Burnable immutable commitToken;
+    ERC20Burnable commitToken;
 
     uint256 public taxRate = 2000; // denominator is 10,000
 
@@ -49,14 +51,20 @@ contract Marketplace is
         _;
     }
 
-    constructor(
+    constructor() ERC1155("") {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
+    }
+
+    function initialize(
         address _gov,
         address _commitToken,
         address _dividendPool
-    ) ERC20Recoverer() Governed() Distributor(_dividendPool) ERC1155("") {
+    ) public initializer {
         commitToken = ERC20Burnable(_commitToken);
         ERC20Recoverer.setRecoverer(_gov);
-        Governed.setGovernance(_gov);
+        Governed.initialize(_gov);
+        Distributor._setup(_dividendPool);
     }
 
     function buy(

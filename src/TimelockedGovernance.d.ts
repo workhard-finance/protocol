@@ -40,6 +40,7 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
     "hasRole(bytes32,address)": FunctionFragment;
     "hashOperation(address,uint256,bytes,bytes32,bytes32)": FunctionFragment;
     "hashOperationBatch(address[],uint256[],bytes[],bytes32,bytes32)": FunctionFragment;
+    "initialize(uint256,address,address)": FunctionFragment;
     "isOperation(bytes32)": FunctionFragment;
     "isOperationDone(bytes32)": FunctionFragment;
     "isOperationPending(bytes32)": FunctionFragment;
@@ -134,6 +135,10 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "hashOperationBatch",
     values: [string[], BigNumberish[], BytesLike[], BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "isOperation",
@@ -250,6 +255,7 @@ interface TimelockedGovernanceInterface extends ethers.utils.Interface {
     functionFragment: "hashOperationBatch",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isOperation",
     data: BytesLike
@@ -556,6 +562,20 @@ export class TimelockedGovernance extends Contract {
       salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string] & { hash: string }>;
+
+    initialize(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(uint256,address,address)"(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     isOperation(
       id: BytesLike,
@@ -884,6 +904,20 @@ export class TimelockedGovernance extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  initialize(
+    delay: BigNumberish,
+    multisig: string,
+    workersUnion: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(uint256,address,address)"(
+    delay: BigNumberish,
+    multisig: string,
+    workersUnion: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   isOperation(id: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
   "isOperation(bytes32)"(
@@ -1192,6 +1226,20 @@ export class TimelockedGovernance extends Contract {
       salt: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    initialize(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(uint256,address,address)"(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     isOperation(id: BytesLike, overrides?: CallOverrides): Promise<boolean>;
 
@@ -1592,6 +1640,20 @@ export class TimelockedGovernance extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    initialize(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(uint256,address,address)"(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     isOperation(id: BytesLike, overrides?: CallOverrides): Promise<BigNumber>;
 
     "isOperation(bytes32)"(
@@ -1929,6 +1991,20 @@ export class TimelockedGovernance extends Contract {
       predecessor: BytesLike,
       salt: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(uint256,address,address)"(
+      delay: BigNumberish,
+      multisig: string,
+      workersUnion: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     isOperation(

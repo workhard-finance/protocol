@@ -36,6 +36,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     "forceAnarchize()": FunctionFragment;
     "forceAnarchizeAt()": FunctionFragment;
     "gov()": FunctionFragment;
+    "initialize(address,address,address)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "manufacture(string,uint256,uint256)": FunctionFragment;
     "manufactureLimitedEdition(string,uint256,uint256,uint256)": FunctionFragment;
@@ -107,6 +108,10 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
@@ -219,6 +224,7 @@ interface MarketplaceInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
@@ -488,6 +494,18 @@ export class Marketplace extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _dividendPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     isApprovedForAll(
       account: string,
@@ -870,6 +888,18 @@ export class Marketplace extends Contract {
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
 
+  "initialize(address,address,address)"(
+    _gov: string,
+    _commitToken: string,
+    _dividendPool: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   isApprovedForAll(
     account: string,
     operator: string,
@@ -1233,6 +1263,18 @@ export class Marketplace extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _dividendPool: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     isApprovedForAll(
       account: string,
@@ -1704,6 +1746,18 @@ export class Marketplace extends Contract {
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _dividendPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     isApprovedForAll(
       account: string,
       operator: string,
@@ -2068,6 +2122,18 @@ export class Marketplace extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "initialize(address,address,address)"(
+      _gov: string,
+      _commitToken: string,
+      _dividendPool: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     isApprovedForAll(
       account: string,

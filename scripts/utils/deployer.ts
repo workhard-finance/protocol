@@ -464,7 +464,7 @@ export async function initStableReserve(
   jobBoard: JobBoard,
   signer: Signer
 ): Promise<void> {
-  await stableReserve.connect(signer).init(jobBoard.address);
+  await stableReserve.connect(signer).setMinter(jobBoard.address);
 }
 
 export async function scheduleTokenEmissionStart(

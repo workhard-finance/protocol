@@ -2,12 +2,17 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
-contract VISION is ERC20 {
+contract VISION is ERC20, Initializable {
     address public minter;
 
-    constructor() ERC20("Workhard Vision Token", "VISION") {
-        minter = msg.sender;
+    string private _name;
+    string private _symbol;
+
+    constructor() ERC20("", "") {
+        // this constructor will not be called since it'll be cloned by proxy pattern.
+        // initalize() will be called instead.
     }
 
     modifier onlyMinter {
@@ -15,11 +20,32 @@ contract VISION is ERC20 {
         _;
     }
 
+    function initialize(string memory name_, string memory symbol_)
+        public
+        initializer
+    {
+        _name = name_;
+        _symbol = symbol_;
+        minter = msg.sender;
+    }
+
     function mint(address to, uint256 amount) public onlyMinter {
         _mint(to, amount);
     }
 
     function setMinter(address _minter) public onlyMinter {
+        _setMinter(_minter);
+    }
+
+    function _setMinter(address _minter) internal {
         minter = _minter;
+    }
+
+    function name() public view virtual override returns (string memory) {
+        return _name;
+    }
+
+    function symbol() public view virtual override returns (string memory) {
+        return _symbol;
     }
 }

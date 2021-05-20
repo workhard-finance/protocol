@@ -21,14 +21,17 @@ import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
 interface ProjectInterface extends ethers.utils.Interface {
   functions: {
+    "_create(address,string,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "baseURI()": FunctionFragment;
     "burn(uint256)": FunctionFragment;
-    "create(string)": FunctionFragment;
-    "createTo(string,address)": FunctionFragment;
+    "changeProjectOwner(uint256,address)": FunctionFragment;
+    "create(address,string)": FunctionFragment;
+    "createTo(address,string,address)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
+    "moveDAO(uint256,address)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
@@ -43,16 +46,27 @@ interface ProjectInterface extends ethers.utils.Interface {
   };
 
   encodeFunctionData(
+    functionFragment: "_create",
+    values: [string, string, string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
   encodeFunctionData(functionFragment: "burn", values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: "create", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "changeProjectOwner",
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "create",
+    values: [string, string]
+  ): string;
   encodeFunctionData(
     functionFragment: "createTo",
-    values: [string, string]
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -61,6 +75,10 @@ interface ProjectInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "moveDAO",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
@@ -101,10 +119,15 @@ interface ProjectInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
 
+  decodeFunctionResult(functionFragment: "_create", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "burn", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeProjectOwner",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "create", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "createTo", data: BytesLike): Result;
   decodeFunctionResult(
@@ -115,6 +138,7 @@ interface ProjectInterface extends ethers.utils.Interface {
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "moveDAO", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -151,13 +175,15 @@ interface ProjectInterface extends ethers.utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "NewProject(uint256)": EventFragment;
+    "NewProject(address,uint256)": EventFragment;
+    "ProjectMoved(address,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewProject"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProjectMoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
 
@@ -205,6 +231,20 @@ export class Project extends Contract {
   interface: ProjectInterface;
 
   functions: {
+    _create(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "_create(address,string,address)"(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -238,23 +278,39 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    changeProjectOwner(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "changeProjectOwner(uint256,address)"(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     create(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "create(string)"(
+    "create(address,string)"(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     createTo(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createTo(string,address)"(
+    "createTo(address,string,address)"(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -281,6 +337,18 @@ export class Project extends Contract {
       operator: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    moveDAO(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "moveDAO(uint256,address)"(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
@@ -388,6 +456,20 @@ export class Project extends Contract {
     ): Promise<ContractTransaction>;
   };
 
+  _create(
+    dao: string,
+    URI: string,
+    _to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "_create(address,string,address)"(
+    dao: string,
+    URI: string,
+    _to: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   approve(
     to: string,
     tokenId: BigNumberish,
@@ -421,23 +503,39 @@ export class Project extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  changeProjectOwner(
+    id: BigNumberish,
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "changeProjectOwner(uint256,address)"(
+    id: BigNumberish,
+    newOwner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   create(
+    dao: string,
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "create(string)"(
+  "create(address,string)"(
+    dao: string,
     URI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   createTo(
+    dao: string,
     URI: string,
     _to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createTo(string,address)"(
+  "createTo(address,string,address)"(
+    dao: string,
     URI: string,
     _to: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -464,6 +562,18 @@ export class Project extends Contract {
     operator: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  moveDAO(
+    id: BigNumberish,
+    newDAO: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "moveDAO(uint256,address)"(
+    id: BigNumberish,
+    newDAO: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
@@ -565,6 +675,20 @@ export class Project extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    _create(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "_create(address,string,address)"(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -595,20 +719,39 @@ export class Project extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    create(URI: string, overrides?: CallOverrides): Promise<BigNumber>;
+    changeProjectOwner(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    "create(string)"(
+    "changeProjectOwner(uint256,address)"(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    create(
+      dao: string,
+      URI: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "create(address,string)"(
+      dao: string,
       URI: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     createTo(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "createTo(string,address)"(
+    "createTo(address,string,address)"(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: CallOverrides
@@ -635,6 +778,18 @@ export class Project extends Contract {
       operator: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    moveDAO(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "moveDAO(uint256,address)"(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -755,7 +910,15 @@ export class Project extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
-    NewProject(id: null): TypedEventFilter<[BigNumber], { id: BigNumber }>;
+    NewProject(
+      dao: string | null,
+      id: null
+    ): TypedEventFilter<[string, BigNumber], { dao: string; id: BigNumber }>;
+
+    ProjectMoved(
+      from: string | null,
+      to: string | null
+    ): TypedEventFilter<[string, string], { from: string; to: string }>;
 
     Transfer(
       from: string | null,
@@ -768,6 +931,20 @@ export class Project extends Contract {
   };
 
   estimateGas: {
+    _create(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "_create(address,string,address)"(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -801,23 +978,39 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    changeProjectOwner(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "changeProjectOwner(uint256,address)"(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     create(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "create(string)"(
+    "create(address,string)"(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     createTo(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createTo(string,address)"(
+    "createTo(address,string,address)"(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -843,6 +1036,18 @@ export class Project extends Contract {
       owner: string,
       operator: string,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    moveDAO(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "moveDAO(uint256,address)"(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
@@ -952,6 +1157,20 @@ export class Project extends Contract {
   };
 
   populateTransaction: {
+    _create(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "_create(address,string,address)"(
+      dao: string,
+      URI: string,
+      _to: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -988,23 +1207,39 @@ export class Project extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    changeProjectOwner(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "changeProjectOwner(uint256,address)"(
+      id: BigNumberish,
+      newOwner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     create(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "create(string)"(
+    "create(address,string)"(
+      dao: string,
       URI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     createTo(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createTo(string,address)"(
+    "createTo(address,string,address)"(
+      dao: string,
       URI: string,
       _to: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1030,6 +1265,18 @@ export class Project extends Contract {
       owner: string,
       operator: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    moveDAO(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "moveDAO(uint256,address)"(
+      id: BigNumberish,
+      newDAO: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;

@@ -35,7 +35,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
     "closeProject(uint256)": FunctionFragment;
     "commitToken()": FunctionFragment;
     "compensate(uint256,address,uint256)": FunctionFragment;
-    "createProject(string)": FunctionFragment;
     "disapproveProject(uint256)": FunctionFragment;
     "dividendPool()": FunctionFragment;
     "executeBudget(uint256,uint256)": FunctionFragment;
@@ -44,6 +43,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     "forceExecuteBudget(uint256,uint256)": FunctionFragment;
     "getTotalBudgets(uint256)": FunctionFragment;
     "gov()": FunctionFragment;
+    "initialize(address)": FunctionFragment;
     "normalTaxRate()": FunctionFragment;
     "project()": FunctionFragment;
     "projectBudgets(uint256,uint256)": FunctionFragment;
@@ -106,10 +106,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "createProject",
-    values: [string]
-  ): string;
-  encodeFunctionData(
     functionFragment: "disapproveProject",
     values: [BigNumberish]
   ): string;
@@ -138,6 +134,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "gov", values?: undefined): string;
+  encodeFunctionData(functionFragment: "initialize", values: [string]): string;
   encodeFunctionData(
     functionFragment: "normalTaxRate",
     values?: undefined
@@ -226,10 +223,6 @@ interface JobBoardInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "compensate", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "createProject",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "disapproveProject",
     data: BytesLike
   ): Result;
@@ -258,6 +251,7 @@ interface JobBoardInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "gov", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "normalTaxRate",
     data: BytesLike
@@ -507,16 +501,6 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    createProject(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "createProject(string)"(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     disapproveProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -580,6 +564,21 @@ export class JobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<[string]>;
 
     "gov()"(overrides?: CallOverrides): Promise<[string]>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(address,address,address,address,address,address)"(
+      _gov: string,
+      _project: string,
+      _dividendPool: string,
+      _stableReserve: string,
+      _baseCurrency: string,
+      _commit: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -822,16 +821,6 @@ export class JobBoard extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  createProject(
-    URI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "createProject(string)"(
-    URI: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   disapproveProject(
     projId: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -895,6 +884,21 @@ export class JobBoard extends Contract {
   gov(overrides?: CallOverrides): Promise<string>;
 
   "gov()"(overrides?: CallOverrides): Promise<string>;
+
+  "initialize(address)"(
+    _gov: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(address,address,address,address,address,address)"(
+    _gov: string,
+    _project: string,
+    _dividendPool: string,
+    _stableReserve: string,
+    _baseCurrency: string,
+    _commit: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1130,13 +1134,6 @@ export class JobBoard extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    createProject(URI: string, overrides?: CallOverrides): Promise<void>;
-
-    "createProject(string)"(
-      URI: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     disapproveProject(
       projId: BigNumberish,
       overrides?: CallOverrides
@@ -1196,6 +1193,21 @@ export class JobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<string>;
 
     "gov()"(overrides?: CallOverrides): Promise<string>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(address,address,address,address,address,address)"(
+      _gov: string,
+      _project: string,
+      _dividendPool: string,
+      _stableReserve: string,
+      _baseCurrency: string,
+      _commit: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1504,16 +1516,6 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    createProject(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "createProject(string)"(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     disapproveProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1577,6 +1579,21 @@ export class JobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<BigNumber>;
 
     "gov()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(address,address,address,address,address,address)"(
+      _gov: string,
+      _project: string,
+      _dividendPool: string,
+      _stableReserve: string,
+      _baseCurrency: string,
+      _commit: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1822,16 +1839,6 @@ export class JobBoard extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    createProject(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "createProject(string)"(
-      URI: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     disapproveProject(
       projId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1897,6 +1904,21 @@ export class JobBoard extends Contract {
     gov(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "gov()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "initialize(address)"(
+      _gov: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(address,address,address,address,address,address)"(
+      _gov: string,
+      _project: string,
+      _dividendPool: string,
+      _stableReserve: string,
+      _baseCurrency: string,
+      _commit: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     normalTaxRate(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

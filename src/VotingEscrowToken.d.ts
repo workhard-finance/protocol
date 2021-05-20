@@ -31,6 +31,7 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "initialize(string,string,address)": FunctionFragment;
     "lockPointHistory(uint256,uint256)": FunctionFragment;
     "name()": FunctionFragment;
     "pointHistory(uint256)": FunctionFragment;
@@ -80,6 +81,10 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialize",
+    values: [string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "lockPointHistory",
@@ -138,6 +143,7 @@ interface VotingEscrowTokenInterface extends ethers.utils.Interface {
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "lockPointHistory",
     data: BytesLike
@@ -322,6 +328,20 @@ export class VotingEscrowToken extends Contract {
     "increaseAllowance(address,uint256)"(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    initialize(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "initialize(string,string,address)"(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -539,6 +559,20 @@ export class VotingEscrowToken extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  initialize(
+    _veTokenName: string,
+    _veTokenSymbol: string,
+    _veLocker: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "initialize(string,string,address)"(
+    _veTokenName: string,
+    _veTokenSymbol: string,
+    _veLocker: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   lockPointHistory(
     arg0: BigNumberish,
     arg1: BigNumberish,
@@ -752,6 +786,20 @@ export class VotingEscrowToken extends Contract {
       addedValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    initialize(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "initialize(string,string,address)"(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     lockPointHistory(
       arg0: BigNumberish,
@@ -988,6 +1036,20 @@ export class VotingEscrowToken extends Contract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initialize(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "initialize(string,string,address)"(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     lockPointHistory(
       arg0: BigNumberish,
       arg1: BigNumberish,
@@ -1179,6 +1241,20 @@ export class VotingEscrowToken extends Contract {
     "increaseAllowance(address,uint256)"(
       spender: string,
       addedValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialize(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "initialize(string,string,address)"(
+      _veTokenName: string,
+      _veTokenSymbol: string,
+      _veLocker: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

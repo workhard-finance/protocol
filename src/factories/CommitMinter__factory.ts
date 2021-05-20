@@ -13,19 +13,14 @@ export class CommitMinter__factory extends ContractFactory {
   }
 
   deploy(
-    _stableReserve: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<CommitMinter> {
-    return super.deploy(
-      _stableReserve,
-      overrides || {}
-    ) as Promise<CommitMinter>;
+    return super.deploy(overrides || {}) as Promise<CommitMinter>;
   }
   getDeployTransaction(
-    _stableReserve: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): TransactionRequest {
-    return super.getDeployTransaction(_stableReserve, overrides || {});
+    return super.getDeployTransaction(overrides || {});
   }
   attach(address: string): CommitMinter {
     return super.attach(address) as CommitMinter;
@@ -42,17 +37,6 @@ export class CommitMinter__factory extends ContractFactory {
 }
 
 const _abi = [
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_stableReserve",
-        type: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
   {
     inputs: [],
     name: "commitToken",
@@ -82,4 +66,4 @@ const _abi = [
 ];
 
 const _bytecode =
-  "0x60c060405234801561001057600080fd5b506040516101d83803806101d88339818101604052602081101561003357600080fd5b50516001600160601b0319606082901b1660805260408051637c9e1e5760e01b815290516001600160a01b03831691637c9e1e57916004808301926020929190829003018186803b15801561008757600080fd5b505afa15801561009b573d6000803e3d6000fd5b505050506040513d60208110156100b157600080fd5b5051606081811b6001600160601b03191660a052608051901c91506001600160a01b031660ea6100ee60003980606e5250806092525060ea6000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80637c9e1e571460375780639a5c6eb6146066575b600080fd5b603d606c565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b603d6090565b7f000000000000000000000000000000000000000000000000000000000000000081565b7f00000000000000000000000000000000000000000000000000000000000000008156fea264697066735822122019564d9310b79a10283afe338e3dceb1e0f2e5efd09d84950d69f984d7241aad64736f6c63430007060033";
+  "0x608060405234801561001057600080fd5b5060da8061001f6000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80637c9e1e571460375780639a5c6eb6146066575b600080fd5b603d606c565b6040805173ffffffffffffffffffffffffffffffffffffffff9092168252519081900360200190f35b603d6088565b60015473ffffffffffffffffffffffffffffffffffffffff1681565b60005473ffffffffffffffffffffffffffffffffffffffff168156fea2646970667358221220dace1e8c8fec8ce26aa3620359beddeb5157a4c96388bc15d80c23f4be080e8064736f6c63430007060033";

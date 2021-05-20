@@ -19,26 +19,20 @@ import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 import { TypedEventFilter, TypedEvent, TypedListener } from "./commons";
 
-interface VotingEscrowLockInterface extends ethers.utils.Interface {
+interface WorkhardInterface extends ethers.utils.Interface {
   functions: {
-    "MAXTIME()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
-    "baseToken()": FunctionFragment;
     "baseURI()": FunctionFragment;
-    "createLock(uint256,uint256)": FunctionFragment;
-    "createLockUntil(uint256,uint256)": FunctionFragment;
-    "delegate(uint256,address)": FunctionFragment;
-    "delegatedRightByIndex(address,uint256)": FunctionFragment;
-    "delegatedRights(address)": FunctionFragment;
-    "delegateeOf(uint256)": FunctionFragment;
-    "extendLock(uint256,uint256)": FunctionFragment;
-    "extendLockUntil(uint256,uint256)": FunctionFragment;
+    "changeMultisig(uint256,address)": FunctionFragment;
+    "createDAO(tuple)": FunctionFragment;
+    "deploymentSteps(uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
-    "increaseAmount(uint256,uint256)": FunctionFragment;
-    "initialize(string,string,string,address,address)": FunctionFragment;
+    "getCommons()": FunctionFragment;
+    "getDAO(uint256)": FunctionFragment;
+    "getMetadata(uint256)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
-    "locks(uint256)": FunctionFragment;
+    "launch(uint256,tuple)": FunctionFragment;
     "name()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
@@ -48,70 +42,70 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     "tokenByIndex(uint256)": FunctionFragment;
     "tokenOfOwnerByIndex(address,uint256)": FunctionFragment;
     "tokenURI(uint256)": FunctionFragment;
-    "totalLockedSupply()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
-    "veToken()": FunctionFragment;
-    "withdraw(uint256)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "MAXTIME", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
-  encodeFunctionData(functionFragment: "baseToken", values?: undefined): string;
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "createLock",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createLockUntil",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "delegate",
+    functionFragment: "changeMultisig",
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "delegatedRightByIndex",
-    values: [string, BigNumberish]
+    functionFragment: "createDAO",
+    values: [{ name: string; symbol: string; uri: string }]
   ): string;
   encodeFunctionData(
-    functionFragment: "delegatedRights",
-    values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "delegateeOf",
+    functionFragment: "deploymentSteps",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "extendLock",
-    values: [BigNumberish, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "extendLockUntil",
-    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "increaseAmount",
-    values: [BigNumberish, BigNumberish]
+    functionFragment: "getCommons",
+    values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "initialize",
-    values: [string, string, string, string, string]
+    functionFragment: "getDAO",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getMetadata",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [string, string]
   ): string;
-  encodeFunctionData(functionFragment: "locks", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "launch",
+    values: [
+      BigNumberish,
+      {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      }
+    ]
+  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
@@ -143,10 +137,6 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "totalLockedSupply",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "totalSupply",
     values?: undefined
   ): string;
@@ -154,54 +144,34 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: "veToken", values?: undefined): string;
-  encodeFunctionData(
-    functionFragment: "withdraw",
-    values: [BigNumberish]
-  ): string;
 
-  decodeFunctionResult(functionFragment: "MAXTIME", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "baseToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "createLock", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "createLockUntil",
+    functionFragment: "changeMultisig",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "delegate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "createDAO", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "delegatedRightByIndex",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "delegatedRights",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "delegateeOf",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "extendLock", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "extendLockUntil",
+    functionFragment: "deploymentSteps",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "getCommons", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getDAO", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "increaseAmount",
+    functionFragment: "getMetadata",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "locks", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "launch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
@@ -227,10 +197,6 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "tokenURI", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "totalLockedSupply",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "totalSupply",
     data: BytesLike
   ): Result;
@@ -238,29 +204,21 @@ interface VotingEscrowLockInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "veToken", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
-    "LockCreated(uint256)": EventFragment;
-    "LockUpdate(uint256,uint256,uint256)": EventFragment;
+    "DAOLaunched(uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
-    "VoteDelegated(uint256,address)": EventFragment;
-    "Withdraw(uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LockCreated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "LockUpdate"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "DAOLaunched"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "VoteDelegated"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
 
-export class VotingEscrowLock extends Contract {
+export class Workhard extends Contract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
@@ -301,13 +259,9 @@ export class VotingEscrowLock extends Contract {
     toBlock?: string | number | undefined
   ): Promise<Array<TypedEvent<EventArgsArray & EventArgsObject>>>;
 
-  interface: VotingEscrowLockInterface;
+  interface: WorkhardInterface;
 
   functions: {
-    MAXTIME(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "MAXTIME()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -327,105 +281,41 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    baseToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "baseToken()"(overrides?: CallOverrides): Promise<[string]>;
-
     baseURI(overrides?: CallOverrides): Promise<[string]>;
 
     "baseURI()"(overrides?: CallOverrides): Promise<[string]>;
 
-    createLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    changeMultisig(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    "changeMultisig(uint256,address)"(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    createLockUntil(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    createDAO(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    "createLockUntil(uint256,uint256)"(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    "createDAO((string,string,string))"(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    delegate(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "delegate(uint256,address)"(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    delegatedRightByIndex(
-      voter: string,
-      idx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { veLockId: BigNumber }>;
-
-    "delegatedRightByIndex(address,uint256)"(
-      voter: string,
-      idx: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber] & { veLockId: BigNumber }>;
-
-    delegatedRights(
-      voter: string,
+    deploymentSteps(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    "delegatedRights(address)"(
-      voter: string,
+    "deploymentSteps(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
-
-    delegateeOf(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    "delegateeOf(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    extendLock(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "extendLock(uint256,uint256)"(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    extendLockUntil(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "extendLockUntil(uint256,uint256)"(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
 
     getApproved(
       tokenId: BigNumberish,
@@ -437,35 +327,131 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    increaseAmount(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getCommons(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        [string, string, string, string, string, string] & {
+          voteCounter: string;
+          project: string;
+          erc20StakeMiningV1Factory: string;
+          erc20BurnMiningV1Factory: string;
+          erc721StakeMiningV1Factory: string;
+          erc1155StakeMiningV1Factory: string;
+        }
+      ]
+    >;
 
-    "increaseAmount(uint256,uint256)"(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "getCommons()"(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        [string, string, string, string, string, string] & {
+          voteCounter: string;
+          project: string;
+          erc20StakeMiningV1Factory: string;
+          erc20BurnMiningV1Factory: string;
+          erc721StakeMiningV1Factory: string;
+          erc1155StakeMiningV1Factory: string;
+        }
+      ]
+    >;
 
-    initialize(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    getDAO(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        [
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string
+        ] & {
+          multisig: string;
+          baseCurrency: string;
+          timelock: string;
+          vision: string;
+          commit: string;
+          right: string;
+          founderShare: string;
+          founderSharePool: string;
+          stableReserve: string;
+          jobBoard: string;
+          marketplace: string;
+          dividendPool: string;
+          workersUnion: string;
+          visionEmitter: string;
+          votingEscrow: string;
+        }
+      ]
+    >;
 
-    "initialize(string,string,string,address,address)"(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    "getDAO(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        [
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string,
+          string
+        ] & {
+          multisig: string;
+          baseCurrency: string;
+          timelock: string;
+          vision: string;
+          commit: string;
+          right: string;
+          founderShare: string;
+          founderSharePool: string;
+          stableReserve: string;
+          jobBoard: string;
+          marketplace: string;
+          dividendPool: string;
+          workersUnion: string;
+          visionEmitter: string;
+          votingEscrow: string;
+        }
+      ]
+    >;
+
+    getMetadata(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [[string, string, string] & { name: string; symbol: string; uri: string }]
+    >;
+
+    "getMetadata(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [[string, string, string] & { name: string; symbol: string; uri: string }]
+    >;
 
     isApprovedForAll(
       owner: string,
@@ -479,27 +465,47 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    locks(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amount: BigNumber;
-        start: BigNumber;
-        end: BigNumber;
-      }
-    >;
+    launch(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
-    "locks(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amount: BigNumber;
-        start: BigNumber;
-        end: BigNumber;
-      }
-    >;
+    "launch(uint256,(address,address,string,string,string,string,string,string,uint256,uint256,uint256,uint256,uint256,uint256))"(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     name(overrides?: CallOverrides): Promise<[string]>;
 
@@ -588,10 +594,6 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    totalLockedSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
-
-    "totalLockedSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     totalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<[BigNumber]>;
@@ -609,25 +611,7 @@ export class VotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
-
-    veToken(overrides?: CallOverrides): Promise<[string]>;
-
-    "veToken()"(overrides?: CallOverrides): Promise<[string]>;
-
-    withdraw(
-      veLockId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    "withdraw(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
   };
-
-  MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   approve(
     to: string,
@@ -648,102 +632,41 @@ export class VotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  baseToken(overrides?: CallOverrides): Promise<string>;
-
-  "baseToken()"(overrides?: CallOverrides): Promise<string>;
-
   baseURI(overrides?: CallOverrides): Promise<string>;
 
   "baseURI()"(overrides?: CallOverrides): Promise<string>;
 
-  createLock(
-    amount: BigNumberish,
-    epochs: BigNumberish,
+  changeMultisig(
+    id: BigNumberish,
+    newMultisig: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createLock(uint256,uint256)"(
-    amount: BigNumberish,
-    epochs: BigNumberish,
+  "changeMultisig(uint256,address)"(
+    id: BigNumberish,
+    newMultisig: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  createLockUntil(
-    amount: BigNumberish,
-    lockEnd: BigNumberish,
+  createDAO(
+    _metadata: { name: string; symbol: string; uri: string },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  "createLockUntil(uint256,uint256)"(
-    amount: BigNumberish,
-    lockEnd: BigNumberish,
+  "createDAO((string,string,string))"(
+    _metadata: { name: string; symbol: string; uri: string },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  delegate(
-    veLockId: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "delegate(uint256,address)"(
-    veLockId: BigNumberish,
-    to: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  delegatedRightByIndex(
-    voter: string,
-    idx: BigNumberish,
+  deploymentSteps(
+    arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  "delegatedRightByIndex(address,uint256)"(
-    voter: string,
-    idx: BigNumberish,
+  "deploymentSteps(uint256)"(
+    arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  delegatedRights(voter: string, overrides?: CallOverrides): Promise<BigNumber>;
-
-  "delegatedRights(address)"(
-    voter: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
-  delegateeOf(
-    veLockId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  "delegateeOf(uint256)"(
-    veLockId: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  extendLock(
-    veLockId: BigNumberish,
-    epochs: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "extendLock(uint256,uint256)"(
-    veLockId: BigNumberish,
-    epochs: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  extendLockUntil(
-    veLockId: BigNumberish,
-    end: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "extendLockUntil(uint256,uint256)"(
-    veLockId: BigNumberish,
-    end: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   getApproved(
     tokenId: BigNumberish,
@@ -755,35 +678,123 @@ export class VotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  increaseAmount(
-    veLockId: BigNumberish,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getCommons(
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string, string, string, string] & {
+      voteCounter: string;
+      project: string;
+      erc20StakeMiningV1Factory: string;
+      erc20BurnMiningV1Factory: string;
+      erc721StakeMiningV1Factory: string;
+      erc1155StakeMiningV1Factory: string;
+    }
+  >;
 
-  "increaseAmount(uint256,uint256)"(
-    veLockId: BigNumberish,
-    amount: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "getCommons()"(
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string, string, string, string] & {
+      voteCounter: string;
+      project: string;
+      erc20StakeMiningV1Factory: string;
+      erc20BurnMiningV1Factory: string;
+      erc721StakeMiningV1Factory: string;
+      erc1155StakeMiningV1Factory: string;
+    }
+  >;
 
-  initialize(
-    _veLockName: string,
-    _veLockSymbol: string,
-    _baseURI: string,
-    _baseToken: string,
-    _veToken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  getDAO(
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string
+    ] & {
+      multisig: string;
+      baseCurrency: string;
+      timelock: string;
+      vision: string;
+      commit: string;
+      right: string;
+      founderShare: string;
+      founderSharePool: string;
+      stableReserve: string;
+      jobBoard: string;
+      marketplace: string;
+      dividendPool: string;
+      workersUnion: string;
+      visionEmitter: string;
+      votingEscrow: string;
+    }
+  >;
 
-  "initialize(string,string,string,address,address)"(
-    _veLockName: string,
-    _veLockSymbol: string,
-    _baseURI: string,
-    _baseToken: string,
-    _veToken: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  "getDAO(uint256)"(
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string,
+      string
+    ] & {
+      multisig: string;
+      baseCurrency: string;
+      timelock: string;
+      vision: string;
+      commit: string;
+      right: string;
+      founderShare: string;
+      founderSharePool: string;
+      stableReserve: string;
+      jobBoard: string;
+      marketplace: string;
+      dividendPool: string;
+      workersUnion: string;
+      visionEmitter: string;
+      votingEscrow: string;
+    }
+  >;
+
+  getMetadata(
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string] & { name: string; symbol: string; uri: string }
+  >;
+
+  "getMetadata(uint256)"(
+    id: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string] & { name: string; symbol: string; uri: string }
+  >;
 
   isApprovedForAll(
     owner: string,
@@ -797,27 +808,47 @@ export class VotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  locks(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
-      amount: BigNumber;
-      start: BigNumber;
-      end: BigNumber;
-    }
-  >;
+  launch(
+    id: BigNumberish,
+    params: {
+      multisig: string;
+      baseCurrency: string;
+      visionName: string;
+      visionSymbol: string;
+      commitName: string;
+      commitSymbol: string;
+      rightName: string;
+      rightSymbol: string;
+      minDelay: BigNumberish;
+      launchDelay: BigNumberish;
+      initialEmission: BigNumberish;
+      minEmissionRatePerWeek: BigNumberish;
+      emissionCutRate: BigNumberish;
+      founderShare: BigNumberish;
+    },
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
-  "locks(uint256)"(
-    arg0: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<
-    [BigNumber, BigNumber, BigNumber] & {
-      amount: BigNumber;
-      start: BigNumber;
-      end: BigNumber;
-    }
-  >;
+  "launch(uint256,(address,address,string,string,string,string,string,string,uint256,uint256,uint256,uint256,uint256,uint256))"(
+    id: BigNumberish,
+    params: {
+      multisig: string;
+      baseCurrency: string;
+      visionName: string;
+      visionSymbol: string;
+      commitName: string;
+      commitSymbol: string;
+      rightName: string;
+      rightSymbol: string;
+      minDelay: BigNumberish;
+      launchDelay: BigNumberish;
+      initialEmission: BigNumberish;
+      minEmissionRatePerWeek: BigNumberish;
+      emissionCutRate: BigNumberish;
+      founderShare: BigNumberish;
+    },
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   name(overrides?: CallOverrides): Promise<string>;
 
@@ -900,10 +931,6 @@ export class VotingEscrowLock extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
   totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -922,25 +949,7 @@ export class VotingEscrowLock extends Contract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  veToken(overrides?: CallOverrides): Promise<string>;
-
-  "veToken()"(overrides?: CallOverrides): Promise<string>;
-
-  withdraw(
-    veLockId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  "withdraw(uint256)"(
-    veLockId: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   callStatic: {
-    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -960,105 +969,41 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    baseToken(overrides?: CallOverrides): Promise<string>;
-
-    "baseToken()"(overrides?: CallOverrides): Promise<string>;
-
     baseURI(overrides?: CallOverrides): Promise<string>;
 
     "baseURI()"(overrides?: CallOverrides): Promise<string>;
 
-    createLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    changeMultisig(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    "changeMultisig(uint256,address)"(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    createLockUntil(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    createDAO(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "createLockUntil(uint256,uint256)"(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    "createDAO((string,string,string))"(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: CallOverrides
     ): Promise<void>;
 
-    delegate(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "delegate(uint256,address)"(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    delegatedRightByIndex(
-      voter: string,
-      idx: BigNumberish,
+    deploymentSteps(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "delegatedRightByIndex(address,uint256)"(
-      voter: string,
-      idx: BigNumberish,
+    "deploymentSteps(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    delegatedRights(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "delegatedRights(address)"(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    delegateeOf(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    "delegateeOf(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    extendLock(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "extendLock(uint256,uint256)"(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    extendLockUntil(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "extendLockUntil(uint256,uint256)"(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
 
     getApproved(
       tokenId: BigNumberish,
@@ -1070,35 +1015,123 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    increaseAmount(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
+    getCommons(
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<
+      [string, string, string, string, string, string] & {
+        voteCounter: string;
+        project: string;
+        erc20StakeMiningV1Factory: string;
+        erc20BurnMiningV1Factory: string;
+        erc721StakeMiningV1Factory: string;
+        erc1155StakeMiningV1Factory: string;
+      }
+    >;
 
-    "increaseAmount(uint256,uint256)"(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
+    "getCommons()"(
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<
+      [string, string, string, string, string, string] & {
+        voteCounter: string;
+        project: string;
+        erc20StakeMiningV1Factory: string;
+        erc20BurnMiningV1Factory: string;
+        erc721StakeMiningV1Factory: string;
+        erc1155StakeMiningV1Factory: string;
+      }
+    >;
 
-    initialize(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
+    getDAO(
+      id: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<
+      [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+      ] & {
+        multisig: string;
+        baseCurrency: string;
+        timelock: string;
+        vision: string;
+        commit: string;
+        right: string;
+        founderShare: string;
+        founderSharePool: string;
+        stableReserve: string;
+        jobBoard: string;
+        marketplace: string;
+        dividendPool: string;
+        workersUnion: string;
+        visionEmitter: string;
+        votingEscrow: string;
+      }
+    >;
 
-    "initialize(string,string,string,address,address)"(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
+    "getDAO(uint256)"(
+      id: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<
+      [
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string,
+        string
+      ] & {
+        multisig: string;
+        baseCurrency: string;
+        timelock: string;
+        vision: string;
+        commit: string;
+        right: string;
+        founderShare: string;
+        founderSharePool: string;
+        stableReserve: string;
+        jobBoard: string;
+        marketplace: string;
+        dividendPool: string;
+        workersUnion: string;
+        visionEmitter: string;
+        votingEscrow: string;
+      }
+    >;
+
+    getMetadata(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string] & { name: string; symbol: string; uri: string }
+    >;
+
+    "getMetadata(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string] & { name: string; symbol: string; uri: string }
+    >;
 
     isApprovedForAll(
       owner: string,
@@ -1112,27 +1145,47 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    locks(
-      arg0: BigNumberish,
+    launch(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amount: BigNumber;
-        start: BigNumber;
-        end: BigNumber;
-      }
-    >;
+    ): Promise<void>;
 
-    "locks(uint256)"(
-      arg0: BigNumberish,
+    "launch(uint256,(address,address,string,string,string,string,string,string,uint256,uint256,uint256,uint256,uint256,uint256))"(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
       overrides?: CallOverrides
-    ): Promise<
-      [BigNumber, BigNumber, BigNumber] & {
-        amount: BigNumber;
-        start: BigNumber;
-        end: BigNumber;
-      }
-    >;
+    ): Promise<void>;
 
     name(overrides?: CallOverrides): Promise<string>;
 
@@ -1215,10 +1268,6 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1234,17 +1283,6 @@ export class VotingEscrowLock extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    veToken(overrides?: CallOverrides): Promise<string>;
-
-    "veToken()"(overrides?: CallOverrides): Promise<string>;
-
-    withdraw(veLockId: BigNumberish, overrides?: CallOverrides): Promise<void>;
-
-    "withdraw(uint256)"(
-      veLockId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -1268,18 +1306,7 @@ export class VotingEscrowLock extends Contract {
       { owner: string; operator: string; approved: boolean }
     >;
 
-    LockCreated(
-      veLockId: null
-    ): TypedEventFilter<[BigNumber], { veLockId: BigNumber }>;
-
-    LockUpdate(
-      veLockId: null,
-      amount: null,
-      end: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber, BigNumber],
-      { veLockId: BigNumber; amount: BigNumber; end: BigNumber }
-    >;
+    DAOLaunched(id: null): TypedEventFilter<[BigNumber], { id: BigNumber }>;
 
     Transfer(
       from: string | null,
@@ -1289,29 +1316,9 @@ export class VotingEscrowLock extends Contract {
       [string, string, BigNumber],
       { from: string; to: string; tokenId: BigNumber }
     >;
-
-    VoteDelegated(
-      veLockId: null,
-      to: null
-    ): TypedEventFilter<
-      [BigNumber, string],
-      { veLockId: BigNumber; to: string }
-    >;
-
-    Withdraw(
-      veLockId: null,
-      amount: null
-    ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { veLockId: BigNumber; amount: BigNumber }
-    >;
   };
 
   estimateGas: {
-    MAXTIME(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "MAXTIME()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -1331,104 +1338,40 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    baseToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "baseToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     baseURI(overrides?: CallOverrides): Promise<BigNumber>;
 
     "baseURI()"(overrides?: CallOverrides): Promise<BigNumber>;
 
-    createLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    changeMultisig(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    "changeMultisig(uint256,address)"(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    createLockUntil(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    createDAO(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    "createLockUntil(uint256,uint256)"(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    "createDAO((string,string,string))"(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    delegate(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "delegate(uint256,address)"(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    delegatedRightByIndex(
-      voter: string,
-      idx: BigNumberish,
+    deploymentSteps(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "delegatedRightByIndex(address,uint256)"(
-      voter: string,
-      idx: BigNumberish,
+    "deploymentSteps(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    delegatedRights(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "delegatedRights(address)"(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    delegateeOf(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    "delegateeOf(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    extendLock(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "extendLock(uint256,uint256)"(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    extendLockUntil(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "extendLockUntil(uint256,uint256)"(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getApproved(
@@ -1441,34 +1384,25 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    increaseAmount(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    getCommons(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getCommons()"(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getDAO(id: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getDAO(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "increaseAmount(uint256,uint256)"(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    getMetadata(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    initialize(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "initialize(string,string,string,address,address)"(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    "getMetadata(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     isApprovedForAll(
@@ -1483,11 +1417,46 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    locks(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    launch(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
-    "locks(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
+    "launch(uint256,(address,address,string,string,string,string,string,string,uint256,uint256,uint256,uint256,uint256,uint256))"(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     name(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1577,10 +1546,6 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    totalLockedSupply(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "totalLockedSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
-
     totalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1598,27 +1563,9 @@ export class VotingEscrowLock extends Contract {
       tokenId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
-
-    veToken(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "veToken()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    withdraw(
-      veLockId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    "withdraw(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    MAXTIME(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "MAXTIME()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -1641,104 +1588,40 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    baseToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "baseToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     baseURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "baseURI()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    createLock(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    changeMultisig(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createLock(uint256,uint256)"(
-      amount: BigNumberish,
-      epochs: BigNumberish,
+    "changeMultisig(uint256,address)"(
+      id: BigNumberish,
+      newMultisig: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    createLockUntil(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    createDAO(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "createLockUntil(uint256,uint256)"(
-      amount: BigNumberish,
-      lockEnd: BigNumberish,
+    "createDAO((string,string,string))"(
+      _metadata: { name: string; symbol: string; uri: string },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    delegate(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "delegate(uint256,address)"(
-      veLockId: BigNumberish,
-      to: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    delegatedRightByIndex(
-      voter: string,
-      idx: BigNumberish,
+    deploymentSteps(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "delegatedRightByIndex(address,uint256)"(
-      voter: string,
-      idx: BigNumberish,
+    "deploymentSteps(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    delegatedRights(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "delegatedRights(address)"(
-      voter: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    delegateeOf(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "delegateeOf(uint256)"(
-      veLockId: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    extendLock(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "extendLock(uint256,uint256)"(
-      veLockId: BigNumberish,
-      epochs: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    extendLockUntil(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "extendLockUntil(uint256,uint256)"(
-      veLockId: BigNumberish,
-      end: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getApproved(
@@ -1751,34 +1634,28 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    increaseAmount(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    getCommons(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getCommons()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getDAO(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "increaseAmount(uint256,uint256)"(
-      veLockId: BigNumberish,
-      amount: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    "getDAO(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    initialize(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    getMetadata(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "initialize(string,string,string,address,address)"(
-      _veLockName: string,
-      _veLockSymbol: string,
-      _baseURI: string,
-      _baseToken: string,
-      _veToken: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
+    "getMetadata(uint256)"(
+      id: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isApprovedForAll(
@@ -1793,14 +1670,46 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    locks(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
+    launch(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    "locks(uint256)"(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
+    "launch(uint256,(address,address,string,string,string,string,string,string,uint256,uint256,uint256,uint256,uint256,uint256))"(
+      id: BigNumberish,
+      params: {
+        multisig: string;
+        baseCurrency: string;
+        visionName: string;
+        visionSymbol: string;
+        commitName: string;
+        commitSymbol: string;
+        rightName: string;
+        rightSymbol: string;
+        minDelay: BigNumberish;
+        launchDelay: BigNumberish;
+        initialEmission: BigNumberish;
+        minEmissionRatePerWeek: BigNumberish;
+        emissionCutRate: BigNumberish;
+        founderShare: BigNumberish;
+      },
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1890,12 +1799,6 @@ export class VotingEscrowLock extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    totalLockedSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "totalLockedSupply()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     totalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "totalSupply()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1911,20 +1814,6 @@ export class VotingEscrowLock extends Contract {
       from: string,
       to: string,
       tokenId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    veToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    "veToken()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    withdraw(
-      veLockId: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    "withdraw(uint256)"(
-      veLockId: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

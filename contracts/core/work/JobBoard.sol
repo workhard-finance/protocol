@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../core/governance/Governed.sol";
 import "../../core/work/libraries/CommitMinter.sol";
 import "../../core/work/libraries/GrantReceiver.sol";
@@ -26,15 +27,16 @@ contract JobBoard is
     GrantReceiver,
     Distributor,
     Governed,
-    ReentrancyGuard
+    ReentrancyGuard,
+    Initializable
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using ECDSA for bytes32;
 
-    address public immutable baseCurrency;
+    address public baseCurrency;
 
-    IProject public immutable project;
+    IProject public project;
 
     uint256 public normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
 
@@ -71,17 +73,20 @@ contract JobBoard is
 
     event BudgetWithdrawn(uint256 projId, uint256 index);
 
-    constructor(
+    function initialize(
         address _gov,
         address _project,
         address _dividendPool,
         address _stableReserve,
-        address _baseCurrency
-    ) Governed() CommitMinter(_stableReserve) Distributor(_dividendPool) {
+        address _baseCurrency,
+        address _commit
+    ) public initializer {
+        CommitMinter._setup(_stableReserve, _commit);
+        Distributor._setup(_dividendPool);
         baseCurrency = _baseCurrency;
         project = IProject(_project);
         acceptableTokens[_baseCurrency] = true;
-        Governed.setGovernance(_gov);
+        Governed.initialize(_gov);
     }
 
     modifier onlyStableReserve() {
@@ -100,12 +105,6 @@ contract JobBoard is
     modifier onlyApprovedProject(uint256 projId) {
         require(approvedProjects[projId], "Not an approved project.");
         _;
-    }
-
-    // 3rd party functions
-    function createProject(string memory URI) public {
-        uint256 projId = project.createTo(URI, msg.sender);
-        emit ProjectPosted(projId);
     }
 
     function addBudget(
