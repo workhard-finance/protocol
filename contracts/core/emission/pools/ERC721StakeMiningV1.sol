@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
-import "../../../utils/ERC20Recoverer.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
 contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
@@ -14,7 +13,11 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     mapping(uint256 => address) staker;
 
-    constructor() MiningPool() {
+    function initialize(address _tokenEmitter, address _baseToken)
+        public
+        override
+    {
+        super.initialize(_tokenEmitter, _baseToken);
         _registerInterface(ERC721StakeMiningV1(0).stake.selector);
         _registerInterface(ERC721StakeMiningV1(0).mine.selector);
         _registerInterface(ERC721StakeMiningV1(0).withdraw.selector);

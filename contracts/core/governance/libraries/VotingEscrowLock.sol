@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/EnumerableMap.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
 
+import "../../../core/governance/Governed.sol";
 import "../../../core/governance/libraries/VotingEscrowLib.sol";
 import "../../../core/governance/libraries/VotingEscrowToken.sol";
 import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
@@ -24,7 +25,8 @@ contract VotingEscrowLock is
     IVotingEscrowLock,
     ERC721,
     ReentrancyGuard,
-    Initializable
+    Initializable,
+    Governed
 {
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
@@ -64,15 +66,19 @@ contract VotingEscrowLock is
     function initialize(
         string memory _veLockName,
         string memory _veLockSymbol,
-        string memory _baseURI,
         address _baseToken,
-        address _veToken
+        address _veToken,
+        address _gov
     ) public initializer {
-        _setBaseURI(_baseURI);
         baseToken = _baseToken;
         veToken = _veToken;
         _name = _veLockName;
         _symbol = _veLockSymbol;
+        gov = _gov;
+    }
+
+    function updateBaseUri(string memory _baseURI) public governed {
+        _setBaseURI(_baseURI);
     }
 
     function createLock(uint256 amount, uint256 epochs) public override {

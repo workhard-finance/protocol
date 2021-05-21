@@ -3,14 +3,17 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "../../../utils/ERC20Recoverer.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
 contract ERC20StakeMiningV1 is MiningPool {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    constructor() MiningPool() {
+    function initialize(address _tokenEmitter, address _baseToken)
+        public
+        override
+    {
+        super.initialize(_tokenEmitter, _baseToken);
         _registerInterface(ERC20StakeMiningV1(0).stake.selector);
         _registerInterface(ERC20StakeMiningV1(0).mine.selector);
         _registerInterface(ERC20StakeMiningV1(0).withdraw.selector);

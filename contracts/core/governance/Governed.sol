@@ -21,7 +21,7 @@ contract Governed {
     event Anarchized();
 
     constructor() {
-        gov = msg.sender;
+        initialize(msg.sender);
     }
 
     modifier governed {

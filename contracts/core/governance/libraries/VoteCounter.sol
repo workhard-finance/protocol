@@ -33,7 +33,7 @@ contract VoteCounter is IVoteCounter, Initializable {
     }
 
     function voterOf(uint256 veLockId)
-        external
+        public
         view
         virtual
         override
@@ -43,7 +43,7 @@ contract VoteCounter is IVoteCounter, Initializable {
     }
 
     function votingRights(address voter)
-        external
+        public
         view
         virtual
         override
@@ -54,5 +54,23 @@ contract VoteCounter is IVoteCounter, Initializable {
         for (uint256 i = 0; i < rights.length; i++) {
             rights[i] = veLock.delegatedRightByIndex(voter, i);
         }
+    }
+
+    /**
+     * @dev This should be used only for the snapshot voting feature.
+     * Do not use this interface for other purposes.
+     */
+    function balanceOf(address account)
+        external
+        view
+        virtual
+        returns (uint256)
+    {
+        uint256[] memory rights = votingRights(account);
+        uint256 sum;
+        for (uint256 i = 0; i < rights.length; i++) {
+            sum += getVotes(rights[i], block.timestamp);
+        }
+        return sum;
     }
 }

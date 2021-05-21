@@ -1,10 +1,8 @@
 import {
   addLiquidity,
-  addTokens,
   approveProject,
   distribute,
   distributeReward,
-  executeSetEmission,
   launchWorkersUnion,
   mintBaseCurrency,
   newCryptoJob,
@@ -12,7 +10,6 @@ import {
 } from "./actions";
 
 async function main() {
-  await executeSetEmission();
   await startEmission();
   await distribute();
   await mintBaseCurrency();
@@ -20,7 +17,6 @@ async function main() {
   await launchWorkersUnion();
   await newCryptoJob();
   await approveProject();
-  await addTokens();
   await distributeReward();
 }
 

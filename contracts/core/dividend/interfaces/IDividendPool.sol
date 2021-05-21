@@ -10,6 +10,8 @@ interface IDividendPool {
 
     function distributed(address token) external view returns (bool);
 
+    function distributedTokens() external view returns (address[] memory);
+
     function featuredRewards() external view returns (address[] memory);
 
     function getCurrentEpoch() external view returns (uint256);

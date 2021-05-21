@@ -3,8 +3,9 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/proxy/Initializable.sol";
 
-contract ERC20Recoverer {
+contract ERC20Recoverer is Initializable {
     using SafeERC20 for IERC20;
 
     mapping(address => bool) public permanentlyNonRecoverable;
@@ -14,13 +15,21 @@ contract ERC20Recoverer {
 
     address public recoverer;
 
-    constructor() {
-        recoverer = msg.sender;
-    }
+    constructor() {}
 
     modifier onlyRecoverer() {
         require(msg.sender == recoverer, "Only allowed to recoverer");
         _;
+    }
+
+    function initialize(address _recoverer, address[] memory disableList)
+        public
+        initializer
+    {
+        for (uint256 i = 0; i < disableList.length; i++) {
+            permanentlyNonRecoverable[disableList[i]] = true;
+        }
+        recoverer = _recoverer;
     }
 
     function setRecoverer(address _recoverer) public onlyRecoverer {

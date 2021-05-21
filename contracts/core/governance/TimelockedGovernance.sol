@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
-
 import "@openzeppelin/contracts/access/TimelockController.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
 
@@ -27,12 +26,19 @@ contract TimelockedGovernance is TimelockController, Initializable {
         address multisig,
         address workersUnion
     ) public initializer {
-        TimelockController(this).updateDelay(delay);
+        _setRoleAdmin(TIMELOCK_ADMIN_ROLE, TIMELOCK_ADMIN_ROLE);
+        _setRoleAdmin(PROPOSER_ROLE, TIMELOCK_ADMIN_ROLE);
+        _setRoleAdmin(EXECUTOR_ROLE, TIMELOCK_ADMIN_ROLE);
+
+        // deployer + self administration
+        _setupRole(TIMELOCK_ADMIN_ROLE, _msgSender());
+        _setupRole(TIMELOCK_ADMIN_ROLE, address(this));
         _setupRole(TIMELOCK_ADMIN_ROLE, workersUnion);
         _setupRole(PROPOSER_ROLE, workersUnion);
         _setupRole(PROPOSER_ROLE, multisig);
         _setupRole(EXECUTOR_ROLE, workersUnion);
         _setupRole(EXECUTOR_ROLE, multisig);
+        TimelockController(this).updateDelay(delay);
     }
 
     function cancel(bytes32 id) public override {

@@ -2,9 +2,7 @@
 pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
-import "@openzeppelin/contracts/utils/Create2.sol";
 import "../../../core/emission/pools/ERC1155StakeMiningV1.sol";
-import "../../../core/emission/interfaces/IMiningPool.sol";
 import "../../../core/emission/libraries/MiningPoolFactory.sol";
 
 contract ERC1155StakeMiningV1Factory is MiningPoolFactory {
@@ -23,11 +21,16 @@ contract ERC1155StakeMiningV1Factory is MiningPoolFactory {
      */
     bytes4 private constant _INTERFACE_ID_ERC1155 = 0xd9b67a26;
 
-    bytes4 public override poolSig =
+    bytes4 public override poolType =
         ERC1155StakeMiningV1(0).erc1155StakeMiningV1.selector;
 
-    function _newPool(address _emitter, address _stakingToken)
-        internal
+    constructor() MiningPoolFactory() {
+        address _controller = address(new ERC1155StakeMiningV1());
+        _setController(_controller);
+    }
+
+    function newPool(address _emitter, address _stakingToken)
+        public
         override
         returns (address _pool)
     {
@@ -35,24 +38,6 @@ contract ERC1155StakeMiningV1Factory is MiningPoolFactory {
             _stakingToken.supportsInterface(_INTERFACE_ID_ERC1155),
             "Not an ERC1155"
         );
-        bytes memory bytecode = type(ERC1155StakeMiningV1).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(_emitter, _stakingToken));
-        assembly {
-            _pool := create2(0, add(bytecode, 32), mload(bytecode), salt)
-        }
-        return _pool;
-    }
-
-    function poolAddress(address _emitter, address _baseToken)
-        external
-        view
-        virtual
-        override
-        returns (address _pool)
-    {
-        bytes32 salt = keccak256(abi.encodePacked(_emitter, _baseToken));
-        bytes32 bytecodeHash =
-            keccak256(type(ERC1155StakeMiningV1).creationCode);
-        return Create2.computeAddress(salt, bytecodeHash);
+        return super.newPool(_emitter, _stakingToken);
     }
 }

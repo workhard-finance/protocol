@@ -3,13 +3,7 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import {
-  almostEquals,
-  goTo,
-  goToNextWeek,
-  runTimelockTx,
-} from "../../utils/utilities";
-import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
+import { almostEquals, goTo, goToNextWeek } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   DividendPool,
@@ -18,7 +12,9 @@ import {
   TimelockedGovernance,
   VISION,
   VotingEscrowLock,
+  WorkhardDAO,
 } from "../../../src";
+import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -32,25 +28,25 @@ describe("DividendPool.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let fixture: MiningFixture;
+  let masterDAO: WorkhardDAO;
   let vision: VISION;
   let dividendPool: DividendPool;
-  let veLocker: VotingEscrowLock;
+  let votingEscrow: VotingEscrowLock;
   let timelock: TimelockedGovernance;
   let testingRewardToken: ERC20;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     distributor = signers[1];
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    fixture = await getMiningFixture({ skipMinterSetting: true });
-    vision = fixture.vision;
-    dividendPool = fixture.dividendPool;
-    veLocker = fixture.veLocker;
-    timelock = fixture.timelock;
+    masterDAO = await (await getWorkhard()).getMasterDAO();
+    vision = masterDAO.vision;
+    dividendPool = masterDAO.dividendPool;
+    votingEscrow = masterDAO.votingEscrow;
+    timelock = masterDAO.timelock;
     testingRewardToken = await new ERC20__factory(deployer).deploy();
     await testingRewardToken
       .connect(deployer)
@@ -58,43 +54,62 @@ describe("DividendPool.sol", function () {
     await testingRewardToken
       .connect(distributor)
       .approve(dividendPool.address, parseEther("10000"));
+    const mineVision = async () => {
+      await goToNextWeek();
+      await masterDAO.visionEmitter.connect(deployer).distribute();
+    };
+    await mineVision();
     const prepare = async (account: SignerWithAddress) => {
-      await vision.mint(account.address, parseEther("10000"));
+      await vision
+        .connect(deployer)
+        .transfer(account.address, parseEther("100"));
       await vision
         .connect(account)
-        .approve(veLocker.address, parseEther("10000"));
+        .approve(votingEscrow.address, parseEther("100"));
     };
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
   });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
+  });
   describe("epoch test", async () => {
     describe("getCurrentEpoch()", async () => {
-      it("should start from 0", async () => {
-        expect(await dividendPool.getCurrentEpoch()).eq(0);
+      it("should start from 1 since the test starts after the 1st week", async () => {
+        expect(await dividendPool.getCurrentEpoch()).eq(1);
       });
       it("should increment by weekly", async () => {
         let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-        expect(await dividendPool.getCurrentEpoch()).eq(0);
+        expect(await dividendPool.getCurrentEpoch()).eq(1);
         await goTo(4 * week);
-        expect(await dividendPool.getCurrentEpoch()).eq(4);
+        expect(await dividendPool.getCurrentEpoch()).eq(5);
         await goTo(3 * week);
-        expect(await dividendPool.getCurrentEpoch()).eq(7);
+        expect(await dividendPool.getCurrentEpoch()).eq(8);
       });
     });
   });
 
   describe("distribution test", () => {
-    beforeEach(async () => {
-      await runTimelockTx(
-        timelock,
-        dividendPool.populateTransaction.addToken(testingRewardToken.address)
-      );
-    });
     describe("distributedTokens()", () => {
       it("should return testing reward token after it's distributed", async () => {
-        const list = await dividendPool.distributedTokens();
-        expect(list).includes(testingRewardToken.address);
+        expect(await dividendPool.distributedTokens()).deep.eq([]);
+        await dividendPool
+          .connect(distributor)
+          .distribute(testingRewardToken.address, parseEther("100"));
+        expect(await dividendPool.distributedTokens()).deep.eq([
+          testingRewardToken.address,
+        ]);
+        await dividendPool
+          .connect(distributor)
+          .distribute(testingRewardToken.address, parseEther("100"));
+        expect(await dividendPool.distributedTokens()).deep.eq([
+          testingRewardToken.address,
+        ]);
       });
     });
     describe("totalDistributed()", () => {
@@ -115,7 +130,7 @@ describe("DividendPool.sol", function () {
     describe("claimable()", () => {
       it("distribution should be claimable after 1 epoch", async () => {
         await goTo(1 * week);
-        await veLocker.connect(alice).createLock(parseEther("100"), 208);
+        await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
         const claimable0 = await dividendPool
           .connect(alice)
           .claimable(testingRewardToken.address);
@@ -138,15 +153,15 @@ describe("DividendPool.sol", function () {
       beforeEach(async () => {
         const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
         await goTo(1 * week);
-        await veLocker
+        await votingEscrow
           .connect(alice)
-          .createLockUntil(parseEther("100"), timestamp + 4 * year);
-        await veLocker
+          .createLockUntil(parseEther("1"), timestamp + 4 * year);
+        await votingEscrow
           .connect(bob)
-          .createLockUntil(parseEther("10"), timestamp + 4 * year);
-        await veLocker
+          .createLockUntil(parseEther("0.1"), timestamp + 4 * year);
+        await votingEscrow
           .connect(carl)
-          .createLockUntil(parseEther("100"), timestamp + 4 * year);
+          .createLockUntil(parseEther("1"), timestamp + 4 * year);
         await dividendPool
           .connect(distributor)
           .distribute(testingRewardToken.address, parseEther("100"));

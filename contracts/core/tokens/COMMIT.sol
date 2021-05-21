@@ -29,13 +29,14 @@ contract COMMIT is ERC20Burnable, Initializable {
         _;
     }
 
-    function initialize(string memory name_, string memory symbol_)
-        public
-        initializer
-    {
+    function initialize(
+        string memory name_,
+        string memory symbol_,
+        address _minter
+    ) public initializer {
         _name = name_;
         _symbol = symbol_;
-        minter = msg.sender;
+        minter = _minter;
     }
 
     function mint(address to, uint256 amount) public onlyMinter {

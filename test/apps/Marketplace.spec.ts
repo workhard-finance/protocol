@@ -4,16 +4,20 @@ import { solidity } from "ethereum-waffle";
 import { BigNumber } from "ethers";
 import { keccak256, parseEther, solidityPack } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { AppFixture, getAppFixture } from "../../scripts/fixtures";
+import { getWorkhard } from "../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
   ERC20,
+  ERC20__factory,
+  IERC20,
   Marketplace,
   StableReserve,
   TimelockedGovernance,
+  WorkhardClient,
+  WorkhardDAO,
 } from "../../src";
-import { runTimelockTx } from "../utils/utilities";
+import { domain } from "process";
 
 chai.use(solidity);
 
@@ -23,30 +27,31 @@ describe("Marketplace.sol", function () {
   let manufacturer: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let fixture: AppFixture;
+  let workhard: WorkhardClient;
+  let masterDAO: WorkhardDAO;
   let marketplace: Marketplace;
   let stableReserve: StableReserve;
   let commit: COMMIT;
   let baseCurrency: ERC20;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     manufacturer = signers[1];
     alice = signers[1];
     bob = signers[2];
-    fixture = await getAppFixture();
-    baseCurrency = fixture.baseCurrency;
-    commit = fixture.commit;
-    marketplace = fixture.marketplace;
-    stableReserve = fixture.stableReserve;
-    dividendPool = fixture.dividendPool;
-    timelock = fixture.timelock;
-    await runTimelockTx(
-      timelock,
-      dividendPool.populateTransaction.addToken(commit.address)
+    workhard = await getWorkhard();
+    masterDAO = await workhard.getMasterDAO();
+    baseCurrency = ERC20__factory.connect(
+      masterDAO.baseCurrency.address,
+      deployer
     );
+    commit = masterDAO.commit;
+    marketplace = masterDAO.marketplace;
+    stableReserve = masterDAO.stableReserve;
+    dividendPool = masterDAO.dividendPool;
+    timelock = masterDAO.timelock;
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {
       await baseCurrency.mint(account.address, parseEther("10000"));
@@ -61,6 +66,13 @@ describe("Marketplace.sol", function () {
     await prepare(manufacturer);
     await prepare(alice);
     await prepare(bob);
+  });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
   describe("launchNewProduct()", async () => {
     it("anyone can buy the NFT by paying Commit token", async () => {

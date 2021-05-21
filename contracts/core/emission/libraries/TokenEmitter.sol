@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: GPL-3.0
 // This contract referenced Sushi's MasterChef.sol logic
 pragma solidity ^0.7.0;
+pragma abicoder v2;
 
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -10,16 +11,56 @@ import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "../../../core/emission/interfaces/ITokenEmitter.sol";
 import "../../../core/emission/interfaces/IMiningPool.sol";
 import "../../../core/emission/interfaces/IMiningPoolFactory.sol";
+import "../../../core/emission/libraries/PoolType.sol";
 import "../../../core/governance/Governed.sol";
 import "../../../core/dividend/interfaces/IDividendPool.sol";
 import "../../../utils/IERC20Mintable.sol";
 import "../../../utils/Utils.sol";
+import "../../../utils/ERC20Recoverer.sol";
+
+struct EmitterConfig {
+    uint256 initialEmission;
+    uint256 minEmissionRatePerWeek;
+    uint256 emissionCutRate;
+    uint256 founderShareRate;
+    address treasury;
+    address gov;
+    address token;
+    address founderShare;
+    address protocolPool;
+    address erc20BurnMiningFactory;
+    address erc20StakeMiningFactory;
+    address erc721StakeMiningFactory;
+    address erc1155StakeMiningFactory;
+}
+
+struct EmissionWeight {
+    uint256[] pools;
+    uint256 treasury;
+    uint256 caller;
+    uint256 protocol;
+    uint256 dev;
+    uint256 sum;
+}
+
+struct MiningPoolConfig {
+    uint256 weight;
+    bytes4 poolType;
+    address baseToken;
+}
+
+struct MiningConfig {
+    MiningPoolConfig[] pools;
+    uint256 treasuryWeight;
+    uint256 callerWeight;
+}
 
 contract TokenEmitter is
     Governed,
     ReentrancyGuard,
     ITokenEmitter,
-    Initializable
+    Initializable,
+    ERC20Recoverer
 {
     using ERC165Checker for address;
     using SafeMath for uint256;
@@ -28,6 +69,7 @@ contract TokenEmitter is
     uint256 public constant DENOMINATOR = 10000;
 
     uint256 public minEmissionRatePerWeek = 60; // 0.006 per week ~= 36% yearly inflation
+
     uint256 public emissionCutRate = 3000; // 30%
 
     address public override token;
@@ -52,15 +94,6 @@ contract TokenEmitter is
 
     mapping(address => bytes4) public override poolTypes;
 
-    struct EmissionWeight {
-        uint256[] pools;
-        uint256 treasury;
-        uint256 caller;
-        uint256 protocol;
-        uint256 dev;
-        uint256 sum;
-    }
-
     EmissionWeight public emissionWeight;
 
     uint256 public emissionStarted;
@@ -74,96 +107,85 @@ contract TokenEmitter is
     event EmissionWeightUpdated(uint256 numberOfPools);
     event NewMiningPool(bytes4 poolTypes, address baseToken, address pool);
 
-    function initialize(
-        uint256 _initialEmission,
-        uint256 _minEmissionRatePerWeek,
-        uint256 _emissionCutRate,
-        uint256 _founderShare,
-        address _founderPool,
-        address _treasury,
-        address _gov,
-        address _token,
-        address _protocolPool
-    ) public initializer {
+    function initialize(EmitterConfig memory params) public initializer {
+        require(params.treasury != address(0), "Should not be zero");
+        Governed.initialize(msg.sender);
         // set params
-        INITIAL_EMISSION = _initialEmission;
-        emission = _initialEmission;
-        minEmissionRatePerWeek = _minEmissionRatePerWeek;
-        emissionCutRate = _emissionCutRate;
-        protocolPool = _protocolPool;
-
+        INITIAL_EMISSION = params.initialEmission;
+        emission = params.initialEmission;
+        minEmissionRatePerWeek = params.minEmissionRatePerWeek;
+        emissionCutRate = params.emissionCutRate;
+        protocolPool = params.protocolPool;
         // set contract addresses
-        token = _token;
-        setTreasury(_treasury);
+        token = params.token;
+        setTreasury(params.treasury);
+        require(params.founderShareRate < DENOMINATOR);
+        FOUNDER_SHARE_DENOMINATOR = params.founderShareRate != 0
+            ? DENOMINATOR / params.founderShareRate
+            : 0;
+        ERC20Recoverer.initialize(params.gov, new address[](0));
+        setFactory(params.erc20BurnMiningFactory);
+        setFactory(params.erc20StakeMiningFactory);
+        setFactory(params.erc721StakeMiningFactory);
+        setFactory(params.erc1155StakeMiningFactory);
+        address _founderPool =
+            newPool(PoolType.ERC20BurnMiningV1, params.founderShare);
+        founderPool = _founderPool;
         require(
             _founderPool.supportsInterface(IMiningPool(0).allocate.selector),
             "Cannot allocate reward"
         );
-        require(_founderShare < DENOMINATOR);
-        FOUNDER_SHARE_DENOMINATOR = _founderShare != 0
-            ? DENOMINATOR / _founderShare
-            : 0;
-        founderPool = _founderPool;
-        Governed.initialize(_gov);
+        Governed.setGovernance(params.gov);
     }
 
     /**
      * StakeMiningV1:
      */
-    function newPool(bytes4 sig, address _token) public returns (address) {
-        address _factory = factories[sig];
-        require(_factory != address(0), "Factory not exists");
-
-        address _pool =
-            IMiningPoolFactory(_factory).newPool(address(this), _token, gov);
-        require(_pool.supportsInterface(sig), "Does not have the given sig");
-        require(
-            _pool.supportsInterface(IMiningPool(0).allocate.selector),
-            "Cannot allocate reward"
-        );
-        require(poolTypes[_pool] == bytes4(0), "Pool already exists");
-        poolTypes[_pool] = sig;
-
-        emit NewMiningPool(sig, _token, _pool);
-        return _pool;
+    function newPool(bytes4 poolType, address _token) public returns (address) {
+        return _newPool(poolType, _token);
     }
 
-    function setEmission(
-        address[] memory _miningPools,
-        uint256[] memory _weights,
-        uint256 _treasury,
-        uint256 _caller
-    ) public governed {
-        require(
-            _miningPools.length == _weights.length,
-            "Both should have the same length."
-        );
-        IMiningPool[] memory _pools = new IMiningPool[](_miningPools.length);
-        uint256 _sum = _treasury + _caller; // doesn't overflow
-        for (uint256 i = 0; i < _miningPools.length; i++) {
-            IMiningPool pool = IMiningPool(_miningPools[i]);
+    function setEmission(MiningConfig memory config) public governed {
+        require(config.treasuryWeight < 1e4, "prevent overflow");
+        require(config.callerWeight < 1e4, "prevent overflow");
+        // starting the summation with treasury and caller weights
+        uint256 _sum = config.treasuryWeight + config.callerWeight;
+        // prepare list to store
+        IMiningPool[] memory _pools = new IMiningPool[](config.pools.length);
+        uint256[] memory _weights = new uint256[](config.pools.length);
+        // deploy pool if not the pool exists and do the weight summation
+        // udpate the pool & weight arr on memory
+        for (uint256 i = 0; i < config.pools.length; i++) {
+            address _pool =
+                _getOrDeployPool(
+                    config.pools[i].poolType,
+                    config.pools[i].baseToken
+                );
+            IMiningPool pool = IMiningPool(_pool);
             require(
                 poolTypes[address(pool)] != bytes4(0),
                 "Not a deployed mining pool"
             );
-            require(_weights[i] < 1e4, "prevent overflow");
+            require(config.pools[i].weight < 1e4, "prevent overflow");
+            _weights[i] = config.pools[i].weight;
             _pools[i] = pool;
-            _sum += _weights[i]; // doesn't overflow
+            _sum += config.pools[i].weight; // doesn't overflow
         }
-        require(_treasury < 1e4, "prevent overflow");
-        require(_caller < 1e4, "prevent overflow");
+        // compute the founder share
         uint256 _dev =
             FOUNDER_SHARE_DENOMINATOR != 0
                 ? _sum / FOUNDER_SHARE_DENOMINATOR
                 : 0; // doesn't overflow;
         _sum += _dev;
+        // compute the protocol share
         uint256 _protocol = protocolPool == address(0) ? 0 : _sum / 33;
         _sum += _protocol;
         pools = _pools;
+        // store the updated emission weight
         emissionWeight = EmissionWeight(
             _weights,
-            _treasury,
-            _caller,
+            config.treasuryWeight,
+            config.callerWeight,
             _protocol,
             _dev,
             _sum
@@ -174,12 +196,12 @@ contract TokenEmitter is
     function setFactory(address _factory) public governed {
         bytes4[] memory interfaces = new bytes4[](2);
         interfaces[0] = IMiningPoolFactory(0).newPool.selector;
-        interfaces[1] = IMiningPoolFactory(0).poolSig.selector;
+        interfaces[1] = IMiningPoolFactory(0).poolType.selector;
         require(
             _factory.supportsAllInterfaces(interfaces),
             "Not a valid factory"
         );
-        bytes4 _sig = IMiningPoolFactory(_factory).poolSig();
+        bytes4 _sig = IMiningPoolFactory(_factory).poolType();
         require(factories[_sig] == address(0), "Factory already exists.");
         factories[_sig] = _factory;
     }
@@ -232,29 +254,34 @@ contract TokenEmitter is
                 emissionWeight.pools[i].mul(emission).div(weightSum);
             _mintAndNotifyAllocation(pools[i], weighted);
         }
-
-        // Protocol fund(protocol treasury)
-        IERC20Mintable(token).mint(
-            treasury,
-            emissionWeight.treasury.mul(emission).div(weightSum)
-        );
         // Caller
         IERC20Mintable(token).mint(
             msg.sender,
             emissionWeight.caller.mul(emission).div(weightSum)
         );
+        if (treasury != address(0)) {
+            // Protocol fund(protocol treasury)
+            IERC20Mintable(token).mint(
+                treasury,
+                emissionWeight.treasury.mul(emission).div(weightSum)
+            );
+        }
         // Protocol
-        IERC20Mintable(token).mint(
-            protocolPool,
-            emissionWeight.protocol.mul(emission).div(weightSum)
-        );
-        // balance diff automatically distributed. no approval needed
-        IDividendPool(protocolPool).distribute(token, 0);
-        // Founder
-        _mintAndNotifyAllocation(
-            IMiningPool(founderPool),
-            emission.sub(IERC20(token).totalSupply().sub(prevSupply))
-        );
+        if (protocolPool != address(0)) {
+            IERC20Mintable(token).mint(
+                protocolPool,
+                emissionWeight.protocol.mul(emission).div(weightSum)
+            );
+            // balance diff automatically distributed. no approval needed
+            IDividendPool(protocolPool).distribute(token, 0);
+        }
+        if (founderPool != address(0)) {
+            // Founder
+            _mintAndNotifyAllocation(
+                IMiningPool(founderPool),
+                emission.sub(IERC20(token).totalSupply().sub(prevSupply))
+            );
+        }
         emit TokenEmission(emission);
         _updateEmission();
     }
@@ -289,5 +316,50 @@ contract TokenEmitter is
             emission.mul(DENOMINATOR.sub(emissionCutRate)).div(DENOMINATOR);
         emission = Math.max(cutEmission, minEmission);
         return emission;
+    }
+
+    function _getOrDeployPool(bytes4 poolType, address baseToken)
+        internal
+        returns (address _pool)
+    {
+        address _factory = factories[poolType];
+        require(_factory != address(0), "Factory not exists");
+        // get predicted pool address
+        _pool = IMiningPoolFactory(_factory).poolAddress(
+            address(this),
+            baseToken
+        );
+        if (poolTypes[_pool] == poolType) {
+            // pool is registered successfully
+            return _pool;
+        } else {
+            // try to deploy new pool and register
+            return _newPool(poolType, baseToken);
+        }
+    }
+
+    function _newPool(bytes4 poolType, address _token)
+        public
+        returns (address)
+    {
+        address _factory = factories[poolType];
+        require(_factory != address(0), "Factory not exists");
+        address _pool =
+            IMiningPoolFactory(_factory).getPool(address(this), _token);
+        if (_pool == address(0)) {
+            _pool = IMiningPoolFactory(_factory).newPool(address(this), _token);
+        }
+        require(
+            _pool.supportsInterface(poolType),
+            "Does not have the given pool type"
+        );
+        require(
+            _pool.supportsInterface(IMiningPool(0).allocate.selector),
+            "Cannot allocate reward"
+        );
+        require(poolTypes[_pool] == bytes4(0), "Pool already exists");
+        poolTypes[_pool] = poolType;
+        emit NewMiningPool(poolType, _token, _pool);
+        return _pool;
     }
 }

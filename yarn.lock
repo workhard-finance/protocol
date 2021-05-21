@@ -515,6 +515,11 @@
     "@ethersproject/properties" "^5.1.0"
     "@ethersproject/strings" "^5.1.0"
 
+"@gnosis.pm/safe-contracts@^1.3.0-rc.0":
+  version "1.3.0-rc.0"
+  resolved "https://registry.yarnpkg.com/@gnosis.pm/safe-contracts/-/safe-contracts-1.3.0-rc.0.tgz#d47f19d3db3615745974d772e54729c03bf38591"
+  integrity sha512-EpzYvQf30qpijTVMob6rorUr96YCAMTZvdX1UnKnCAtvRJrQsHUSX2QSxrBqeeQ4qEdcYqKwqU0fhX9WC4ooRQ==
+
 "@nomiclabs/hardhat-ethers@^2.0.1":
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.0.2.tgz#c472abcba0c5185aaa4ad4070146e95213c68511"

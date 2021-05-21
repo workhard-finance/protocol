@@ -2,8 +2,6 @@
 pragma solidity ^0.7.0;
 pragma abicoder v2;
 
-import "hardhat/console.sol";
-
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/math/Math.sol";

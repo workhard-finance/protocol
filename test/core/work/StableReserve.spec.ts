@@ -9,15 +9,19 @@ import {
 } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { runTimelockTx } from "../../utils/utilities";
-import { AppFixture, getAppFixture } from "../../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
   ERC20,
+  ERC20__factory,
   JobBoard,
   StableReserve,
   TimelockedGovernance,
+  Workhard,
+  WorkhardClient,
+  WorkhardDAO,
 } from "../../../src";
+import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -28,15 +32,17 @@ describe("StableReserve.sol", function () {
   let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let fixture: AppFixture;
+  let client: WorkhardClient;
+  let workhard: Workhard;
+  let masterDAO: WorkhardDAO;
   let jobBoard: JobBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
   let baseCurrency: ERC20;
+  let projId: BigNumber;
   let project: {
-    id: BigNumberish;
     title: string;
     description: string;
     uri: string;
@@ -45,24 +51,25 @@ describe("StableReserve.sol", function () {
     currency: string;
     amount: BigNumber;
   };
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     manager = signers[1];
     projOwner = signers[2];
     alice = signers[3];
     bob = signers[4];
-    fixture = await getAppFixture();
-    baseCurrency = fixture.baseCurrency;
-    jobBoard = fixture.jobBoard;
-    commit = fixture.commit;
-    stableReserve = fixture.stableReserve;
-    dividendPool = fixture.dividendPool;
-    timelock = fixture.timelock;
-    await runTimelockTx(
-      timelock,
-      dividendPool.populateTransaction.addToken(baseCurrency.address)
+    client = await getWorkhard();
+    workhard = client.workhard;
+    masterDAO = await client.getMasterDAO({ account: deployer });
+    baseCurrency = ERC20__factory.connect(
+      masterDAO.baseCurrency.address,
+      deployer
     );
+    jobBoard = masterDAO.jobBoard;
+    commit = masterDAO.commit;
+    stableReserve = masterDAO.stableReserve;
+    dividendPool = masterDAO.dividendPool;
+    timelock = masterDAO.timelock;
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {
       await baseCurrency.mint(account.address, parseEther("10000"));
@@ -79,32 +86,37 @@ describe("StableReserve.sol", function () {
     await prepare(projOwner);
     await prepare(alice);
     await prepare(bob);
-    const description = "helloworld";
-    const uri = "ipfs://MY_PROJECT_URL";
     project = {
-      id: BigNumber.from(
-        solidityKeccak256(["string", "address"], [uri, projOwner.address])
-      ),
       title: "Workhard is firing",
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
     budget = { currency: baseCurrency.address, amount: parseEther("100") };
-    await jobBoard.connect(projOwner).createProject(project.uri);
+    const result = await workhard
+      .connect(projOwner)
+      .createProject(0, project.uri);
+    projId = await workhard.tokenByIndex((await workhard.totalSupply()).sub(1));
     await jobBoard
       .connect(projOwner)
-      .addBudget(project.id, budget.currency, budget.amount);
+      .addBudget(projId, budget.currency, budget.amount);
     await runTimelockTx(
       timelock,
-      jobBoard.populateTransaction.approveProject(project.id)
+      jobBoard.populateTransaction.approveProject(projId)
     );
-    await jobBoard.connect(manager).executeBudget(project.id, 0);
+    await jobBoard.connect(manager).executeBudget(projId, 0);
+  });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
   describe("redeem()", async () => {
     beforeEach("compensate", async () => {
       jobBoard
         .connect(projOwner)
-        .compensate(project.id, alice.address, parseEther("1"));
+        .compensate(projId, alice.address, parseEther("1"));
     });
     it("should return the base currency and burn the commit token", async () => {
       const base0 = await baseCurrency.balanceOf(alice.address);
@@ -148,17 +160,17 @@ describe("StableReserve.sol", function () {
       await stableReserve.connect(bob).payInsteadOfWorking(parseEther("1"));
       const remaining0 = await stableReserve.mintable();
       expect(remaining0).not.eq(BigNumber.from(0));
-      const budget0 = await jobBoard.projectFund(project.id);
+      const budget0 = await jobBoard.projectFund(projId);
       await runTimelockTx(
         timelock,
         stableReserve.populateTransaction.grant(
           jobBoard.address,
           remaining0,
-          defaultAbiCoder.encode(["uint256"], [project.id])
+          defaultAbiCoder.encode(["uint256"], [projId])
         )
       );
       const remaining1 = await stableReserve.mintable();
-      const budget1 = await jobBoard.projectFund(project.id);
+      const budget1 = await jobBoard.projectFund(projId);
       expect(remaining1).eq(BigNumber.from(0));
       expect(budget1.sub(budget0)).eq(remaining0);
     });

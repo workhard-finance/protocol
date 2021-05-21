@@ -1,57 +1,10 @@
 import { ethers } from "hardhat";
-import {
-  getBaseCurrency,
-  getCommit,
-  getCommitMining,
-  getDividendPool,
-  getERC20StakeMiningV1Factory,
-  getJobBoard,
-  getLiquidityMining,
-  getProject,
-  getTimelockedGovernance,
-  getVision,
-  getVisionEmitter,
-  getVisionETHLP,
-  getWorkersUnion,
-} from "../utils/deployer";
+import { getPool2Factory, getWETH } from "../utils/deployer";
 import { goToNextWeek, runTimelockTx } from "../../test/utils/utilities";
-import { BigNumber, constants } from "ethers";
-import { goTo } from "../../test/utils/utilities";
+import { constants } from "ethers";
 import { parseEther } from "ethers/lib/utils";
 import { ERC20__factory } from "../../src";
-
-export async function executeSetEmission() {
-  console.log(
-    "Execute Emission - snapshot id: ",
-    await ethers.provider.send("evm_snapshot", [])
-  );
-
-  const [signer] = await ethers.getSigners();
-  const visionEmitter = await getVisionEmitter(signer);
-  const timelock = await getTimelockedGovernance(signer);
-  const liquidityMining = await getLiquidityMining(signer);
-  const commitMining = await getCommitMining(signer);
-  /** launch Mock DAI staking air drop pool */
-  const baseCurrency = await getBaseCurrency(signer);
-  await visionEmitter.newPool(
-    await (await getERC20StakeMiningV1Factory(signer)).poolSig(),
-    baseCurrency.address
-  );
-
-  const airdropPool = await (
-    await getERC20StakeMiningV1Factory(signer)
-  ).poolAddress(visionEmitter.address, baseCurrency.address);
-  /** set airdrop set emission */
-  await runTimelockTx(
-    timelock,
-    visionEmitter.populateTransaction.setEmission(
-      [liquidityMining.address, commitMining.address, airdropPool],
-      [4745, 4745, 500],
-      499,
-      1
-    )
-  );
-}
+import { WorkhardClient } from "../../src";
 
 export async function startEmission() {
   console.log(
@@ -60,20 +13,19 @@ export async function startEmission() {
   );
 
   const [signer] = await ethers.getSigners();
-  const visionEmitter = await getVisionEmitter(signer);
-  const timelock = await getTimelockedGovernance(signer);
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO({ account: signer });
+
+  const { visionEmitter, timelock } = masterDAO;
   /** start **/
-  const startTx = await visionEmitter.populateTransaction.start();
-  const startTxTimelockTxParams = [
-    visionEmitter.address,
-    0,
-    startTx.data,
-    constants.HashZero,
-    constants.HashZero,
-  ];
-  await goTo(86401);
-  // @ts-ignore
-  await timelock.execute(...startTxTimelockTxParams);
+  await runTimelockTx(
+    timelock,
+    visionEmitter.populateTransaction.start(),
+    86400
+  );
 }
 export async function distribute() {
   console.log(
@@ -82,7 +34,13 @@ export async function distribute() {
   );
 
   const [signer] = await ethers.getSigners();
-  const visionEmitter = await getVisionEmitter(signer);
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+
+  const { visionEmitter } = masterDAO;
   /** distribute **/
   await goToNextWeek();
   await visionEmitter.distribute();
@@ -95,8 +53,13 @@ export async function mintBaseCurrency() {
   );
 
   const [signer] = await ethers.getSigners();
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { baseCurrency } = masterDAO;
 
-  const baseCurrency = await getBaseCurrency(signer);
   await ERC20__factory.connect(baseCurrency.address, signer).mint(
     signer.address,
     parseEther("10000")
@@ -108,24 +71,32 @@ export async function addLiquidity() {
     "Add Liquidity - snapshot id: ",
     await ethers.provider.send("evm_snapshot", [])
   );
-
   const [signer] = await ethers.getSigners();
-  const vision = await getVision(signer);
-  const visionLP = await getVisionETHLP(signer);
-  // const univ2Factory =
-  const pair = await ethers.getContractAt(
-    "@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair",
-    visionLP.address
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { vision } = masterDAO;
+  const pool2Factory = await getPool2Factory(signer);
+  const weth = await getWETH(signer);
+  const visionLPAddress = await pool2Factory.getPair(
+    vision.address,
+    weth.address
   );
-  const token0 = await pair.token0();
-  const token1 = await pair.token1();
+  const visionLP = await ethers.getContractAt(
+    "@uniswap/v2-core/contracts/UniswapV2Pair.sol:UniswapV2Pair",
+    visionLPAddress
+  );
+  const token0 = await visionLP.token0();
+  const token1 = await visionLP.token1();
   const wethAddress = token0 !== vision.address ? token0 : token1;
   const WETH = await ethers.getContractAt("WETH9", wethAddress);
   await WETH.deposit({ value: parseEther("100") });
-  await WETH.transfer(pair.address, parseEther("100"));
+  await WETH.transfer(visionLP.address, parseEther("100"));
   await vision.approve(visionLP.address, constants.MaxUint256);
-  await vision.transfer(pair.address, parseEther("100"));
-  await pair.mint(signer.address);
+  await vision.transfer(visionLP.address, parseEther("100"));
+  await visionLP.mint(signer.address);
   if ((await visionLP.balanceOf(signer.address)).eq(0)) {
     throw Error("Faield to add liquidity.");
   }
@@ -138,8 +109,12 @@ export async function launchWorkersUnion() {
   );
 
   const [signer] = await ethers.getSigners();
-
-  const workersUnion = await getWorkersUnion(signer);
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { workersUnion } = masterDAO;
 
   await goToNextWeek();
   await goToNextWeek();
@@ -155,8 +130,14 @@ export async function newCryptoJob() {
   );
 
   const [signer] = await ethers.getSigners();
-  const jobBoard = await getJobBoard(signer);
-  await jobBoard.createProject(
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+
+  await client.workhard.createProject(
+    0,
     "QmToBdkMKvKaCYRaZtRVWu1tZb3Zg6HSgz13nugRrwzRiJ"
   );
 }
@@ -168,57 +149,17 @@ export async function approveProject() {
   );
 
   const [signer] = await ethers.getSigners();
-  const jobBoard = await getJobBoard(signer);
-  const project = await getProject(signer);
-  const timelock = await getTimelockedGovernance(signer);
-  const tokenId = await project.tokenByIndex(0);
-  const tx = await jobBoard.populateTransaction.approveProject(tokenId);
-  const data = tx?.data;
-  await timelock
-    .connect(signer)
-    .schedule(
-      jobBoard.address,
-      0,
-      data,
-      ethers.constants.HashZero,
-      ethers.constants.HashZero,
-      BigNumber.from(86400)
-    );
-  await goTo(86400);
-  await timelock
-    .connect(signer)
-    .execute(
-      jobBoard.address,
-      0,
-      data,
-      ethers.constants.HashZero,
-      ethers.constants.HashZero
-    );
-}
-
-export async function addTokens() {
-  console.log(
-    "Add Tokens - snapshot id: ",
-    await ethers.provider.send("evm_snapshot", [])
-  );
-
-  const [signer] = await ethers.getSigners();
-  const timelock = await getTimelockedGovernance(signer);
-  const dividendPool = await getDividendPool(signer);
-  const commit = await getCommit(signer);
-  const baseCurrency = await getBaseCurrency(signer);
-  const populated0 = await dividendPool.populateTransaction.addToken(
-    baseCurrency.address
-  );
-  const populated1 = await dividendPool.populateTransaction.addToken(
-    commit.address
-  );
-  await timelock.executeBatch(
-    [dividendPool.address, dividendPool.address],
-    [0, 0],
-    [populated0.data, populated1.data],
-    ethers.constants.HashZero, // predecessor
-    ethers.constants.HashZero // salt
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { jobBoard, timelock } = masterDAO;
+  const tokenId = await client.workhard.tokenByIndex(0);
+  await runTimelockTx(
+    timelock,
+    jobBoard.populateTransaction.approveProject(tokenId),
+    86400
   );
 }
 
@@ -229,14 +170,16 @@ export async function distributeReward() {
   );
 
   const [signer] = await ethers.getSigners();
-
-  const baseCurrency = await getBaseCurrency(signer);
+  const client = await WorkhardClient.from(ethers.provider, {
+    account: signer,
+    deployed: require("../../deployed.dev.json"),
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { baseCurrency, dividendPool } = masterDAO;
   await ERC20__factory.connect(baseCurrency.address, signer).mint(
     signer.address,
     parseEther("10000")
   );
-  const dividendPool = await getDividendPool(signer);
   await baseCurrency.approve(dividendPool.address, parseEther("10000"));
   await dividendPool.distribute(baseCurrency.address, parseEther("10000"));
-  console.log(await dividendPool.claimable(baseCurrency.address));
 }

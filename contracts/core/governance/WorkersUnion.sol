@@ -11,7 +11,6 @@ import "../../core/governance/Governed.sol";
 import "../../core/governance/TimelockedGovernance.sol";
 import "../../core/governance/interfaces/IVoteCounter.sol";
 import "../../utils/Sqrt.sol";
-
 struct Proposal {
     address proposer;
     uint256 start;
@@ -113,6 +112,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         IVoteCounter voteCounter
     ) public governed {
         uint256 totalVotes = voteCounter.getTotalVotes();
+
         require(minimumPendingPeriod <= maximumPendingPeriod, "invalid arg");
         require(minimumVotingPeriod <= maximumVotingPeriod, "invalid arg");
         require(minimumVotingPeriod >= 1 days, "too short");

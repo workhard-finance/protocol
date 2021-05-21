@@ -10,9 +10,10 @@ import FileSync from "lowdb/adapters/FileSync";
 import {
   Deployed,
   ContractNames,
-  DeployableContracts,
+  WorkhardDAOContractNames,
   MyNetwork,
-} from "../../deployed";
+  CommonContractNames,
+} from "../../src";
 import { solidityKeccak256 } from "ethers/lib/utils";
 
 function deployFileName(): string {
@@ -71,7 +72,7 @@ export async function sequence(
 }
 
 export async function autoDeploy(
-  name: DeployableContracts,
+  name: WorkhardDAOContractNames | CommonContractNames,
   ...args: any[]
 ): Promise<Contract> {
   const network: MyNetwork = hre.network.name as MyNetwork;

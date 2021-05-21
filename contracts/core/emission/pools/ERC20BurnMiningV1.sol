@@ -3,12 +3,15 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
-import "../../../utils/ERC20Recoverer.sol";
 
 contract ERC20BurnMiningV1 is MiningPool {
     using SafeMath for uint256;
 
-    constructor() MiningPool() {
+    function initialize(address _tokenEmitter, address _baseToken)
+        public
+        override
+    {
+        super.initialize(_tokenEmitter, _baseToken);
         _registerInterface(ERC20BurnMiningV1(0).burn.selector);
         _registerInterface(ERC20BurnMiningV1(0).exit.selector);
         _registerInterface(ERC20BurnMiningV1(0).erc20BurnMiningV1.selector);

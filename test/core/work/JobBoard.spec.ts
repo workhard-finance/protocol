@@ -5,16 +5,18 @@ import { BigNumber, BigNumberish } from "ethers";
 import { parseEther, solidityKeccak256 } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { runTimelockTx } from "../../utils/utilities";
-import { getAppFixture, AppFixture } from "../../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
   ERC20,
   JobBoard,
-  Project,
+  Workhard,
   StableReserve,
   TimelockedGovernance,
+  WorkhardDAO,
+  ERC20__factory,
 } from "../../../src";
+import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -24,16 +26,16 @@ describe("JobBoard.sol", function () {
   let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let fixture: AppFixture;
+  let masterDAO: WorkhardDAO;
   let jobBoard: JobBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
-  let project: Project;
+  let workhard: Workhard;
   let baseCurrency: ERC20;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
   let projectMetadata: {
-    id: BigNumberish;
+    id: BigNumber;
     title: string;
     description: string;
     uri: string;
@@ -42,24 +44,24 @@ describe("JobBoard.sol", function () {
     currency: string;
     amount: BigNumber;
   };
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     projOwner = signers[1];
     alice = signers[2];
     bob = signers[3];
-    fixture = await getAppFixture();
-    baseCurrency = fixture.baseCurrency;
-    jobBoard = fixture.jobBoard;
-    commit = fixture.commit;
-    stableReserve = fixture.stableReserve;
-    project = fixture.project;
-    dividendPool = fixture.dividendPool;
-    timelock = fixture.timelock;
-    await runTimelockTx(
-      timelock,
-      dividendPool.populateTransaction.addToken(baseCurrency.address)
+    const client = await getWorkhard();
+    workhard = client.workhard;
+    masterDAO = await client.getMasterDAO({ account: deployer });
+    baseCurrency = ERC20__factory.connect(
+      masterDAO.baseCurrency.address,
+      deployer
     );
+    jobBoard = masterDAO.jobBoard;
+    commit = masterDAO.commit;
+    stableReserve = masterDAO.stableReserve;
+    dividendPool = masterDAO.dividendPool;
+    timelock = masterDAO.timelock;
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {
       await baseCurrency.mint(account.address, parseEther("10000"));
@@ -77,27 +79,32 @@ describe("JobBoard.sol", function () {
     await prepare(bob);
     const uri = "ipfs://MY_PROJECT_URL";
     projectMetadata = {
-      id: BigNumber.from(
-        solidityKeccak256(["string", "address"], [uri, projOwner.address])
-      ),
+      id: BigNumber.from(1),
       title: "Workhard is hiring",
       description: "helloworld",
       uri,
     };
     budget = { currency: baseCurrency.address, amount: parseEther("100") };
   });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
+  });
   describe("createProject()", async () => {
-    it("should emit ProjectPosted() event", async () => {
+    it("should emit NewProject() event", async () => {
       await expect(
-        jobBoard.connect(projOwner).createProject(projectMetadata.uri)
+        workhard.connect(projOwner).createProject(0, projectMetadata.uri)
       )
-        .to.emit(jobBoard, "ProjectPosted")
-        .withArgs(projectMetadata.id);
+        .to.emit(workhard, "NewProject")
+        .withArgs(0, projectMetadata.id);
     });
   });
   describe("addBudget()", async () => {
     it("should transfer the fund from the proposer to the contract", async () => {
-      await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
+      await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
       expect(await baseCurrency.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
@@ -117,7 +124,7 @@ describe("JobBoard.sol", function () {
   });
   describe("closeProject() & disapproveProject()", async () => {
     beforeEach(async () => {
-      await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
+      await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
       await jobBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
@@ -152,7 +159,7 @@ describe("JobBoard.sol", function () {
   });
   describe("executeBudget()", async () => {
     beforeEach(async () => {
-      await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
+      await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
       await jobBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
@@ -209,7 +216,7 @@ describe("JobBoard.sol", function () {
   });
   describe("forceExecuteBudget()", async () => {
     beforeEach(async () => {
-      await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
+      await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
       await jobBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
@@ -254,7 +261,7 @@ describe("JobBoard.sol", function () {
   });
   describe("addBudget(): should allow project owners add new budgets and governance approves them", async () => {
     beforeEach(async () => {
-      await jobBoard.connect(projOwner).createProject(projectMetadata.uri);
+      await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
       await jobBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);

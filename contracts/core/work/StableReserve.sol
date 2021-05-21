@@ -16,12 +16,7 @@ import "../../utils/ERC20Recoverer.sol";
 /**
  * @notice StableReserve is the $COMMIT minter. It allows JobBoard to mint $COMMIT token.
  */
-contract StableReserve is
-    ERC20Recoverer,
-    Governed,
-    IStableReserve,
-    Initializable
-{
+contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Address for address;
@@ -30,7 +25,7 @@ contract StableReserve is
 
     address public override baseCurrency;
 
-    uint256 public priceOfCOMMIT = 20000; // denominator = 10000, ~= $2
+    uint256 public priceOfCOMMIT;
 
     mapping(address => bool) public minters; // allowed crypto job board contracts
 
@@ -43,16 +38,23 @@ contract StableReserve is
     function initialize(
         address _gov,
         address _commitToken,
-        address _baseCurrency
+        address _baseCurrency,
+        address[] memory _minters
     ) public initializer {
+        priceOfCOMMIT = 20000; // denominator = 10000, ~= $2
         commitToken = _commitToken;
         baseCurrency = _baseCurrency;
-        ERC20Recoverer.disablePermanently(_baseCurrency);
-        ERC20Recoverer.disablePermanently(_commitToken);
-        ERC20Recoverer.setRecoverer(_gov);
+
+        address[] memory disable = new address[](2);
+        disable[0] = _commitToken;
+        disable[1] = _baseCurrency;
+        ERC20Recoverer.initialize(_gov, disable);
         Governed.initialize(_gov);
         _deployer = msg.sender;
         _setMinter(gov, true);
+        for (uint256 i = 0; i < _minters.length; i++) {
+            _setMinter(_minters[i], true);
+        }
     }
 
     modifier onlyMinter() {
@@ -131,7 +133,7 @@ contract StableReserve is
     }
 
     function _mintCOMMIT(address to, uint256 amount) internal {
-        require(amount <= mintable(), "Out of budget");
+        require(amount <= mintable(), "Not enough reserve");
         COMMIT(commitToken).mint(to, amount);
     }
 

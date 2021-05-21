@@ -2,9 +2,8 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { constants, PopulatedTransaction, BigNumberish } from "ethers";
-import { BytesLike, parseEther } from "ethers/lib/utils";
-import { goTo } from "../../utils/utilities";
-import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
+import { BytesLike, parseEther, parseUnits } from "ethers/lib/utils";
+import { goTo, goToNextWeek, runTimelockTx } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   RIGHT,
@@ -13,7 +12,9 @@ import {
   VoteCounter,
   VotingEscrowLock,
   WorkersUnion,
+  WorkhardDAO,
 } from "../../../src";
+import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -24,9 +25,9 @@ describe("WorkersUnion.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let fixture: MiningFixture;
+  let masterDAO: WorkhardDAO;
   let vision: VISION;
-  let veLocker: VotingEscrowLock;
+  let votingEscrow: VotingEscrowLock;
   let workersUnion: WorkersUnion;
   let timelock: TimelockedGovernance;
   let voteCounter: VoteCounter;
@@ -42,33 +43,43 @@ describe("WorkersUnion.sol", function () {
     votingPeriod: number;
   };
   let txHash: string;
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     planter = signers[1];
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    fixture = await getMiningFixture({ skipMinterSetting: true });
-    vision = fixture.vision;
-    veLocker = fixture.veLocker;
-    right = fixture.right;
-    voteCounter = fixture.voteCounter;
-    workersUnion = fixture.workersUnion;
-    timelock = fixture.timelock;
-    voteCounter = fixture.voteCounter;
+    masterDAO = await (await getWorkhard()).getMasterDAO({ account: deployer });
+    vision = masterDAO.vision;
+    votingEscrow = masterDAO.votingEscrow;
+    right = masterDAO.right;
+    voteCounter = masterDAO.voteCounter;
+    workersUnion = masterDAO.workersUnion;
+    timelock = masterDAO.timelock;
+    const mineVision = async () => {
+      await goToNextWeek();
+      await masterDAO.visionEmitter.connect(deployer).distribute();
+    };
+    await mineVision();
     const prepare = async (account: SignerWithAddress) => {
-      await vision.mint(account.address, parseEther("1000000"));
+      await vision
+        .connect(deployer)
+        .transfer(account.address, parseEther("300"));
       await vision
         .connect(account)
-        .approve(veLocker.address, parseEther("1000000"));
+        .approve(votingEscrow.address, parseEther("300"));
     };
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
-    await veLocker.connect(alice).createLock(parseEther("1000"), 40);
-    await veLocker.connect(bob).createLock(parseEther("100000"), 20);
-    await veLocker.connect(carl).createLock(parseEther("100"), 4);
+    await votingEscrow
+      .connect(alice)
+      .createLock(parseUnits("1000", "gwei"), 40);
+    await votingEscrow
+      .connect(bob)
+      .createLock(parseUnits("100000", "gwei"), 20);
+    await votingEscrow.connect(carl).createLock(parseUnits("100", "gwei"), 4);
     await goTo(86400 * 7);
     pTx = await workersUnion.populateTransaction.changeVotingRule(
       3600 * 24 * 2,
@@ -95,6 +106,13 @@ describe("WorkersUnion.sol", function () {
       constants.HashZero,
       constants.HashZero
     );
+  });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
   describe("launch()", async () => {
     it("should be launched after 4 weeks", async () => {
@@ -159,6 +177,19 @@ describe("WorkersUnion.sol", function () {
         );
     });
     it("should revert when the proposer does not have enough voting power", async () => {
+      await runTimelockTx(
+        timelock,
+        workersUnion.populateTransaction.changeVotingRule(
+          86400,
+          86400 * 7,
+          86400 * 7,
+          86400 * 28,
+          (await voteCounter.getTotalVotes()).div(11),
+          (await voteCounter.getTotalVotes()).div(11),
+          voteCounter.address
+        ),
+        86400
+      );
       await expect(
         workersUnion
           .connect(carl)

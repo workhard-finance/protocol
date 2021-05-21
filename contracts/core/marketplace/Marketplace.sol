@@ -19,8 +19,7 @@ contract Marketplace is
     Governed,
     ReentrancyGuard,
     ERC1155Burnable,
-    IMarketplace,
-    Initializable
+    IMarketplace
 {
     struct Product {
         address manufacturer;
@@ -61,8 +60,9 @@ contract Marketplace is
         address _commitToken,
         address _dividendPool
     ) public initializer {
+        taxRate = 2000; // denominator is 10,000
         commitToken = ERC20Burnable(_commitToken);
-        ERC20Recoverer.setRecoverer(_gov);
+        ERC20Recoverer.initialize(_gov, new address[](0));
         Governed.initialize(_gov);
         Distributor._setup(_dividendPool);
     }

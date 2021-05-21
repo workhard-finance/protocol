@@ -5,17 +5,19 @@ interface IMiningPoolFactory {
     event NewMiningPool(
         address _emitter,
         address _stakingToken,
-        address _recoverTo,
         address _poolAddress
     );
 
-    function newPool(
-        address _emitter,
-        address _baseToken,
-        address _recoverTo
-    ) external returns (address);
+    function newPool(address _emitter, address _baseToken)
+        external
+        returns (address);
 
-    function poolSig() external view returns (bytes4);
+    function getPool(address _emitter, address _baseToken)
+        external
+        view
+        returns (address);
+
+    function poolType() external view returns (bytes4);
 
     function poolAddress(address _emitter, address _baseToken)
         external

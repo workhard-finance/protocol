@@ -9,7 +9,6 @@ import {
   runTimelockTx,
   setNextBlockTimestamp,
 } from "../../utils/utilities";
-import { getMiningFixture, MiningFixture } from "../../../scripts/fixtures";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   ERC20BurnMiningV1,
@@ -28,10 +27,14 @@ import {
   ERC1155__factory,
   ERC721StakeMiningV1,
   ERC1155StakeMiningV1,
-  Project__factory,
   ERC721StakeMiningV1__factory,
   ERC1155StakeMiningV1__factory,
+  WorkhardDAO,
+  WorkhardClient,
+  ERC20__factory,
+  ERC20,
 } from "../../../src";
+import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -42,12 +45,13 @@ describe("MiningPool.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let fixture: MiningFixture;
+  let workhard: WorkhardClient;
+  let masterDAO: WorkhardDAO;
   let vision: VISION;
   let visionEmitter: VisionEmitter;
   let timelock: TimelockedGovernance;
-  let testingStakeToken: VISION;
-  let testingBurnToken: COMMIT;
+  let testingStakeToken: ERC20;
+  let testingBurnToken: ERC20;
   let testingERC721: ERC721;
   let testingERC1155: ERC1155;
   let erc20StakeMining: ERC20StakeMiningV1;
@@ -55,25 +59,26 @@ describe("MiningPool.sol", function () {
   let erc721StakeMining: ERC721StakeMiningV1;
   let erc1155StakeMining: ERC1155StakeMiningV1;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
     dev = signers[1];
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    fixture = await getMiningFixture();
-    vision = fixture.vision;
-    visionEmitter = fixture.visionEmitter;
-    timelock = fixture.timelock;
-    testingStakeToken = await new VISION__factory(deployer).deploy();
-    testingBurnToken = await new COMMIT__factory(deployer).deploy();
+    workhard = await getWorkhard();
+    masterDAO = await workhard.getMasterDAO({ account: deployer });
+    vision = masterDAO.vision;
+    visionEmitter = masterDAO.visionEmitter;
+    timelock = masterDAO.timelock;
+    testingStakeToken = await new ERC20__factory(deployer).deploy();
+    testingBurnToken = await new ERC20__factory(deployer).deploy();
     testingERC721 = await new ERC721__factory(deployer).deploy();
     testingERC1155 = await new ERC1155__factory(deployer).deploy();
     const erc20BurnMiningV1SigHash =
-      await fixture.erc20BurnMiningV1Factory.poolSig();
+      await workhard.commons.erc20BurnMiningV1Factory.poolType();
     const erc20StakeMiningV1SigHash =
-      await fixture.erc20StakeMiningV1Factory.poolSig();
+      await workhard.commons.erc20StakeMiningV1Factory.poolType();
     await visionEmitter.newPool(
       erc20BurnMiningV1SigHash,
       testingBurnToken.address
@@ -83,37 +88,41 @@ describe("MiningPool.sol", function () {
       testingStakeToken.address
     );
     erc20BurnMining = ERC20BurnMiningV1__factory.connect(
-      await fixture.erc20BurnMiningV1Factory.poolAddress(
+      await workhard.commons.erc20BurnMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingBurnToken.address
       ),
       deployer
     );
     erc20StakeMining = ERC20StakeMiningV1__factory.connect(
-      await fixture.erc20StakeMiningV1Factory.poolAddress(
+      await workhard.commons.erc20StakeMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingStakeToken.address
       ),
       deployer
     );
     erc721StakeMining = ERC721StakeMiningV1__factory.connect(
-      await fixture.erc721StakeMiningV1Factory.poolAddress(
+      await workhard.commons.erc721StakeMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingERC721.address
       ),
       deployer
     );
     erc1155StakeMining = ERC1155StakeMiningV1__factory.connect(
-      await fixture.erc1155StakeMiningV1Factory.poolAddress(
+      await workhard.commons.erc1155StakeMiningV1Factory.poolAddress(
         visionEmitter.address,
         testingERC1155.address
       ),
       deployer
     );
     const prepare = async (account: SignerWithAddress) => {
-      await testingStakeToken.mint(account.address, parseEther("10000"));
-      await testingBurnToken.mint(account.address, parseEther("10000"));
-      await testingERC1155.mint(account.address, 0, 10);
+      await testingStakeToken
+        .connect(deployer)
+        .mint(account.address, parseEther("10000"));
+      await testingBurnToken
+        .connect(deployer)
+        .mint(account.address, parseEther("10000"));
+      await testingERC1155.connect(deployer).mint(account.address, 0, 10);
       await testingStakeToken
         .connect(account)
         .approve(erc20StakeMining.address, parseEther("10000"));
@@ -130,30 +139,22 @@ describe("MiningPool.sol", function () {
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
-    await testingERC721.mint(alice.address, 0);
-    await testingERC721.mint(alice.address, 1);
-    await testingERC721.mint(alice.address, 2);
-    await testingERC721.mint(bob.address, 3);
-    await testingERC721.mint(bob.address, 4);
-    await testingERC721.mint(bob.address, 5);
-    await testingERC721.mint(carl.address, 6);
-    await testingERC721.mint(carl.address, 7);
-    await testingERC721.mint(carl.address, 8);
-    await runTimelockTx(
-      timelock,
-      visionEmitter.populateTransaction.start(),
-      86400
-    );
-    await runTimelockTx(
-      timelock,
-      visionEmitter.populateTransaction.setEmission(
-        [erc20BurnMining.address, erc20StakeMining.address],
-        [4745, 4745],
-        500,
-        10
-      ),
-      86400
-    );
+    await testingERC721.connect(deployer).mint(alice.address, 0);
+    await testingERC721.connect(deployer).mint(alice.address, 1);
+    await testingERC721.connect(deployer).mint(alice.address, 2);
+    await testingERC721.connect(deployer).mint(bob.address, 3);
+    await testingERC721.connect(deployer).mint(bob.address, 4);
+    await testingERC721.connect(deployer).mint(bob.address, 5);
+    await testingERC721.connect(deployer).mint(carl.address, 6);
+    await testingERC721.connect(deployer).mint(carl.address, 7);
+    await testingERC721.connect(deployer).mint(carl.address, 8);
+  });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
   describe("distribute()", async () => {
     beforeEach(async () => {

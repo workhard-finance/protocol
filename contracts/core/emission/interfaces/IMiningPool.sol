@@ -2,11 +2,7 @@
 pragma solidity ^0.7.0;
 
 interface IMiningPool {
-    function initialize(
-        address _tokenEmitter,
-        address _baseToken,
-        address _recoverTo
-    ) external;
+    function initialize(address _tokenEmitter, address _baseToken) external;
 
     function allocate(uint256 amount) external;
 

@@ -12,9 +12,9 @@ import "../../core/governance/Governed.sol";
 import "../../core/work/libraries/CommitMinter.sol";
 import "../../core/work/libraries/GrantReceiver.sol";
 import "../../core/work/interfaces/IStableReserve.sol";
-import "../../core/work/interfaces/IProject.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
+import "../../apps/IWorkhard.sol";
 
 struct Budget {
     uint256 amount;
@@ -33,9 +33,11 @@ contract JobBoard is
     using SafeERC20 for IERC20;
     using ECDSA for bytes32;
 
+    bool thirdPartyAccess;
+
     address public baseCurrency;
 
-    IProject public project;
+    IWorkhard public workhard;
 
     uint256 public normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
 
@@ -73,18 +75,21 @@ contract JobBoard is
     event BudgetWithdrawn(uint256 projId, uint256 index);
 
     function initialize(
+        address _workhard,
         address _gov,
-        address _project,
         address _dividendPool,
         address _stableReserve,
         address _baseCurrency,
         address _commit
     ) public initializer {
+        normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
+        taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
         CommitMinter._setup(_stableReserve, _commit);
         Distributor._setup(_dividendPool);
         baseCurrency = _baseCurrency;
-        project = IProject(_project);
+        workhard = IWorkhard(_workhard);
         acceptableTokens[_baseCurrency] = true;
+        thirdPartyAccess = true;
         Governed.initialize(_gov);
     }
 
@@ -97,11 +102,12 @@ contract JobBoard is
     }
 
     modifier onlyProjectOwner(uint256 projId) {
-        require(project.ownerOf(projId) == msg.sender, "Not authorized");
+        require(workhard.ownerOf(projId) == msg.sender, "Not authorized");
         _;
     }
 
     modifier onlyApprovedProject(uint256 projId) {
+        require(thirdPartyAccess, "Third party access is not allowed.");
         require(approvedProjects[projId], "Not an approved project.");
         _;
     }
@@ -156,7 +162,7 @@ contract JobBoard is
             "Only can get $COMMIT token for its grant"
         );
         uint256 projId = abi.decode(data, (uint256));
-        require(project.ownerOf(projId) != address(0), "No budget owner");
+        require(workhard.ownerOf(projId) != address(0), "No budget owner");
         projectFund[projId] = projectFund[projId].add(amount);
         emit Grant(projId, amount);
         return true;
@@ -185,7 +191,7 @@ contract JobBoard is
         require(!claimed[claimHash], "Already claimed");
         claimed[claimHash] = true;
         address signer = claimHash.recover(sig);
-        require(project.ownerOf(projectId) == signer, "Invalid signer");
+        require(workhard.ownerOf(projectId) == signer, "Invalid signer");
         require(projectFund[projectId] >= amount);
         projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
         IERC20(commitToken).safeTransfer(to, amount);
@@ -222,6 +228,10 @@ contract JobBoard is
         taxRateForUndeclared = rate;
     }
 
+    function allowThirdPartyAccess(bool allow) public governed {
+        thirdPartyAccess = allow;
+    }
+
     function getTotalBudgets(uint256 projId) public view returns (uint256) {
         return projectBudgets[projId].length;
     }
@@ -252,7 +262,7 @@ contract JobBoard is
 
     function _withdrawAllBudgets(uint256 projId) internal nonReentrant {
         Budget[] storage budgets = projectBudgets[projId];
-        address projOwner = project.ownerOf(projId);
+        address projOwner = workhard.ownerOf(projId);
         for (uint256 i = 0; i < budgets.length; i += 1) {
             Budget storage budget = budgets[i];
             if (!budget.transferred) {

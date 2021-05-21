@@ -62,27 +62,29 @@ contract MiningPool is
         _;
     }
 
-    constructor() ERC20Recoverer() ERC165() {
-        _registerInterface(MiningPool(0).allocate.selector);
-    }
-
-    function initialize(
-        address _tokenEmitter,
-        address _baseToken,
-        address _recoverTo
-    ) public override {
+    function initialize(address _tokenEmitter, address _baseToken)
+        public
+        virtual
+        override
+    {
         address _token = ITokenEmitter(_tokenEmitter).token();
+
         require(address(token) == address(0), "Already initialized");
-        require(_token != address(0));
-        require(_tokenEmitter != address(0));
-        require(_baseToken != address(0));
-        require(_recoverTo != address(0));
+        require(_token != address(0), "Token is zero address");
+        require(_tokenEmitter != address(0), "Token emitter is zero address");
+        require(_baseToken != address(0), "Base token is zero address");
         token = _token;
         tokenEmitter = _tokenEmitter;
         baseToken = _baseToken;
-        ERC20Recoverer.disablePermanently(_token);
-        ERC20Recoverer.disablePermanently(_baseToken);
-        ERC20Recoverer.setRecoverer(_recoverTo);
+        // ERC20Recoverer
+        address[] memory disable = new address[](2);
+        disable[0] = _token;
+        disable[1] = _baseToken;
+        ERC20Recoverer.initialize(msg.sender, disable);
+        // ERC165
+        bytes4 _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+        _registerInterface(_INTERFACE_ID_ERC165);
+        _registerInterface(MiningPool(0).allocate.selector);
     }
 
     function allocate(uint256 amount)

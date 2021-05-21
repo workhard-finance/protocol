@@ -13,11 +13,18 @@ describe("Governed.sol", function () {
   let initialGov: SignerWithAddress;
   let newGov: SignerWithAddress;
   let governed: Governed;
-  beforeEach(async () => {
+  before(async () => {
     signers = await ethers.getSigners();
     initialGov = signers[0];
     newGov = signers[1];
     governed = await new Governed__factory(initialGov).deploy();
+  });
+  let snapshot: string;
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
   });
   it("Governance admin functions is only allowed to 'gov' address", async function () {
     const _governed = governed.connect(newGov);

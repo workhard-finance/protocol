@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-import "../../../utils/ERC20Recoverer.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
 contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
@@ -13,7 +12,11 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
 
     mapping(address => mapping(uint256 => uint256)) staking;
 
-    constructor() MiningPool() {
+    function initialize(address _tokenEmitter, address _baseToken)
+        public
+        override
+    {
+        super.initialize(_tokenEmitter, _baseToken);
         _registerInterface(ERC1155StakeMiningV1(0).stake.selector);
         _registerInterface(ERC1155StakeMiningV1(0).mine.selector);
         _registerInterface(ERC1155StakeMiningV1(0).withdraw.selector);

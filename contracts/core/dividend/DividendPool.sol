@@ -38,6 +38,8 @@ contract DividendPool is
 
     mapping(address => bool) public override distributed;
 
+    address[] internal _distributedTokens;
+
     address[] internal _featuredRewards;
 
     /** @notice The block timestamp when the contract is deployed */
@@ -72,6 +74,7 @@ contract DividendPool is
     {
         if (!distributed[_token]) {
             distributed[_token] = true;
+            _distributedTokens.push(_token);
             emit NewReward(_token);
         }
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
@@ -164,6 +167,15 @@ contract DividendPool is
             acc = acc.add(_claimable(distribution, lockId, currentEpoch - 1));
         }
         return acc;
+    }
+
+    function distributedTokens()
+        public
+        view
+        override
+        returns (address[] memory)
+    {
+        return _distributedTokens;
     }
 
     function featuredRewards() public view override returns (address[] memory) {
