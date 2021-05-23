@@ -34,7 +34,7 @@
     "clean": "rimraf build; rimraf dist",
     "compile": "hardhat compile",
     "pregen-ts": "rimraf artifacts/**/*.dbg.json",
-    "gen-ts": "yarn gen-ts1 && yarn gen-ts2 && yarn gen-ts3 && yarn gen-ts4 && yarn tsc",
+    "gen-ts": "yarn gen-ts1 & yarn gen-ts2 & yarn gen-ts3 & yarn gen-ts4 & wait && yarn tsc",
     "gen-ts1": "typechain --target ethers-v5 --outDir build/contracts \"artifacts/contracts/**/*.json\"",
     "gen-ts2": "typechain --target ethers-v5 --outDir build/@uniswap \"artifacts/@uniswap/**/*.json\"",
     "gen-ts3": "typechain --target ethers-v5 --outDir build/@gnosis.pm \"artifacts/@gnosis.pm/**/*.json\"",
