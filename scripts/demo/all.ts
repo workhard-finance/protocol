@@ -6,11 +6,9 @@ import {
   launchWorkersUnion,
   mintBaseCurrency,
   newCryptoJob,
-  startEmission,
 } from "./actions";
 
 async function main() {
-  await startEmission();
   await distribute();
   await mintBaseCurrency();
   await addLiquidity();

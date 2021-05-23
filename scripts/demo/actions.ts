@@ -6,6 +6,8 @@ import { parseEther } from "ethers/lib/utils";
 import { ERC20__factory } from "../../src";
 import { WorkhardClient } from "../../src";
 
+import deployed from "../../deployed.dev.json";
+
 export async function startEmission() {
   console.log(
     "Start Emission - snapshot id: ",
@@ -13,9 +15,8 @@ export async function startEmission() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO({ account: signer });
 
@@ -34,9 +35,8 @@ export async function distribute() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
 
@@ -53,9 +53,8 @@ export async function mintBaseCurrency() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
   const { baseCurrency } = masterDAO;
@@ -72,9 +71,8 @@ export async function addLiquidity() {
     await ethers.provider.send("evm_snapshot", [])
   );
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
   const { vision } = masterDAO;
@@ -109,9 +107,8 @@ export async function launchWorkersUnion() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
   const { workersUnion } = masterDAO;
@@ -130,9 +127,8 @@ export async function newCryptoJob() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
 
@@ -149,9 +145,8 @@ export async function approveProject() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
   const { jobBoard, timelock } = masterDAO;
@@ -170,9 +165,8 @@ export async function distributeReward() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, {
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
     account: signer,
-    deployed: require("../../deployed.dev.json"),
   });
   const masterDAO = await client.getMasterDAO();
   const { baseCurrency, dividendPool } = masterDAO;
