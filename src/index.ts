@@ -1,5 +1,5 @@
 import { BigNumberish } from "@ethersproject/bignumber";
-import { Contract, ethers, Signer } from "ethers";
+import { constants, ethers, Signer } from "ethers";
 import deployedContract from "../deployed.json";
 import {
   COMMIT,
@@ -266,6 +266,7 @@ export class WorkhardClient {
     }
   ): Promise<WorkhardDAO | undefined> => {
     const contracts = await this.workhard.getDAO(id);
+    if (contracts.timelock === constants.AddressZero) return undefined;
     const connector = option?.account || this.signer || this.workhard.provider;
     let multisig = GnosisSafe__factory.connect(contracts.multisig, connector);
     let baseCurrency = IERC20__factory.connect(
