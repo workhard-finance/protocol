@@ -341,6 +341,7 @@ export class WorkhardClient {
   ): Promise<WorkhardPeriphery | undefined> => {
     const connector = option?.account || this.signer || this.workhard.provider;
     const dao = await this.getDAO(id, option);
+    if (!dao) return undefined;
     const visionLPAddress = await this.commons.pool2Factory.getPair(
       dao.vision.address,
       this.commons.weth.address
