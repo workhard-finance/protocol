@@ -351,7 +351,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             string(
                 abi.encodePacked(params.projectSymbol, "-FounderBurnMiningV1")
             ),
-            fork.votingEscrow
+            fork.multisig
         );
         address[] memory stableReserveMinters = new address[](1);
         stableReserveMinters[0] = fork.jobBoard;
