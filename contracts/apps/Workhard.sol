@@ -34,8 +34,8 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
     CommonContracts private commons;
     WorkhardDAO private controller;
     mapping(uint256 => WorkhardDAO) private dao;
-    mapping(uint256 => string) public nameOf;
-    mapping(uint256 => string) public symbolOf;
+    mapping(uint256 => string) public override nameOf;
+    mapping(uint256 => string) public override symbolOf;
     uint256[] private allDAOs;
 
     mapping(address => uint256) private _daoAddressBook;
