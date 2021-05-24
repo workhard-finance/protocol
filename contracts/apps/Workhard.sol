@@ -34,6 +34,8 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
     CommonContracts private commons;
     WorkhardDAO private controller;
     mapping(uint256 => WorkhardDAO) private dao;
+    uint256[] private allDAOs;
+
     mapping(address => uint256) private _daoAddressBook;
     mapping(uint256 => bool) public override immortalized;
 
@@ -281,6 +283,10 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         return dao[id];
     }
 
+    function getAllDAOs() public view override returns (uint256[] memory) {
+        return allDAOs;
+    }
+
     function getController() public view override returns (WorkhardDAO memory) {
         return controller;
     }
@@ -418,5 +424,6 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         VisionEmitter(fork.visionEmitter).setGovernance(fork.timelock);
         // 4. transfer ownership to timelock
         _transfer(msg.sender, fork.timelock, id);
+        allDAOs.push(id);
     }
 }
