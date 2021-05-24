@@ -123,4 +123,8 @@ interface IWorkhard is IERC721 {
     function getAllDAOs() external view returns (uint256[] memory);
 
     function getController() external view returns (WorkhardDAO memory);
+
+    function nameOf(uint256 daoId) external view returns (string memory);
+
+    function symbolOf(uint256 daoId) external view returns (string memory);
 }
