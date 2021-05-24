@@ -12,6 +12,8 @@ import {
   TimelockedGovernance,
   VISION,
   VotingEscrowLock,
+  Workhard,
+  WorkhardClient,
   WorkhardDAO,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
@@ -28,7 +30,11 @@ describe("DividendPool.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
+  let client: WorkhardClient;
+  let workhard: Workhard;
   let masterDAO: WorkhardDAO;
+  let forkedDAO: WorkhardDAO;
+  let forkedDAOId: number;
   let vision: VISION;
   let dividendPool: DividendPool;
   let votingEscrow: VotingEscrowLock;
@@ -42,7 +48,9 @@ describe("DividendPool.sol", function () {
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    masterDAO = await (await getWorkhard()).getMasterDAO();
+    client = await getWorkhard();
+    workhard = client.workhard.connect(deployer);
+    masterDAO = await client.getMasterDAO();
     vision = masterDAO.vision;
     dividendPool = masterDAO.dividendPool;
     votingEscrow = masterDAO.votingEscrow;
@@ -70,6 +78,36 @@ describe("DividendPool.sol", function () {
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
+    const fork = async () => {
+      await workhard.createProject(0, "mockuri");
+      const projId = await workhard.projectsOfDAOByIndex(
+        0,
+        (await workhard.projectsOf(0)).sub(1)
+      );
+      await workhard.upgradeToDAO(projId, {
+        multisig: deployer.address,
+        baseCurrency: masterDAO.baseCurrency.address,
+        projectName: "Workhard Forked Dev",
+        projectSymbol: "WFK",
+        visionName: "Flovoured Vision",
+        visionSymbol: "fVISION",
+        commitName: "Flavoured Commit",
+        commitSymbol: "fCOMMIT",
+        rightName: "Flavoured Right",
+        rightSymbol: "fRIGHT",
+        minDelay: 86400,
+        launchDelay: 86400 * 7 * 4,
+        initialEmission: parseEther("24000000"),
+        minEmissionRatePerWeek: 60,
+        emissionCutRate: 3000,
+        founderShare: 500,
+      });
+      await workhard.launch(projId, 4750, 4750, 499, 1);
+      return projId;
+    };
+    const forked = await fork();
+    forkedDAOId = forked.toNumber();
+    forkedDAO = await client.getDAO(forkedDAOId, { account: deployer });
   });
   let snapshot: string;
   beforeEach(async () => {
@@ -228,6 +266,31 @@ describe("DividendPool.sol", function () {
             .claimUpTo(testingRewardToken.address, timestamp);
         });
       });
+    });
+  });
+
+  describe("fork & emission sharing test", async () => {
+    it.only("should share the emission with Master RIGHT holders", async () => {
+      await goTo(1 * week);
+      await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
+      // no sharing yet
+      const claimable0 = await dividendPool
+        .connect(alice)
+        .claimable(forkedDAO.vision.address);
+      expect(claimable0).eq(0);
+      // automatic emission sharing
+      const emissionAmount = await forkedDAO.visionEmitter.emission();
+      await forkedDAO.visionEmitter.distribute();
+      const claimable1 = await dividendPool
+        .connect(alice)
+        .claimable(forkedDAO.vision.address);
+      // claimable from its next week
+      expect(claimable1).eq(0);
+      await goToNextWeek();
+      const claimable2 = await dividendPool
+        .connect(alice)
+        .claimable(forkedDAO.vision.address);
+      almostEquals(claimable2, emissionAmount.div(34));
     });
   });
 });
