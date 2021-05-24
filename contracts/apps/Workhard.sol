@@ -364,7 +364,14 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             fork.commit,
             fork.dividendPool
         );
-        DividendPool(fork.dividendPool).initialize(fork.timelock, fork.right);
+        address[] memory _rewardTokens = new address[](2);
+        _rewardTokens[0] = fork.commit;
+        _rewardTokens[1] = fork.baseCurrency;
+        DividendPool(fork.dividendPool).initialize(
+            fork.timelock,
+            fork.right,
+            _rewardTokens
+        );
         VoteCounter(fork.voteCounter).initialize(fork.right);
         WorkersUnion(payable(fork.workersUnion)).initialize(
             fork.voteCounter,

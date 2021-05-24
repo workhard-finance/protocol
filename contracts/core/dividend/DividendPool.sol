@@ -53,11 +53,16 @@ contract DividendPool is
 
     event NewDistribution(address indexed token, uint256 amount);
 
-    function initialize(address _gov, address _RIGHT) public initializer {
+    function initialize(
+        address _gov,
+        address _RIGHT,
+        address[] memory _rewardTokens
+    ) public initializer {
         veVISION = _RIGHT;
         veLocker = IVotingEscrowToken(_RIGHT).veLocker();
         Governed.initialize(_gov);
         genesis = (block.timestamp / epochUnit) * epochUnit;
+        _featuredRewards = _rewardTokens;
     }
 
     modifier onlyAdmin() {
