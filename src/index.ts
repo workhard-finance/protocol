@@ -8,6 +8,8 @@ import {
   DividendPool__factory,
   ERC1155StakeMiningV1Factory,
   ERC1155StakeMiningV1Factory__factory,
+  ERC20,
+  ERC20__factory,
   ERC20BurnMiningV1,
   ERC20BurnMiningV1Factory,
   ERC20BurnMiningV1Factory__factory,
@@ -22,8 +24,6 @@ import {
   FounderShare__factory,
   GnosisSafe,
   GnosisSafe__factory,
-  IERC20,
-  IERC20__factory,
   JobBoard,
   JobBoard__factory,
   Marketplace,
@@ -133,7 +133,7 @@ export const deployed: Deployed = deployedContract;
 
 export type WorkhardDAO = {
   multisig: GnosisSafe;
-  baseCurrency: IERC20;
+  baseCurrency: ERC20;
   timelock: TimelockedGovernance;
   vision: VISION;
   commit: COMMIT;
@@ -269,7 +269,7 @@ export class WorkhardClient {
     if (contracts.timelock === constants.AddressZero) return undefined;
     const connector = option?.account || this.signer || this.workhard.provider;
     let multisig = GnosisSafe__factory.connect(contracts.multisig, connector);
-    let baseCurrency = IERC20__factory.connect(
+    let baseCurrency = ERC20__factory.connect(
       contracts.baseCurrency,
       connector
     );
