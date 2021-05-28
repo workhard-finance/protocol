@@ -60,7 +60,10 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                 bytes32(masterDAOId),
                 address(this)
             );
-        createProject(masterDAOId, ""); // TODO: update this ipfs uri!
+        createProject(
+            masterDAOId,
+            "QmTFKqcLx9utcxSDLbfWicLnUDFACbrGjcQ6Yhz13qWDqS"
+        );
         ERC20Recoverer.initialize(masterTimelock, new address[](0));
     }
 
