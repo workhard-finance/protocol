@@ -111,6 +111,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         nameOf[_tokenId] = params.projectName;
         symbolOf[_tokenId] = params.projectSymbol;
         emit DAOLaunched(_tokenId);
+        allDAOs.push(_tokenId);
     }
 
     function launch(
@@ -431,6 +432,5 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         VisionEmitter(fork.visionEmitter).setGovernance(fork.timelock);
         // 4. transfer ownership to timelock
         _transfer(msg.sender, fork.timelock, id);
-        allDAOs.push(id);
     }
 }
