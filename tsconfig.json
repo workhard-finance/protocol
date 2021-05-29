@@ -11,6 +11,6 @@
     "rootDir": "./",
     "declaration": true
   },
-  "include": ["./build", "./src"],
+  "include": ["./build", "./src", "./deployed.json"],
   "compileOnSave": true
 }
