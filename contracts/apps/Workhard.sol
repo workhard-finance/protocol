@@ -194,29 +194,6 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         dao[id].multisig = newMultisig;
     }
 
-    function changeProjectOwner(uint256 id, address newOwner) public override {
-        require(
-            _belongsTo.get(id) == msg.sender || ownerOf(id) == msg.sender,
-            "Not authorized"
-        );
-        _safeTransfer(ownerOf(id), newOwner, id, new bytes(0));
-    }
-
-    function moveProjectToAnotherDAO(uint256 _tokenId, uint256 _daoId)
-        public
-        override
-        onlyOwnerOf(_tokenId)
-    {
-        address fromDAO =
-            _belongsTo.get(_tokenId, "owner query for nonexistent token");
-        address newDAO = convertDAOIdToAddress(_daoId);
-        require(_belongsTo.get(_tokenId) == fromDAO, "Not authorized");
-        _belongsTo.set(_tokenId, newDAO);
-        _daoProjects[fromDAO].remove(_tokenId);
-        _daoProjects[newDAO].add(_tokenId);
-        emit ProjectMoved(convertDAOAddressToId(fromDAO), _daoId);
-    }
-
     /**
      * @notice it returns timelock governance contract's address.
      */

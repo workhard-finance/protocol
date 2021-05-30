@@ -82,10 +82,6 @@ interface IWorkhard is IERC721 {
 
     function changeMultisig(uint256 id, address newMultisig) external;
 
-    function changeProjectOwner(uint256 id, address newOwner) external;
-
-    function moveProjectToAnotherDAO(uint256 _tokenId, uint256 _daoId) external;
-
     /** VIEW FUNCTIONS */
 
     /**

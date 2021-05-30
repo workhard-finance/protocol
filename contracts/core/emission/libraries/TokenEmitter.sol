@@ -85,6 +85,8 @@ contract TokenEmitter is
 
     address public initialContributorPool;
 
+    address public initialContributorShare;
+
     address public treasury;
 
     address public protocolPool;
@@ -139,6 +141,7 @@ contract TokenEmitter is
         address _initialContributorPool =
             newPool(PoolType.InitialContributorShare, params.contributionBoard);
         initialContributorPool = _initialContributorPool;
+        initialContributorShare = params.contributionBoard;
         Governed.setGovernance(params.gov);
     }
 
