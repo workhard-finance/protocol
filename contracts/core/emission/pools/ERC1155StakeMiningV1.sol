@@ -29,17 +29,14 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
 
     function stake(uint256 id, uint256 amount) public {
         bytes memory zero;
-        try
-            IERC1155(baseToken).safeTransferFrom(
-                msg.sender,
-                address(this),
-                id,
-                amount,
-                zero
-            )
-        {} catch {
-            _stake(id, amount);
-        }
+        IERC1155(baseToken).safeTransferFrom(
+            msg.sender,
+            address(this),
+            id,
+            amount,
+            zero
+        );
+        _stake(id, amount);
     }
 
     function withdraw(uint256 tokenId, uint256 amount) public {
