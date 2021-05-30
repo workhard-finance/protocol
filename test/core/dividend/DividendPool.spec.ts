@@ -270,7 +270,7 @@ describe("DividendPool.sol", function () {
   });
 
   describe("fork & emission sharing test", async () => {
-    it.only("should share the emission with Master RIGHT holders", async () => {
+    it("should share the emission with Master RIGHT holders", async () => {
       await goTo(1 * week);
       await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
       // no sharing yet

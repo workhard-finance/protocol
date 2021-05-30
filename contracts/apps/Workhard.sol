@@ -12,9 +12,9 @@ import "../core/tokens/VISION.sol";
 import "../core/tokens/COMMIT.sol";
 import "../core/tokens/RIGHT.sol";
 import "../core/work/StableReserve.sol";
-import "../core/work/JobBoard.sol";
+import "../core/work/ContributionBoard.sol";
+import "../core/work/interfaces/IContributionBoard.sol";
 import "../core/governance/TimelockedGovernance.sol";
-import "../core/governance/FounderShare.sol";
 import "../core/governance/WorkersUnion.sol";
 import "../core/governance/libraries/VoteCounter.sol";
 import "../core/governance/libraries/VotingEscrowLock.sol";
@@ -153,6 +153,12 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         miningConfig.treasuryWeight = treasury;
         miningConfig.callerWeight = caller;
         _launch(id, miningConfig);
+
+        // no more initial contribution record
+        address initialContributorPool =
+            VisionEmitter(fork.visionEmitter).initialContributorPool();
+        IContributionBoard(IMiningPool(initialContributorPool).baseToken())
+            .freeze(id);
     }
 
     function launchHard(uint256 id, MiningConfig memory config)
@@ -310,11 +316,12 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         fork.vision = controller.vision.cloneDeterministic(salt);
         fork.commit = controller.commit.cloneDeterministic(salt);
         fork.right = controller.right.cloneDeterministic(salt);
-        fork.founderShare = controller.founderShare.cloneDeterministic(salt);
         fork.stableReserve = controller.stableReserve.cloneDeterministic(salt);
         fork.dividendPool = controller.dividendPool.cloneDeterministic(salt);
         fork.voteCounter = controller.voteCounter.cloneDeterministic(salt);
-        fork.jobBoard = controller.jobBoard.cloneDeterministic(salt);
+        fork.contributionBoard = controller
+            .contributionBoard
+            .cloneDeterministic(salt);
         fork.marketplace = controller.marketplace.cloneDeterministic(salt);
         fork.workersUnion = controller.workersUnion.cloneDeterministic(salt);
         fork.visionEmitter = controller.visionEmitter.cloneDeterministic(salt);
@@ -330,6 +337,14 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         WorkhardDAO storage fork = dao[id];
         fork.multisig = params.multisig;
         fork.baseCurrency = params.baseCurrency;
+
+        WorkhardDAO storage parentDAO =
+            dao[
+                convertDAOAddressToId(
+                    _belongsTo.get(id, "owner query for nonexistent token")
+                )
+            ];
+        // dao[belongsTo].contributionBoard;
         TimelockedGovernance(payable(fork.timelock)).initialize(
             params.minDelay,
             fork.multisig,
@@ -350,22 +365,15 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             params.rightSymbol,
             fork.votingEscrow
         );
-        FounderShare(fork.founderShare).initialize(
-            string(abi.encodePacked(params.projectName, " Founder Share")),
-            string(
-                abi.encodePacked(params.projectSymbol, "-FounderBurnMiningV1")
-            ),
-            fork.multisig
-        );
         address[] memory stableReserveMinters = new address[](1);
-        stableReserveMinters[0] = fork.jobBoard;
+        stableReserveMinters[0] = fork.contributionBoard;
         StableReserve(fork.stableReserve).initialize(
             fork.timelock,
             fork.commit,
             fork.baseCurrency,
             stableReserveMinters
         );
-        JobBoard(fork.jobBoard).initialize(
+        ContributionBoard(fork.contributionBoard).initialize(
             address(this),
             fork.timelock,
             fork.dividendPool,
@@ -394,6 +402,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         );
         VisionEmitter(fork.visionEmitter).initialize(
             EmitterConfig(
+                id,
                 params.initialEmission,
                 params.minEmissionRatePerWeek,
                 params.emissionCutRate,
@@ -401,12 +410,14 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                 fork.timelock, // treasury
                 address(this), // gov => will be transfered to timelock
                 fork.vision,
-                fork.founderShare,
                 id != 0 ? getMasterDAO().dividendPool : address(0),
+                parentDAO.contributionBoard,
                 commons.erc20BurnMiningV1Factory,
                 commons.erc20StakeMiningV1Factory,
                 commons.erc721StakeMiningV1Factory,
-                commons.erc1155StakeMiningV1Factory
+                commons.erc1155StakeMiningV1Factory,
+                commons.erc1155BurnMiningV1Factory,
+                commons.initialContributorShareFactory
             )
         );
         VotingEscrowLock(fork.votingEscrow).initialize(

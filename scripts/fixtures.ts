@@ -14,8 +14,8 @@ import {
   ERC20__factory,
   IERC20,
   IERC20__factory,
-  JobBoard,
-  JobBoard__factory,
+  ContributionBoard,
+  ContributionBoard__factory,
   Marketplace,
   Marketplace__factory,
   RIGHT,
@@ -24,8 +24,6 @@ import {
   VoteCounter__factory,
   StableReserve,
   StableReserve__factory,
-  FounderShare,
-  FounderShare__factory,
   ERC20BurnMiningV1,
   ERC20BurnMiningV1__factory,
   ERC20BurnMiningV1Factory,
@@ -55,10 +53,13 @@ import {
   Workhard__factory,
   Workhard,
   WorkhardClient,
+  InitialContributorShareFactory,
+  ERC1155BurnMiningV1Factory,
+  InitialContributorShareFactory__factory,
+  ERC1155BurnMiningV1Factory__factory,
 } from "../src";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { constants, Contract } from "ethers";
-import { parseEther } from "ethers/lib/utils";
+import { Contract } from "ethers";
 
 export interface HelperFixture {
   baseCurrency: ERC20;
@@ -72,6 +73,8 @@ export interface CommonsFixture extends HelperFixture {
   erc20StakeMiningV1Factory: ERC20StakeMiningV1Factory;
   erc721StakeMiningV1Factory: ERC721StakeMiningV1Factory;
   erc1155StakeMiningV1Factory: ERC1155StakeMiningV1Factory;
+  erc1155BurnMiningV1Factory: ERC1155BurnMiningV1Factory;
+  initialContributorShareFactory: InitialContributorShareFactory;
 }
 
 export interface WorkhardDAOFixture extends CommonsFixture {
@@ -79,11 +82,10 @@ export interface WorkhardDAOFixture extends CommonsFixture {
   commit: COMMIT;
   right: RIGHT;
   votingEscrow: VotingEscrowLock;
-  founderShare: FounderShare;
   timelock: TimelockedGovernance;
   dividendPool: DividendPool;
   stableReserve: StableReserve;
-  jobBoard: JobBoard;
+  contributionBoard: ContributionBoard;
   marketplace: Marketplace;
   voteCounter: VoteCounter;
   workersUnion: WorkersUnion;
@@ -156,6 +158,26 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
       ).address,
       deployer
     );
+  // 18. Deploy ERC1155StakeMiningV1Factory
+  const erc1155BurnMiningV1Factory =
+    ERC1155BurnMiningV1Factory__factory.connect(
+      (
+        await (
+          await ethers.getContractFactory("ERC1155BurnMiningV1Factory")
+        ).deploy()
+      ).address,
+      deployer
+    );
+  // 19. Deploy ERC1155StakeMiningV1Factory
+  const initialContributorShareFactory =
+    InitialContributorShareFactory__factory.connect(
+      (
+        await (
+          await ethers.getContractFactory("InitialContributorShareFactory")
+        ).deploy()
+      ).address,
+      deployer
+    );
   return {
     ...helperFixture,
     pool2Factory,
@@ -164,6 +186,8 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
     erc20StakeMiningV1Factory,
     erc721StakeMiningV1Factory,
     erc1155StakeMiningV1Factory,
+    erc1155BurnMiningV1Factory,
+    initialContributorShareFactory,
   };
 }
 
@@ -189,10 +213,6 @@ export async function getWorkhard(): Promise<WorkhardClient> {
       .address,
     deployer
   );
-  const founderShare = FounderShare__factory.connect(
-    (await (await ethers.getContractFactory("FounderShare")).deploy()).address,
-    deployer
-  );
   const timelock = TimelockedGovernance__factory.connect(
     (await (await ethers.getContractFactory("TimelockedGovernance")).deploy())
       .address,
@@ -206,8 +226,9 @@ export async function getWorkhard(): Promise<WorkhardClient> {
     (await (await ethers.getContractFactory("StableReserve")).deploy()).address,
     deployer
   );
-  const jobBoard = JobBoard__factory.connect(
-    (await (await ethers.getContractFactory("JobBoard")).deploy()).address,
+  const contributionBoard = ContributionBoard__factory.connect(
+    (await (await ethers.getContractFactory("ContributionBoard")).deploy())
+      .address,
     deployer
   );
   const marketplace = Marketplace__factory.connect(
@@ -238,9 +259,8 @@ export async function getWorkhard(): Promise<WorkhardClient> {
           vision: vision.address,
           commit: commit.address,
           right: right.address,
-          founderShare: founderShare.address,
           stableReserve: stableReserve.address,
-          jobBoard: jobBoard.address,
+          contributionBoard: contributionBoard.address,
           marketplace: marketplace.address,
           dividendPool: dividendPool.address,
           voteCounter: voteCounter.address,
@@ -259,6 +279,10 @@ export async function getWorkhard(): Promise<WorkhardClient> {
             commonsFixture.erc721StakeMiningV1Factory.address,
           erc1155StakeMiningV1Factory:
             commonsFixture.erc1155StakeMiningV1Factory.address,
+          erc1155BurnMiningV1Factory:
+            commonsFixture.erc1155BurnMiningV1Factory.address,
+          initialContributorShareFactory:
+            commonsFixture.initialContributorShareFactory.address,
         }
       )
     ).address,
@@ -277,11 +301,16 @@ export async function getWorkhard(): Promise<WorkhardClient> {
     rightSymbol: "RIGHT",
     minDelay: 86400,
     launchDelay: 2419200,
-    initialEmission: parseEther("24000000"),
+    initialEmission: ethers.utils.parseEther("24000000"),
     minEmissionRatePerWeek: 60,
     emissionCutRate: 3000,
     founderShare: 500,
   });
+  const masterDAO = await workhard.getMasterDAO();
+  await ContributionBoard__factory.connect(
+    masterDAO.contributionBoard,
+    deployer
+  ).recordContribution(deployer.address, 0, ethers.utils.parseEther("1000000"));
   await workhard.launch(0, 4750, 4750, 499, 1);
   const client = await WorkhardClient.from(ethers.provider, workhard.address);
   return client;

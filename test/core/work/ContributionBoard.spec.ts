@@ -9,7 +9,7 @@ import {
   COMMIT,
   DividendPool,
   ERC20,
-  JobBoard,
+  ContributionBoard,
   Workhard,
   StableReserve,
   TimelockedGovernance,
@@ -20,14 +20,14 @@ import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("JobBoard.sol", function () {
+describe("ContributionBoard.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
   let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let masterDAO: WorkhardDAO;
-  let jobBoard: JobBoard;
+  let contributionBoard: ContributionBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
   let workhard: Workhard;
@@ -57,7 +57,7 @@ describe("JobBoard.sol", function () {
       masterDAO.baseCurrency.address,
       deployer
     );
-    jobBoard = masterDAO.jobBoard;
+    contributionBoard = masterDAO.contributionBoard;
     commit = masterDAO.commit;
     stableReserve = masterDAO.stableReserve;
     dividendPool = masterDAO.dividendPool;
@@ -67,7 +67,7 @@ describe("JobBoard.sol", function () {
       await baseCurrency.mint(account.address, parseEther("10000"));
       await baseCurrency
         .connect(account)
-        .approve(jobBoard.address, parseEther("10000"));
+        .approve(contributionBoard.address, parseEther("10000"));
       await baseCurrency
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
@@ -108,16 +108,16 @@ describe("JobBoard.sol", function () {
       expect(await baseCurrency.balanceOf(projOwner.address)).to.eq(
         parseEther("10000")
       );
-      expect(await baseCurrency.balanceOf(jobBoard.address)).to.eq(
+      expect(await baseCurrency.balanceOf(contributionBoard.address)).to.eq(
         parseEther("0")
       );
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
       expect(await baseCurrency.balanceOf(projOwner.address)).to.eq(
         parseEther("9900")
       );
-      expect(await baseCurrency.balanceOf(jobBoard.address)).to.eq(
+      expect(await baseCurrency.balanceOf(contributionBoard.address)).to.eq(
         parseEther("100")
       );
     });
@@ -125,34 +125,40 @@ describe("JobBoard.sol", function () {
   describe("closeProject() & disapproveProject()", async () => {
     beforeEach(async () => {
       await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
     });
     it("only the proposer can close the project", async () => {
       await expect(
-        jobBoard.connect(bob).closeProject(projectMetadata.id)
+        contributionBoard.connect(bob).closeProject(projectMetadata.id)
       ).to.be.revertedWith("Not authorized");
-      await expect(jobBoard.connect(projOwner).closeProject(projectMetadata.id))
-        .to.emit(jobBoard, "ProjectClosed")
+      await expect(
+        contributionBoard.connect(projOwner).closeProject(projectMetadata.id)
+      )
+        .to.emit(contributionBoard, "ProjectClosed")
         .withArgs(projectMetadata.id);
     });
     it("should be withdrawable by the governance too", async () => {
       await expect(
-        jobBoard.connect(bob).closeProject(projectMetadata.id)
+        contributionBoard.connect(bob).closeProject(projectMetadata.id)
       ).to.be.revertedWith("Not authorized");
       await expect(
         runTimelockTx(
           timelock,
-          jobBoard.populateTransaction.disapproveProject(projectMetadata.id)
+          contributionBoard.populateTransaction.disapproveProject(
+            projectMetadata.id
+          )
         )
       )
-        .to.emit(jobBoard, "ProjectClosed")
+        .to.emit(contributionBoard, "ProjectClosed")
         .withArgs(projectMetadata.id);
     });
     it("should refund the unapproved budgets", async () => {
       const bal0: BigNumber = await baseCurrency.balanceOf(projOwner.address);
-      await jobBoard.connect(projOwner).closeProject(projectMetadata.id);
+      await contributionBoard
+        .connect(projOwner)
+        .closeProject(projectMetadata.id);
       const bal1: BigNumber = await baseCurrency.balanceOf(projOwner.address);
       expect(bal1.sub(bal0)).eq(parseEther("100"));
     });
@@ -160,40 +166,48 @@ describe("JobBoard.sol", function () {
   describe("executeBudget()", async () => {
     beforeEach(async () => {
       await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
     });
     it("should be run after the project is approved by the governance", async () => {
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .executeBudget(projectMetadata.id, 0)
       ).to.be.revertedWith("Not an approved project.");
       await runTimelockTx(
         timelock,
-        jobBoard.populateTransaction.approveProject(projectMetadata.id)
+        contributionBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .executeBudget(projectMetadata.id, 0)
       ).not.to.reverted;
     });
     it("should emit BudgetExecuted()", async () => {
       await runTimelockTx(
         timelock,
-        jobBoard.populateTransaction.approveProject(projectMetadata.id)
+        contributionBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       await expect(
-        jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .executeBudget(projectMetadata.id, 0)
       )
-        .to.emit(jobBoard, "BudgetExecuted")
+        .to.emit(contributionBoard, "BudgetExecuted")
         .withArgs(projectMetadata.id, 0);
     });
     it("should send the 80% of the fund to the labor market and mint commit token", async () => {
       await runTimelockTx(
         timelock,
-        jobBoard.populateTransaction.approveProject(projectMetadata.id)
+        contributionBoard.populateTransaction.approveProject(projectMetadata.id)
       );
       const prevTotalSupply: BigNumber = await commit.totalSupply();
-      await jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0);
+      await contributionBoard
+        .connect(projOwner)
+        .executeBudget(projectMetadata.id, 0);
       const updatedTotalSupply: BigNumber = await commit.totalSupply();
       expect(await baseCurrency.balanceOf(stableReserve.address)).to.eq(
         parseEther("80")
@@ -203,9 +217,11 @@ describe("JobBoard.sol", function () {
     it("should send the 20% of the fund to the vision farm", async () => {
       await runTimelockTx(
         timelock,
-        jobBoard.populateTransaction.approveProject(projectMetadata.id)
+        contributionBoard.populateTransaction.approveProject(projectMetadata.id)
       );
-      await jobBoard.connect(projOwner).executeBudget(projectMetadata.id, 0);
+      await contributionBoard
+        .connect(projOwner)
+        .executeBudget(projectMetadata.id, 0);
       const weekNum = await dividendPool.getCurrentEpoch();
       const result = await dividendPool.distributionOfWeek(
         baseCurrency.address,
@@ -217,33 +233,41 @@ describe("JobBoard.sol", function () {
   describe("forceExecuteBudget()", async () => {
     beforeEach(async () => {
       await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
     });
     it("should be run after the project is approved by the governance", async () => {
       await expect(
-        jobBoard.connect(projOwner).forceExecuteBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .forceExecuteBudget(projectMetadata.id, 0)
       ).not.to.be.reverted;
     });
     it("should be run only by the project owner", async () => {
       await expect(
-        jobBoard.connect(alice).forceExecuteBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(alice)
+          .forceExecuteBudget(projectMetadata.id, 0)
       ).to.be.revertedWith("Not authorized");
       await expect(
-        jobBoard.connect(projOwner).forceExecuteBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .forceExecuteBudget(projectMetadata.id, 0)
       ).not.to.be.reverted;
     });
     it("should emit BudgetExecuted()", async () => {
       await expect(
-        jobBoard.connect(projOwner).forceExecuteBudget(projectMetadata.id, 0)
+        contributionBoard
+          .connect(projOwner)
+          .forceExecuteBudget(projectMetadata.id, 0)
       )
-        .to.emit(jobBoard, "BudgetExecuted")
+        .to.emit(contributionBoard, "BudgetExecuted")
         .withArgs(projectMetadata.id, 0);
     });
     it("should take 50% of the fund for the fee.", async () => {
       const prevTotalSupply: BigNumber = await commit.totalSupply();
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .forceExecuteBudget(projectMetadata.id, 0);
       const updatedTotalSupply: BigNumber = await commit.totalSupply();
@@ -262,26 +286,26 @@ describe("JobBoard.sol", function () {
   describe("addBudget(): should allow project owners add new budgets and governance approves them", async () => {
     beforeEach(async () => {
       await workhard.connect(projOwner).createProject(0, projectMetadata.uri);
-      await jobBoard
+      await contributionBoard
         .connect(projOwner)
         .addBudget(projectMetadata.id, budget.currency, budget.amount);
       await runTimelockTx(
         timelock,
-        jobBoard.populateTransaction.approveProject(projectMetadata.id)
+        contributionBoard.populateTransaction.approveProject(projectMetadata.id)
       );
     });
     it("should be run only by the project owner", async () => {
       await expect(
-        jobBoard
+        contributionBoard
           .connect(bob)
           .addBudget(projectMetadata.id, budget.currency, budget.amount)
       ).to.be.revertedWith("Not authorized");
       await expect(
-        jobBoard
+        contributionBoard
           .connect(projOwner)
           .addBudget(projectMetadata.id, budget.currency, budget.amount)
       )
-        .to.emit(jobBoard, "BudgetAdded")
+        .to.emit(contributionBoard, "BudgetAdded")
         .withArgs(
           projectMetadata.id,
           1,
@@ -291,21 +315,21 @@ describe("JobBoard.sol", function () {
     });
     describe("compensate()", async () => {
       beforeEach(async () => {
-        await jobBoard
+        await contributionBoard
           .connect(projOwner)
           .addBudget(projectMetadata.id, budget.currency, budget.amount);
-        await jobBoard
+        await contributionBoard
           .connect(projOwner)
           .forceExecuteBudget(projectMetadata.id, 0);
       });
       it("the budget owner can execute the budget", async () => {
         const bal0: BigNumber = await commit.balanceOf(alice.address);
         await expect(
-          jobBoard
+          contributionBoard
             .connect(projOwner)
             .compensate(projectMetadata.id, alice.address, parseEther("1"))
         )
-          .to.emit(jobBoard, "Payed")
+          .to.emit(contributionBoard, "Payed")
           .withArgs(projectMetadata.id, alice.address, parseEther("1"));
         const bal1: BigNumber = await commit.balanceOf(alice.address);
         expect(bal1.sub(bal0)).eq(parseEther("1"));

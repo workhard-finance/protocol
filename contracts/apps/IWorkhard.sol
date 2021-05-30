@@ -12,9 +12,8 @@ struct WorkhardDAO {
     address vision;
     address commit;
     address right;
-    address founderShare;
     address stableReserve;
-    address jobBoard;
+    address contributionBoard;
     address marketplace;
     address dividendPool;
     address voteCounter;
@@ -30,6 +29,8 @@ struct CommonContracts {
     address erc20BurnMiningV1Factory;
     address erc721StakeMiningV1Factory;
     address erc1155StakeMiningV1Factory;
+    address erc1155BurnMiningV1Factory;
+    address initialContributorShareFactory;
 }
 
 struct CloneParams {

@@ -6,8 +6,6 @@ import {
   COMMIT__factory,
   DividendPool,
   DividendPool__factory,
-  ERC1155StakeMiningV1Factory,
-  ERC1155StakeMiningV1Factory__factory,
   ERC20,
   ERC20__factory,
   ERC20BurnMiningV1,
@@ -20,12 +18,16 @@ import {
   ERC20StakeMiningV1__factory,
   ERC721StakeMiningV1Factory,
   ERC721StakeMiningV1Factory__factory,
-  FounderShare,
-  FounderShare__factory,
+  ERC1155StakeMiningV1Factory,
+  ERC1155StakeMiningV1Factory__factory,
+  ERC1155BurnMiningV1Factory,
+  ERC1155BurnMiningV1Factory__factory,
+  InitialContributorShareFactory,
+  InitialContributorShareFactory__factory,
   GnosisSafe,
   GnosisSafe__factory,
-  JobBoard,
-  JobBoard__factory,
+  ContributionBoard,
+  ContributionBoard__factory,
   Marketplace,
   Marketplace__factory,
   RIGHT,
@@ -77,7 +79,7 @@ export type WorkhardDAOContractNames =
   | "RIGHT"
   | "FounderShare"
   | "StableReserve"
-  | "JobBoard"
+  | "ContributionBoard"
   | "Marketplace"
   | "DividendPool"
   | "VoteCounter"
@@ -92,13 +94,17 @@ export type CommonContractNames =
   | "ERC20StakeMiningV1Factory"
   | "ERC721StakeMiningV1Factory"
   | "ERC1155StakeMiningV1Factory"
+  | "ERC1155BurnMiningV1Factory"
+  | "InitialContributorShareFactory"
   | "Workhard";
 
 export type MiningPoolNames =
   | "ERC20BurnMiningV1"
   | "ERC20StakeMiningV1"
   | "ERC721StakeMiningV1"
-  | "ERC1155StakeMiningV1";
+  | "ERC1155StakeMiningV1"
+  | "ERC1155BurnMiningV1"
+  | "InitialContributorShare";
 
 export type ContractNames =
   | WorkhardDAOContractNames
@@ -138,9 +144,8 @@ export type WorkhardDAO = {
   vision: VISION;
   commit: COMMIT;
   right: RIGHT;
-  founderShare: FounderShare;
   stableReserve: StableReserve;
-  jobBoard: JobBoard;
+  contributionBoard: ContributionBoard;
   marketplace: Marketplace;
   dividendPool: DividendPool;
   voteCounter: VoteCounter;
@@ -156,6 +161,8 @@ export type WorkhardCommons = {
   erc20BurnMiningV1Factory: ERC20BurnMiningV1Factory;
   erc721StakeMiningV1Factory: ERC721StakeMiningV1Factory;
   erc1155StakeMiningV1Factory: ERC1155StakeMiningV1Factory;
+  erc1155BurnMiningV1Factory: ERC1155BurnMiningV1Factory;
+  initialContributorShareFactory: InitialContributorShareFactory;
 };
 
 export type WorkhardPeriphery = {
@@ -219,6 +226,15 @@ export class WorkhardClient {
         commonContracts.erc1155StakeMiningV1Factory,
         workhard.provider
       ),
+      erc1155BurnMiningV1Factory: ERC1155BurnMiningV1Factory__factory.connect(
+        commonContracts.erc1155BurnMiningV1Factory,
+        workhard.provider
+      ),
+      initialContributorShareFactory:
+        InitialContributorShareFactory__factory.connect(
+          commonContracts.initialContributorShareFactory,
+          workhard.provider
+        ),
     };
     return new WorkhardClient(workhard, commons, option?.account);
   }
@@ -249,6 +265,10 @@ export class WorkhardClient {
       this.commons.erc721StakeMiningV1Factory.connect(signerOrProvider);
     this.commons.erc1155StakeMiningV1Factory =
       this.commons.erc1155StakeMiningV1Factory.connect(signerOrProvider);
+    this.commons.erc1155BurnMiningV1Factory =
+      this.commons.erc1155BurnMiningV1Factory.connect(signerOrProvider);
+    this.commons.initialContributorShareFactory =
+      this.commons.initialContributorShareFactory.connect(signerOrProvider);
     return this;
   };
 
@@ -280,15 +300,14 @@ export class WorkhardClient {
     let vision = VISION__factory.connect(contracts.vision, connector);
     let commit = COMMIT__factory.connect(contracts.commit, connector);
     let right = RIGHT__factory.connect(contracts.right, connector);
-    let founderShare = FounderShare__factory.connect(
-      contracts.founderShare,
-      connector
-    );
     let stableReserve = StableReserve__factory.connect(
       contracts.stableReserve,
       connector
     );
-    let jobBoard = JobBoard__factory.connect(contracts.jobBoard, connector);
+    let contributionBoard = ContributionBoard__factory.connect(
+      contracts.contributionBoard,
+      connector
+    );
     let marketplace = Marketplace__factory.connect(
       contracts.marketplace,
       connector
@@ -321,9 +340,8 @@ export class WorkhardClient {
       vision,
       commit,
       right,
-      founderShare,
       stableReserve,
-      jobBoard,
+      contributionBoard,
       marketplace,
       dividendPool,
       voteCounter,

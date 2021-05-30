@@ -149,11 +149,11 @@ export async function approveProject() {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
-  const { jobBoard, timelock } = masterDAO;
+  const { contributionBoard, timelock } = masterDAO;
   const tokenId = await client.workhard.tokenByIndex(0);
   await runTimelockTx(
     timelock,
-    jobBoard.populateTransaction.approveProject(tokenId),
+    contributionBoard.populateTransaction.approveProject(tokenId),
     86400
   );
 }

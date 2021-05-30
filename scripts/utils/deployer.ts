@@ -2,7 +2,11 @@ import hre, { ethers } from "hardhat";
 import { Contract, constants } from "ethers";
 
 import { autoDeploy, getDB, getRoleHash, record } from "./helper";
-import { MyNetwork } from "../../src";
+import {
+  ERC1155BurnMiningV1Factory,
+  ERC1155BurnMiningV1Factory__factory,
+  MyNetwork,
+} from "../../src";
 
 import {
   ERC20BurnMiningV1,
@@ -17,6 +21,9 @@ import {
   ERC20StakeMiningV1Factory__factory,
   ERC721StakeMiningV1Factory__factory,
   ERC1155StakeMiningV1Factory__factory,
+  InitialContributorShare__factory,
+  InitialContributorShareFactory,
+  InitialContributorShareFactory__factory,
   COMMIT,
   COMMIT__factory,
   DividendPool,
@@ -24,14 +31,12 @@ import {
   ERC20__factory,
   IERC20,
   IERC20__factory,
-  JobBoard,
-  JobBoard__factory,
+  ContributionBoard,
+  ContributionBoard__factory,
   Marketplace,
   Marketplace__factory,
   StableReserve,
   StableReserve__factory,
-  FounderShare,
-  FounderShare__factory,
   TimelockedGovernance,
   TimelockedGovernance__factory,
   VISION,
@@ -160,24 +165,45 @@ export async function getERC1155StakeMiningV1Factory(
   );
 }
 
+export async function getERC1155BurnMiningV1Factory(
+  signer: SignerWithAddress
+): Promise<ERC1155BurnMiningV1Factory> {
+  const erc1155BurnMiningV1Factory = await autoDeploy(
+    "ERC1155BurnMiningV1Factory"
+  );
+  return ERC1155BurnMiningV1Factory__factory.connect(
+    erc1155BurnMiningV1Factory.address,
+    signer
+  );
+}
+
+export async function getInitialContributorShareFactory(
+  signer: SignerWithAddress
+): Promise<InitialContributorShareFactory> {
+  const initialContributorShare = await autoDeploy(
+    "InitialContributorShareFactory"
+  );
+  return InitialContributorShareFactory__factory.connect(
+    initialContributorShare.address,
+    signer
+  );
+}
+
 /** Deploy Workhard Master DAO */
 
 export async function getMultisig(
   signer: SignerWithAddress
 ): Promise<SignerWithAddress | GnosisSafe> {
   const network: MyNetwork = hre.network.name as MyNetwork;
-  let walletAddress;
-  if (network === "rinkeby") {
-    walletAddress = "0x6b175474e89094c44da98b954eedeac495271d0f";
-  } else if (network === "mainnet") {
-    walletAddress = "0x6b175474e89094c44da98b954eedeac495271d0f";
+  let walletAddress: string;
+  if (network === "mainnet") {
+    walletAddress = "0x9762976Dd3E0279Ea0a5B931Dc5B1403Bd17475E";
+  } else if (network === "rinkeby") {
+    walletAddress = "0xe22c5c2c89c3fD27603aefD9386D7Fb68f857e65";
   } else {
     return signer;
   }
-  const safe = GnosisSafe__factory.connect(
-    "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea",
-    signer
-  );
+  const safe = GnosisSafe__factory.connect(walletAddress, signer);
   return safe;
 }
 
@@ -190,12 +216,12 @@ export async function getBaseCurrency(
   let stablecoin: string;
   if (deployedAddress) {
     stablecoin = deployedAddress;
-  } else if (network === "rinkeby") {
-    // rinkeby DAI
-    stablecoin = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
   } else if (network === "mainnet") {
     // mainnet DAI
     stablecoin = "0x6b175474e89094c44da98b954eedeac495271d0f";
+  } else if (network === "rinkeby") {
+    // rinkeby DAI
+    stablecoin = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
   } else {
     // deploy!
     const mockERC20 = await new ERC20__factory(signer).deploy();
@@ -229,13 +255,6 @@ export async function getRight(
   return RIGHT__factory.connect(right.address, signer);
 }
 
-export async function getFounderShare(
-  signer: SignerWithAddress
-): Promise<FounderShare> {
-  const teamShare = await autoDeploy("FounderShare");
-  return FounderShare__factory.connect(teamShare.address, signer);
-}
-
 export async function getStableReserve(
   signer: SignerWithAddress
 ): Promise<StableReserve> {
@@ -243,11 +262,11 @@ export async function getStableReserve(
   return StableReserve__factory.connect(stableReserve.address, signer);
 }
 
-export async function getJobBoard(
+export async function getContributionBoard(
   signer: SignerWithAddress
-): Promise<JobBoard> {
-  const jobBoard = await autoDeploy("JobBoard");
-  return JobBoard__factory.connect(jobBoard.address, signer);
+): Promise<ContributionBoard> {
+  const contributionBoard = await autoDeploy("ContributionBoard");
+  return ContributionBoard__factory.connect(contributionBoard.address, signer);
 }
 
 export async function getMarketplace(
@@ -304,9 +323,8 @@ export async function getWorkhard(
     vision: (await getVision(signer)).address,
     commit: (await getCommit(signer)).address,
     right: (await getRight(signer)).address,
-    founderShare: (await getFounderShare(signer)).address,
     stableReserve: (await getStableReserve(signer)).address,
-    jobBoard: (await getJobBoard(signer)).address,
+    contributionBoard: (await getContributionBoard(signer)).address,
     marketplace: (await getMarketplace(signer)).address,
     dividendPool: (await getDividendPool(signer)).address,
     voteCounter: (await getVoteCounter(signer)).address,
@@ -325,6 +343,11 @@ export async function getWorkhard(
       .address,
     erc1155StakeMiningV1Factory: (await getERC1155StakeMiningV1Factory(signer))
       .address,
+    erc1155BurnMiningV1Factory: (await getERC1155BurnMiningV1Factory(signer))
+      .address,
+    initialContributorShareFactory: (
+      await getInitialContributorShareFactory(signer)
+    ).address,
   };
   const deployed = await autoDeploy("Workhard", controller, commons);
   const workhardDAO = Workhard__factory.connect(deployed.address, signer);
@@ -348,9 +371,9 @@ export async function upgradeToMasterDAO(
     rightSymbol: "RIGHT",
     minDelay: 86400,
     launchDelay: 86400 * 7 * 4,
-    initialEmission: parseEther("24000000"),
+    initialEmission: parseEther("24000000").toString(),
     minEmissionRatePerWeek: 60,
-    emissionCutRate: 3000,
+    emissionCutRate: 1000,
     founderShare: 500,
   });
 }

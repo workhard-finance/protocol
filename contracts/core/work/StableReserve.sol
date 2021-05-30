@@ -14,7 +14,7 @@ import "../../core/governance/Governed.sol";
 import "../../utils/ERC20Recoverer.sol";
 
 /**
- * @notice StableReserve is the $COMMIT minter. It allows JobBoard to mint $COMMIT token.
+ * @notice StableReserve is the $COMMIT minter. It allows ContributionBoard to mint $COMMIT token.
  */
 contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
     using SafeMath for uint256;

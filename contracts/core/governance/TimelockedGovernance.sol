@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/proxy/Initializable.sol";
  * @notice Gnosis Safe Multisig wallet has the Ownership of this contract.
  *      In the future, We can transfer the ownership to a well-formed governance contract.
  *      **Ownership grpah**
- *      TimelockedGovernance -controls-> COMMIT, JobBoard, Market, DividendPool, and VisionEmitter
+ *      TimelockedGovernance -controls-> COMMIT, ContributionBoard, Market, DividendPool, and VisionEmitter
  *      VisionEmitter -controls-> VISION
  */
 contract TimelockedGovernance is TimelockController, Initializable {

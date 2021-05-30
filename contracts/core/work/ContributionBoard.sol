@@ -4,7 +4,9 @@ pragma solidity ^0.7.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
@@ -12,6 +14,7 @@ import "../../core/governance/Governed.sol";
 import "../../core/work/libraries/CommitMinter.sol";
 import "../../core/work/libraries/GrantReceiver.sol";
 import "../../core/work/interfaces/IStableReserve.sol";
+import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../apps/IWorkhard.sol";
@@ -21,13 +24,15 @@ struct Budget {
     bool transferred;
 }
 
-contract JobBoard is
+contract ContributionBoard is
     CommitMinter,
     GrantReceiver,
     Distributor,
     Governed,
     ReentrancyGuard,
-    Initializable
+    Initializable,
+    ERC1155Burnable,
+    IContributionBoard
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -53,6 +58,8 @@ contract JobBoard is
 
     mapping(uint256 => bool) public approvedProjects;
 
+    mapping(uint256 => bool) public frozen;
+
     event ManagerUpdated(address indexed manager, bool active);
 
     event ProjectPosted(uint256 projId);
@@ -74,6 +81,10 @@ contract JobBoard is
 
     event BudgetWithdrawn(uint256 projId, uint256 index);
 
+    constructor() ERC1155("") {
+        // this will not be called
+    }
+
     function initialize(
         address _workhard,
         address _gov,
@@ -91,6 +102,15 @@ contract JobBoard is
         acceptableTokens[_baseCurrency] = true;
         thirdPartyAccess = true;
         Governed.initialize(_gov);
+        _setURI("");
+
+        // register the supported interfaces to conform to ERC1155 via ERC165
+        bytes4 _INTERFACE_ID_ERC165 = 0x01ffc9a7;
+        bytes4 _INTERFACE_ID_ERC1155 = 0xd9b67a26;
+        bytes4 _INTERFACE_ID_ERC1155_METADATA_URI = 0x0e89341c;
+        _registerInterface(_INTERFACE_ID_ERC165);
+        _registerInterface(_INTERFACE_ID_ERC1155);
+        _registerInterface(_INTERFACE_ID_ERC1155_METADATA_URI);
     }
 
     modifier onlyStableReserve() {
@@ -173,10 +193,7 @@ contract JobBoard is
         address to,
         uint256 amount
     ) public onlyProjectOwner(projectId) {
-        require(projectFund[projectId] >= amount);
-        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
-        IERC20(commitToken).safeTransfer(to, amount);
-        emit Payed(projectId, to, amount);
+        _compensate(projectId, to, amount);
     }
 
     function claim(
@@ -192,10 +209,26 @@ contract JobBoard is
         claimed[claimHash] = true;
         address signer = claimHash.recover(sig);
         require(workhard.ownerOf(projectId) == signer, "Invalid signer");
-        require(projectFund[projectId] >= amount);
-        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
-        IERC20(commitToken).safeTransfer(to, amount);
-        emit Payed(projectId, to, amount);
+        _compensate(projectId, to, amount);
+    }
+
+    function recordContribution(
+        address to,
+        uint256 id,
+        uint256 amount
+    ) external override onlyProjectOwner(id) returns (bool) {
+        if (frozen[id]) return false;
+        _recordContribution(to, id, amount);
+        return true;
+    }
+
+    function freeze(uint256 id) external override {
+        require(
+            msg.sender == address(workhard),
+            "this should be called only for upgrade"
+        );
+        require(!frozen[id], "Already frozen");
+        frozen[id] = true;
     }
 
     // Governed functions
@@ -234,6 +267,15 @@ contract JobBoard is
 
     function getTotalBudgets(uint256 projId) public view returns (uint256) {
         return projectBudgets[projId].length;
+    }
+
+    function uri(uint256 id)
+        external
+        view
+        override(ERC1155, IERC1155MetadataURI)
+        returns (string memory)
+    {
+        return IERC721Metadata(address(workhard)).tokenURI(id);
     }
 
     // Internal functions
@@ -295,5 +337,26 @@ contract JobBoard is
         _mintCommit(fund);
         projectFund[projId] = projectFund[projId].add(fund);
         emit BudgetExecuted(projId, index);
+    }
+
+    function _compensate(
+        uint256 projectId,
+        address to,
+        uint256 amount
+    ) internal {
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        IERC20(commitToken).safeTransfer(to, amount);
+        _recordContribution(to, projectId, amount);
+        emit Payed(projectId, to, amount);
+    }
+
+    function _recordContribution(
+        address to,
+        uint256 id,
+        uint256 amount
+    ) internal {
+        bytes memory zero;
+        _mint(to, id, amount, zero);
     }
 }

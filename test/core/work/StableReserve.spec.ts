@@ -14,7 +14,7 @@ import {
   DividendPool,
   ERC20,
   ERC20__factory,
-  JobBoard,
+  ContributionBoard,
   StableReserve,
   TimelockedGovernance,
   Workhard,
@@ -35,7 +35,7 @@ describe("StableReserve.sol", function () {
   let client: WorkhardClient;
   let workhard: Workhard;
   let masterDAO: WorkhardDAO;
-  let jobBoard: JobBoard;
+  let contributionBoard: ContributionBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
   let dividendPool: DividendPool;
@@ -65,7 +65,7 @@ describe("StableReserve.sol", function () {
       masterDAO.baseCurrency.address,
       deployer
     );
-    jobBoard = masterDAO.jobBoard;
+    contributionBoard = masterDAO.contributionBoard;
     commit = masterDAO.commit;
     stableReserve = masterDAO.stableReserve;
     dividendPool = masterDAO.dividendPool;
@@ -75,7 +75,7 @@ describe("StableReserve.sol", function () {
       await baseCurrency.mint(account.address, parseEther("10000"));
       await baseCurrency
         .connect(account)
-        .approve(jobBoard.address, parseEther("10000"));
+        .approve(contributionBoard.address, parseEther("10000"));
       await baseCurrency
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
@@ -96,14 +96,14 @@ describe("StableReserve.sol", function () {
       .connect(projOwner)
       .createProject(0, project.uri);
     projId = await workhard.tokenByIndex((await workhard.totalSupply()).sub(1));
-    await jobBoard
+    await contributionBoard
       .connect(projOwner)
       .addBudget(projId, budget.currency, budget.amount);
     await runTimelockTx(
       timelock,
-      jobBoard.populateTransaction.approveProject(projId)
+      contributionBoard.populateTransaction.approveProject(projId)
     );
-    await jobBoard.connect(manager).executeBudget(projId, 0);
+    await contributionBoard.connect(manager).executeBudget(projId, 0);
   });
   let snapshot: string;
   beforeEach(async () => {
@@ -114,7 +114,7 @@ describe("StableReserve.sol", function () {
   });
   describe("redeem()", async () => {
     beforeEach("compensate", async () => {
-      jobBoard
+      contributionBoard
         .connect(projOwner)
         .compensate(projId, alice.address, parseEther("1"));
     });
@@ -160,17 +160,17 @@ describe("StableReserve.sol", function () {
       await stableReserve.connect(bob).payInsteadOfWorking(parseEther("1"));
       const remaining0 = await stableReserve.mintable();
       expect(remaining0).not.eq(BigNumber.from(0));
-      const budget0 = await jobBoard.projectFund(projId);
+      const budget0 = await contributionBoard.projectFund(projId);
       await runTimelockTx(
         timelock,
         stableReserve.populateTransaction.grant(
-          jobBoard.address,
+          contributionBoard.address,
           remaining0,
           defaultAbiCoder.encode(["uint256"], [projId])
         )
       );
       const remaining1 = await stableReserve.mintable();
-      const budget1 = await jobBoard.projectFund(projId);
+      const budget1 = await contributionBoard.projectFund(projId);
       expect(remaining1).eq(BigNumber.from(0));
       expect(budget1.sub(budget0)).eq(remaining0);
     });
