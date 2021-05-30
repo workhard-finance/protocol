@@ -127,7 +127,7 @@ async function main() {
   await sequence(network, 26, "Setup Initial Contributor Shares", async () => {
     const workhardDAO = await getWorkhard(deployer);
     const masterDAO = await workhardDAO.getMasterDAO();
-    ContributionBoard__factory.connect(
+    await ContributionBoard__factory.connect(
       masterDAO.contributionBoard,
       deployer
     ).recordContribution(
