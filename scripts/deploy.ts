@@ -31,6 +31,7 @@ import {
   launchMasterDAO,
   getInitialContributorShareFactory,
   getERC1155BurnMiningV1Factory,
+  getSablier,
 } from "./utils/deployer";
 import { sequence } from "./utils/helper";
 
@@ -50,25 +51,28 @@ async function main() {
   await sequence(network, 4, "Get WETH", async () => {
     return (await getWETH(deployer)).address;
   });
+  await sequence(network, 5, "Get Sablier", async () => {
+    return (await getSablier(deployer)).address;
+  });
   // 2. Deploy Common Contracts
-  await sequence(network, 5, "Deploy ERC20BurnMiningV1Factory", async () => {
+  await sequence(network, 6, "Deploy ERC20BurnMiningV1Factory", async () => {
     return (await getERC20BurnMiningV1Factory(deployer)).address;
   });
-  await sequence(network, 6, "Deploy ERC20StakeMiningV1Factory", async () => {
+  await sequence(network, 7, "Deploy ERC20StakeMiningV1Factory", async () => {
     return (await getERC20StakeMiningV1Factory(deployer)).address;
   });
-  await sequence(network, 7, "Deploy ERC721StakeMiningV1Factory", async () => {
+  await sequence(network, 8, "Deploy ERC721StakeMiningV1Factory", async () => {
     return (await getERC721StakeMiningV1Factory(deployer)).address;
   });
-  await sequence(network, 8, "Deploy ERC1155StakeMiningV1Factory", async () => {
+  await sequence(network, 9, "Deploy ERC1155StakeMiningV1Factory", async () => {
     return (await getERC1155StakeMiningV1Factory(deployer)).address;
   });
-  await sequence(network, 9, "Deploy ERC1155BurnMiningV1Factory", async () => {
+  await sequence(network, 10, "Deploy ERC1155BurnMiningV1Factory", async () => {
     return (await getERC1155BurnMiningV1Factory(deployer)).address;
   });
   await sequence(
     network,
-    10,
+    11,
     "Deploy InitialContributorShareFactory",
     async () => {
       return (await getInitialContributorShareFactory(deployer)).address;
@@ -76,51 +80,51 @@ async function main() {
   );
 
   // 2. Deploy Controllers
-  await sequence(network, 11, "Deploy TimelockedGovernance", async () => {
+  await sequence(network, 12, "Deploy TimelockedGovernance", async () => {
     return (await getTimelockedGovernance(deployer)).address;
   });
-  await sequence(network, 12, "Deploy $VISION", async () => {
+  await sequence(network, 13, "Deploy $VISION", async () => {
     return (await getVision(deployer)).address;
   });
-  await sequence(network, 13, "Deploy $COMMIT", async () => {
+  await sequence(network, 14, "Deploy $COMMIT", async () => {
     return (await getCommit(deployer)).address;
   });
-  await sequence(network, 14, "Deploy $RIGHT", async () => {
+  await sequence(network, 15, "Deploy $RIGHT", async () => {
     return (await getRight(deployer)).address;
   });
-  await sequence(network, 15, "Deploy Stable Reserve", async () => {
+  await sequence(network, 16, "Deploy Stable Reserve", async () => {
     return (await getStableReserve(deployer)).address;
   });
-  await sequence(network, 16, "Deploy ContribtionBoard", async () => {
+  await sequence(network, 17, "Deploy ContribtionBoard", async () => {
     return (await getContributionBoard(deployer)).address;
   });
-  await sequence(network, 17, "Deploy Marketplace", async () => {
+  await sequence(network, 18, "Deploy Marketplace", async () => {
     return (await getMarketplace(deployer)).address;
   });
-  await sequence(network, 18, "Deploy DividendPool", async () => {
+  await sequence(network, 19, "Deploy DividendPool", async () => {
     return (await getDividendPool(deployer)).address;
   });
-  await sequence(network, 19, "Deploy VoteCounter", async () => {
+  await sequence(network, 20, "Deploy VoteCounter", async () => {
     return (await getVoteCounter(deployer)).address;
   });
-  await sequence(network, 20, "Deploy WorkersUnion", async () => {
+  await sequence(network, 21, "Deploy WorkersUnion", async () => {
     return (await getWorkersUnion(deployer)).address;
   });
-  await sequence(network, 21, "Deploy VisionEmitter", async () => {
+  await sequence(network, 22, "Deploy VisionEmitter", async () => {
     return (await getVisionEmitter(deployer)).address;
   });
-  await sequence(network, 22, "Deploy VotingEscrowLock", async () => {
+  await sequence(network, 23, "Deploy VotingEscrowLock", async () => {
     return (await getVotingEscrow(deployer)).address;
   });
-  await sequence(network, 23, "Deploy WorkhardDAOFactory", async () => {
+  await sequence(network, 24, "Deploy WorkhardDAOFactory", async () => {
     return (await getWorkhard(deployer)).address;
   });
-  await sequence(network, 24, "Setup Master DAO", async () => {
+  await sequence(network, 25, "Setup Master DAO", async () => {
     const workhardDAO = await getWorkhard(deployer);
     await upgradeToMasterDAO(workhardDAO, deployer);
     return "success";
   });
-  await sequence(network, 25, "Setup Initial Contributor Shares", async () => {
+  await sequence(network, 26, "Setup Initial Contributor Shares", async () => {
     const workhardDAO = await getWorkhard(deployer);
     const masterDAO = await workhardDAO.getMasterDAO();
     ContributionBoard__factory.connect(
@@ -134,7 +138,7 @@ async function main() {
     return "success";
   });
 
-  await sequence(network, 26, "Launch Master DAO", async () => {
+  await sequence(network, 27, "Launch Master DAO", async () => {
     const workhardDAO = await getWorkhard(deployer);
     await launchMasterDAO(workhardDAO, deployer);
     return "success";

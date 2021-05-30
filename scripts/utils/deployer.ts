@@ -31,6 +31,8 @@ import {
   ERC20__factory,
   IERC20,
   IERC20__factory,
+  IERC1620,
+  IERC1620__factory,
   ContributionBoard,
   ContributionBoard__factory,
   Marketplace,
@@ -231,6 +233,29 @@ export async function getBaseCurrency(
   return IERC20__factory.connect(stablecoin, signer);
 }
 
+export async function getSablier(signer: SignerWithAddress): Promise<IERC1620> {
+  const network: MyNetwork = hre.network.name as MyNetwork;
+  const deployed = await getDB();
+  const deployedAddress = await deployed.get(`${network}.Sablier`).value();
+  let sablier: string;
+  if (deployedAddress) {
+    sablier = deployedAddress;
+  } else if (network === "mainnet") {
+    // mainnet DAI
+    sablier = "0xA4fc358455Febe425536fd1878bE67FfDBDEC59a";
+  } else if (network === "rinkeby") {
+    // rinkeby DAI
+    sablier = "0xc04Ad234E01327b24a831e3718DBFcbE245904CC";
+  } else {
+    // deploy!
+    const SablierFactory = await ethers.getContractFactory("Sablier", signer);
+    const sablierInstance = await SablierFactory.deploy(signer.address); // we'll not use cToken manager
+    sablier = sablierInstance.address;
+  }
+  record(hre.network.name as MyNetwork, "Sablier", sablier);
+  return IERC1620__factory.connect(sablier, signer);
+}
+
 export async function getTimelockedGovernance(
   signer: SignerWithAddress
 ): Promise<TimelockedGovernance> {
@@ -335,6 +360,7 @@ export async function getWorkhard(
   const commons = {
     pool2Factory: (await getPool2Factory(signer)).address,
     weth: (await getWETH(signer)).address,
+    sablier: (await getSablier(signer)).address,
     erc20StakeMiningV1Factory: (await getERC20StakeMiningV1Factory(signer))
       .address,
     erc20BurnMiningV1Factory: (await getERC20BurnMiningV1Factory(signer))

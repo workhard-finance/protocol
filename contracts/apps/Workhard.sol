@@ -158,7 +158,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         address initialContributorPool =
             VisionEmitter(fork.visionEmitter).initialContributorPool();
         IContributionBoard(IMiningPool(initialContributorPool).baseToken())
-            .freeze(id);
+            .finalize(id);
     }
 
     function launchHard(uint256 id, MiningConfig memory config)
@@ -356,7 +356,8 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             fork.dividendPool,
             fork.stableReserve,
             fork.baseCurrency,
-            fork.commit
+            fork.commit,
+            commons.sablier
         );
         Marketplace(fork.marketplace).initialize(
             fork.timelock,

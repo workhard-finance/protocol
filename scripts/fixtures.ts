@@ -59,7 +59,7 @@ import {
   ERC1155BurnMiningV1Factory__factory,
 } from "../src";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Contract } from "ethers";
+import { constants, Contract } from "ethers";
 
 export interface HelperFixture {
   baseCurrency: ERC20;
@@ -69,6 +69,7 @@ export interface HelperFixture {
 export interface CommonsFixture extends HelperFixture {
   pool2Factory: Contract;
   weth: Contract;
+  sablier: Contract;
   erc20BurnMiningV1Factory: ERC20BurnMiningV1Factory;
   erc20StakeMiningV1Factory: ERC20StakeMiningV1Factory;
   erc721StakeMiningV1Factory: ERC721StakeMiningV1Factory;
@@ -119,6 +120,8 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
 
   const WETH9Factory = await ethers.getContractFactory("WETH9");
   const weth = await WETH9Factory.deploy();
+  const SablierFactory = await ethers.getContractFactory("Sablier");
+  const sablier = await SablierFactory.deploy(deployer.address); // we'll not use cToken manager
 
   // 14. Deploy ERC20BurnMiningV1Factory
   const erc20BurnMiningV1Factory = ERC20BurnMiningV1Factory__factory.connect(
@@ -182,6 +185,7 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
     ...helperFixture,
     pool2Factory,
     weth,
+    sablier,
     erc20BurnMiningV1Factory,
     erc20StakeMiningV1Factory,
     erc721StakeMiningV1Factory,
@@ -271,6 +275,7 @@ export async function getWorkhard(): Promise<WorkhardClient> {
         {
           pool2Factory: commonsFixture.pool2Factory.address,
           weth: commonsFixture.weth.address,
+          sablier: commonsFixture.sablier.address,
           erc20StakeMiningV1Factory:
             commonsFixture.erc20StakeMiningV1Factory.address,
           erc20BurnMiningV1Factory:

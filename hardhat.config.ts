@@ -1,6 +1,7 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
+import "hardhat-dependency-compiler";
 
 require("dotenv").config();
 
@@ -86,6 +87,15 @@ export default {
       {
         version: "0.5.16",
       },
+      {
+        version: "0.5.11",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 1000,
+          },
+        },
+      },
     ],
     overrides: {},
   },
@@ -99,5 +109,8 @@ export default {
       url: `https://eth-rinkeby.alchemyapi.io/v2/${process.env.ALCHEMY_API_KEY}`,
       accounts: process.env.DEPLOYER_KEY ? [process.env.DEPLOYER_KEY] : [],
     },
+  },
+  dependencyCompiler: {
+    paths: ["@sablier/protocol/contracts/Sablier.sol"],
   },
 };

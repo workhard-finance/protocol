@@ -8,7 +8,7 @@ interface IContributionBoard is IERC1155MetadataURI {
         address to,
         uint256 id,
         uint256 amount
-    ) external returns (bool);
+    ) external;
 
-    function freeze(uint256 id) external;
+    function finalize(uint256 id) external;
 }

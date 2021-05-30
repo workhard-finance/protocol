@@ -25,6 +25,7 @@ struct WorkhardDAO {
 struct CommonContracts {
     address pool2Factory;
     address weth;
+    address sablier;
     address erc20StakeMiningV1Factory;
     address erc20BurnMiningV1Factory;
     address erc721StakeMiningV1Factory;

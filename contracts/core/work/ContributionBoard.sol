@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Metadata.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
+import "@openzeppelin/contracts/math/Math.sol";
 import "../../core/governance/Governed.sol";
 import "../../core/work/libraries/CommitMinter.sol";
 import "../../core/work/libraries/GrantReceiver.sol";
@@ -18,6 +19,7 @@ import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../apps/IWorkhard.sol";
+import "../../utils/IERC1620.sol";
 
 struct Budget {
     uint256 amount;
@@ -40,6 +42,8 @@ contract ContributionBoard is
 
     bool thirdPartyAccess;
 
+    address public sablier;
+
     address public baseCurrency;
 
     IWorkhard public workhard;
@@ -58,7 +62,9 @@ contract ContributionBoard is
 
     mapping(uint256 => bool) public approvedProjects;
 
-    mapping(uint256 => bool) public frozen;
+    mapping(uint256 => bool) public finalized;
+
+    mapping(uint256 => uint256) private _projectOf;
 
     event ManagerUpdated(address indexed manager, bool active);
 
@@ -69,6 +75,13 @@ contract ContributionBoard is
     event Grant(uint256 projId, uint256 amount);
 
     event Payed(uint256 projId, address to, uint256 amount);
+
+    event PayedInStream(
+        uint256 projId,
+        address to,
+        uint256 amount,
+        uint256 streamId
+    );
 
     event BudgetAdded(
         uint256 indexed projId,
@@ -91,7 +104,8 @@ contract ContributionBoard is
         address _dividendPool,
         address _stableReserve,
         address _baseCurrency,
-        address _commit
+        address _commit,
+        address _sablier
     ) public initializer {
         normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
         taxRateForUndeclared = 5000; // 50% goes to the vision farm when the budget is undeclared.
@@ -101,6 +115,7 @@ contract ContributionBoard is
         workhard = IWorkhard(_workhard);
         acceptableTokens[_baseCurrency] = true;
         thirdPartyAccess = true;
+        sablier = _sablier;
         Governed.initialize(_gov);
         _setURI("");
 
@@ -196,6 +211,46 @@ contract ContributionBoard is
         _compensate(projectId, to, amount);
     }
 
+    function compensateInStream(
+        uint256 projectId,
+        address to,
+        uint256 amount,
+        uint256 period
+    ) public onlyProjectOwner(projectId) {
+        require(projectFund[projectId] >= amount);
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        _recordContribution(to, projectId, amount);
+        IERC20(commitToken).approve(sablier, amount); // approve the transfer
+        uint256 streamId =
+            IERC1620(sablier).createStream(
+                to,
+                amount,
+                commitToken,
+                block.timestamp,
+                block.timestamp + period
+            );
+
+        _projectOf[streamId] = projectId;
+
+        emit PayedInStream(projectId, to, amount, streamId);
+    }
+
+    function cancelStream(uint256 projectId, uint256 streamId)
+        public
+        onlyProjectOwner(projectId)
+    {
+        require(projectOf(streamId) == projectId, "Invalid project id");
+
+        (, address recipient, , , , , uint256 remainingBalance, ) =
+            IERC1620(sablier).getStream(streamId);
+
+        require(IERC1620(sablier).cancelStream(streamId), "Failed to cancel");
+        projectFund[projectId] = projectFund[projectId].add(remainingBalance);
+        uint256 cancelContribution =
+            Math.min(balanceOf(recipient, projectId), remainingBalance);
+        _burn(recipient, projectId, cancelContribution);
+    }
+
     function claim(
         uint256 projectId,
         address to,
@@ -216,19 +271,24 @@ contract ContributionBoard is
         address to,
         uint256 id,
         uint256 amount
-    ) external override onlyProjectOwner(id) returns (bool) {
-        if (frozen[id]) return false;
-        _recordContribution(to, id, amount);
-        return true;
+    ) external override onlyProjectOwner(id) {
+        require(
+            _recordContribution(to, id, amount),
+            "Cannot record after it's launched."
+        );
     }
 
-    function freeze(uint256 id) external override {
+    function finalize(uint256 id) external override {
         require(
             msg.sender == address(workhard),
             "this should be called only for upgrade"
         );
-        require(!frozen[id], "Already frozen");
-        frozen[id] = true;
+        require(!finalized[id], "Already finalized");
+        finalized[id] = true;
+    }
+
+    function projectOf(uint256 streamId) public view returns (uint256 id) {
+        return _projectOf[streamId];
     }
 
     // Governed functions
@@ -355,8 +415,28 @@ contract ContributionBoard is
         address to,
         uint256 id,
         uint256 amount
-    ) internal {
+    ) internal returns (bool) {
+        if (finalized[id]) return false;
         bytes memory zero;
         _mint(to, id, amount, zero);
+        return true;
+    }
+
+    function _beforeTokenTransfer(
+        address,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory,
+        bytes memory
+    ) internal override {
+        if (from == address(0) || to == address(0)) {
+            // contribution can be minted or burned before the dao launch
+        } else {
+            // transfer is only allowed after the finalization
+            for (uint256 i = 0; i < ids.length; i++) {
+                require(finalized[ids[i]], "Not finalized");
+            }
+        }
     }
 }

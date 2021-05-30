@@ -50,6 +50,8 @@ import {
   WorkersUnion__factory,
   Workhard,
   Workhard__factory,
+  IERC1620,
+  IERC1620__factory,
 } from "../build/contracts";
 
 import {
@@ -90,6 +92,7 @@ export type WorkhardDAOContractNames =
 export type CommonContractNames =
   | "Pool2Factory"
   | "WETH"
+  | "Sablier"
   | "ERC20BurnMiningV1Factory"
   | "ERC20StakeMiningV1Factory"
   | "ERC721StakeMiningV1Factory"
@@ -157,6 +160,7 @@ export type WorkhardDAO = {
 export type WorkhardCommons = {
   pool2Factory: IUniswapV2Factory;
   weth: WETH9;
+  sablier: IERC1620;
   erc20StakeMiningV1Factory: ERC20StakeMiningV1Factory;
   erc20BurnMiningV1Factory: ERC20BurnMiningV1Factory;
   erc721StakeMiningV1Factory: ERC721StakeMiningV1Factory;
@@ -210,6 +214,10 @@ export class WorkhardClient {
         workhard.provider
       ),
       weth: WETH9__factory.connect(commonContracts.weth, workhard.provider),
+      sablier: IERC1620__factory.connect(
+        commonContracts.sablier,
+        workhard.provider
+      ),
       erc20StakeMiningV1Factory: ERC20StakeMiningV1Factory__factory.connect(
         commonContracts.erc20StakeMiningV1Factory,
         workhard.provider
