@@ -20,6 +20,7 @@ import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../apps/IWorkhard.sol";
 import "../../utils/IERC1620.sol";
+import "../../utils/Utils.sol";
 
 struct Budget {
     uint256 amount;
@@ -39,6 +40,7 @@ contract ContributionBoard is
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using ECDSA for bytes32;
+    using Utils for address[];
 
     bool thirdPartyAccess;
 
@@ -65,6 +67,8 @@ contract ContributionBoard is
     mapping(uint256 => bool) public finalized;
 
     mapping(uint256 => uint256) private _projectOf;
+
+    mapping(uint256 => address[]) private _contributors;
 
     event ManagerUpdated(address indexed manager, bool active);
 
@@ -329,6 +333,14 @@ contract ContributionBoard is
         return projectBudgets[projId].length;
     }
 
+    function getContributors(uint256 projId)
+        public
+        view
+        returns (address[] memory)
+    {
+        return _contributors[projId];
+    }
+
     function uri(uint256 id)
         external
         view
@@ -417,6 +429,10 @@ contract ContributionBoard is
         uint256 amount
     ) internal returns (bool) {
         if (finalized[id]) return false;
+        (bool exist, ) = _contributors[id].find(to);
+        if (!exist) {
+            _contributors[id].push(to);
+        }
         bytes memory zero;
         _mint(to, id, amount, zero);
         return true;
