@@ -191,6 +191,11 @@ contract ContributionBoard is
         _convertStableToCommit(projId, index, normalTaxRate);
     }
 
+    function addProjectFund(uint256 projId, uint256 amount) public {
+        IERC20(commitToken).safeTransferFrom(msg.sender, address(this), amount);
+        projectFund[projId] = projectFund[projId].add(amount);
+    }
+
     function receiveGrant(
         address currency,
         uint256 amount,
