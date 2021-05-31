@@ -376,7 +376,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         WorkersUnion(payable(fork.workersUnion)).initialize(
             fork.voteCounter,
             fork.timelock,
-            params.launchDelay
+            params.voteLaunchDelay
         );
         VisionEmitter(fork.visionEmitter).initialize(
             EmitterConfig(
@@ -385,6 +385,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                 params.minEmissionRatePerWeek,
                 params.emissionCutRate,
                 params.founderShare,
+                params.emissionStartDelay,
                 fork.timelock, // treasury
                 address(this), // gov => will be transfered to timelock
                 fork.vision,

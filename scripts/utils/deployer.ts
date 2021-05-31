@@ -396,6 +396,8 @@ export async function upgradeToMasterDAO(
   workhardDAO: Workhard,
   signer: SignerWithAddress
 ): Promise<void> {
+  const network = hre.network.name as MyNetwork;
+  const isMainnet = network === "mainnet";
   await workhardDAO.upgradeToDAO(0, {
     multisig: (await getMultisig(signer)).address,
     baseCurrency: (await getBaseCurrency(signer)).address,
@@ -407,8 +409,9 @@ export async function upgradeToMasterDAO(
     commitSymbol: "COMMIT",
     rightName: "Workhard Master Right",
     rightSymbol: "RIGHT",
-    minDelay: 86400,
-    launchDelay: 86400 * 7 * 4,
+    emissionStartDelay: isMainnet ? 86400 * 7 : 60,
+    minDelay: isMainnet ? 86400 : 60,
+    voteLaunchDelay: isMainnet ? 86400 * 7 * 4 : 60,
     initialEmission: parseEther("24000000").toString(),
     minEmissionRatePerWeek: 60,
     emissionCutRate: 1000,

@@ -47,9 +47,9 @@ struct CloneParams {
     string commitSymbol;
     string rightName;
     string rightSymbol;
-    // timelock
-    uint256 minDelay;
-    uint256 launchDelay;
+    uint256 emissionStartDelay;
+    uint256 minDelay; // timelock
+    uint256 voteLaunchDelay;
     uint256 initialEmission;
     uint256 minEmissionRatePerWeek;
     uint256 emissionCutRate;

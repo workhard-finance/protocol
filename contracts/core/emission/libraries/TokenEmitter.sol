@@ -24,6 +24,7 @@ struct EmitterConfig {
     uint256 minEmissionRatePerWeek;
     uint256 emissionCutRate;
     uint256 founderShareRate;
+    uint256 startDelay;
     address treasury;
     address gov;
     address token;
@@ -93,6 +94,8 @@ contract TokenEmitter is
 
     uint256 public constant override emissionPeriod = 1 weeks;
 
+    uint256 public startDelay;
+
     IMiningPool[] public pools;
 
     mapping(bytes4 => address) public factories;
@@ -124,6 +127,7 @@ contract TokenEmitter is
         minEmissionRatePerWeek = params.minEmissionRatePerWeek;
         emissionCutRate = params.emissionCutRate;
         protocolPool = params.protocolPool;
+        startDelay = params.startDelay;
         // set contract addresses
         token = params.token;
         setTreasury(params.treasury);
@@ -219,7 +223,7 @@ contract TokenEmitter is
 
     function start() public override governed {
         require(emissionStarted == 0, "Already started");
-        emissionStarted = block.timestamp;
+        emissionStarted = block.timestamp.add(startDelay).sub(1 weeks);
         emit Start();
     }
 
