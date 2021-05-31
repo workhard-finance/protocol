@@ -68,6 +68,8 @@ contract ContributionBoard is
 
     mapping(uint256 => uint256) private _projectOf;
 
+    mapping(uint256 => uint256[]) private _streams;
+
     mapping(uint256 => address[]) private _contributors;
 
     event ManagerUpdated(address indexed manager, bool active);
@@ -240,7 +242,7 @@ contract ContributionBoard is
             );
 
         _projectOf[streamId] = projectId;
-
+        _streams[projectId].push(streamId);
         emit PayedInStream(projectId, to, amount, streamId);
     }
 
@@ -336,6 +338,10 @@ contract ContributionBoard is
 
     function getTotalBudgets(uint256 projId) public view returns (uint256) {
         return projectBudgets[projId].length;
+    }
+
+    function getStreams(uint256 projId) public view returns (uint256[] memory) {
+        return _streams[projId];
     }
 
     function getContributors(uint256 projId)
