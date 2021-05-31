@@ -1,3 +1,4 @@
+import { isForkedNet } from "../utils/deployer";
 import {
   addLiquidity,
   approveProject,
@@ -6,11 +7,16 @@ import {
   launchWorkersUnion,
   mintBaseCurrency,
   newCryptoJob,
+  swapBaseCurrency,
 } from "./actions";
 
 async function main() {
   await distribute();
-  await mintBaseCurrency();
+  if (await isForkedNet()) {
+    await swapBaseCurrency();
+  } else {
+    await mintBaseCurrency();
+  }
   await addLiquidity();
   await launchWorkersUnion();
   await newCryptoJob();

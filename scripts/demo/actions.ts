@@ -1,33 +1,24 @@
 import { ethers } from "hardhat";
-import { getPool2Factory, getWETH } from "../utils/deployer";
+import {
+  getPool2Factory,
+  getWETH,
+  isForkedNet,
+  SUSHISWAP_FACTORY,
+  WETH,
+} from "../utils/deployer";
 import { goToNextWeek, runTimelockTx } from "../../test/utils/utilities";
 import { constants } from "ethers";
-import { parseEther } from "ethers/lib/utils";
-import { ERC20__factory } from "../../src";
+import { formatEther, parseEther } from "ethers/lib/utils";
+import {
+  ERC20__factory,
+  IUniswapV2Factory__factory,
+  IUniswapV2Pair__factory,
+  WETH9__factory,
+} from "../../src";
 import { WorkhardClient } from "../../src";
 
 import deployed from "../../deployed.dev.json";
 
-export async function startEmission() {
-  console.log(
-    "Start Emission - snapshot id: ",
-    await ethers.provider.send("evm_snapshot", [])
-  );
-
-  const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
-    account: signer,
-  });
-  const masterDAO = await client.getMasterDAO({ account: signer });
-
-  const { visionEmitter, timelock } = masterDAO;
-  /** start **/
-  await runTimelockTx(
-    timelock,
-    visionEmitter.populateTransaction.start(),
-    86400
-  );
-}
 export async function distribute() {
   console.log(
     "Distribute - snapshot id: ",
@@ -63,6 +54,37 @@ export async function mintBaseCurrency() {
     signer.address,
     parseEther("10000")
   );
+}
+
+export async function swapBaseCurrency() {
+  console.log(
+    "Mint Base Currency - snapshot id: ",
+    await ethers.provider.send("evm_snapshot", [])
+  );
+
+  const [signer] = await ethers.getSigners();
+  const client = await WorkhardClient.from(ethers.provider, deployed, {
+    account: signer,
+  });
+  const masterDAO = await client.getMasterDAO();
+  const { baseCurrency } = masterDAO;
+  const sushiFactory = IUniswapV2Factory__factory.connect(
+    SUSHISWAP_FACTORY,
+    signer
+  );
+  const ethDAISushiPoolAddr = await sushiFactory.getPair(
+    WETH,
+    baseCurrency.address
+  );
+  const ethDAISushiPool = IUniswapV2Pair__factory.connect(
+    ethDAISushiPoolAddr,
+    signer
+  );
+  const weth = WETH9__factory.connect(WETH, signer);
+  await weth.deposit({ value: parseEther("100") });
+  await weth.approve(ethDAISushiPoolAddr, constants.MaxUint256);
+  await weth.transfer(ethDAISushiPoolAddr, parseEther("100"));
+  await ethDAISushiPool.swap(parseEther("10000"), 0, signer.address, "0x");
 }
 
 export async function addLiquidity() {
@@ -151,8 +173,16 @@ export async function approveProject() {
   const masterDAO = await client.getMasterDAO();
   const { contributionBoard, timelock } = masterDAO;
   const tokenId = await client.workhard.tokenByIndex(0);
+  // use multisig instead of signer account
+  await ethers.provider.send("hardhat_impersonateAccount", [
+    masterDAO.multisig.address,
+  ]);
+  await signer.sendTransaction({
+    to: masterDAO.multisig.address,
+    value: parseEther("10"),
+  });
   await runTimelockTx(
-    timelock,
+    timelock.connect(await ethers.getSigner(masterDAO.multisig.address)),
     contributionBoard.populateTransaction.approveProject(tokenId),
     86400
   );
@@ -170,10 +200,14 @@ export async function distributeReward() {
   });
   const masterDAO = await client.getMasterDAO();
   const { baseCurrency, dividendPool } = masterDAO;
-  await ERC20__factory.connect(baseCurrency.address, signer).mint(
-    signer.address,
-    parseEther("10000")
-  );
+  if (await isForkedNet()) {
+    await swapBaseCurrency();
+  } else {
+    await ERC20__factory.connect(baseCurrency.address, signer).mint(
+      signer.address,
+      parseEther("10000")
+    );
+  }
   await baseCurrency.approve(dividendPool.address, parseEther("10000"));
   await dividendPool.distribute(baseCurrency.address, parseEther("10000"));
 }

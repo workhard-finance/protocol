@@ -24,7 +24,6 @@
   "scripts": {
     "test": "hardhat test",
     "build": "yarn clean; yarn compile; yarn gen-ts",
-    "hardhat": "hardhat --network hardhat",
     "localhost": "hardhat --network localhost",
     "mainnet": "hardhat --network mainnet",
     "rinkeby": "hardhat --network rinkeby",

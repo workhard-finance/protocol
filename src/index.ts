@@ -70,7 +70,12 @@ export {
 
 export * from "../build/contracts";
 
-export type MyNetwork = "mainnet" | "rinkeby" | "hardhat" | "localhost";
+export type MyNetwork =
+  | "mainnet"
+  | "rinkeby"
+  | "hardhat"
+  | "localhost"
+  | "fork";
 
 export type WorkhardDAOContractNames =
   | "Multisig"

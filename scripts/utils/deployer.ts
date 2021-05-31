@@ -63,8 +63,20 @@ import { isAddress, parseEther } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 export const WETH = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-const SUSHISWAP_FACTORY = "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac";
+export const UNISWAP_FACTORY = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
+export const SUSHISWAP_FACTORY = "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac";
+
+export const isForkedNet = async () => {
+  try {
+    const daiSymbol = await ERC20__factory.connect(
+      "0x6b175474e89094c44da98b954eedeac495271d0f",
+      ethers.provider
+    ).symbol();
+    return daiSymbol === "DAI";
+  } catch {
+    return false;
+  }
+};
 
 /** Deploy Workhard Common Contracts first*/
 export async function getPool2Factory(
@@ -80,7 +92,7 @@ export async function getPool2Factory(
       deployedAddress
     );
   } else {
-    if (["mainnet"].includes(network)) {
+    if (["mainnet"].includes(network) || (await isForkedNet())) {
       pool2Factory = await ethers.getContractAt(
         "IUniswapV2Factory",
         SUSHISWAP_FACTORY // yay!
@@ -109,7 +121,7 @@ export async function getWETH(signer: SignerWithAddress): Promise<IERC20> {
   if (deployedAddress) {
     wethAddress = deployedAddress;
   } else {
-    if (["mainnet", "rinkeby"].includes(network)) {
+    if (["mainnet", "rinkeby"].includes(network) || (await isForkedNet())) {
       wethAddress = WETH;
     } else {
       const WETHFactory = await ethers.getContractFactory("WETH9", signer);
@@ -198,7 +210,7 @@ export async function getMultisig(
 ): Promise<SignerWithAddress | GnosisSafe> {
   const network: MyNetwork = hre.network.name as MyNetwork;
   let walletAddress: string;
-  if (network === "mainnet") {
+  if (["mainnet"].includes(network) || (await isForkedNet())) {
     walletAddress = "0x9762976Dd3E0279Ea0a5B931Dc5B1403Bd17475E";
   } else if (network === "rinkeby") {
     walletAddress = "0xe22c5c2c89c3fD27603aefD9386D7Fb68f857e65";
@@ -218,7 +230,7 @@ export async function getBaseCurrency(
   let stablecoin: string;
   if (deployedAddress) {
     stablecoin = deployedAddress;
-  } else if (network === "mainnet") {
+  } else if (["mainnet"].includes(network) || (await isForkedNet())) {
     // mainnet DAI
     stablecoin = "0x6b175474e89094c44da98b954eedeac495271d0f";
   } else if (network === "rinkeby") {
@@ -240,11 +252,11 @@ export async function getSablier(signer: SignerWithAddress): Promise<IERC1620> {
   let sablier: string;
   if (deployedAddress) {
     sablier = deployedAddress;
-  } else if (network === "mainnet") {
-    // mainnet DAI
+  } else if (["mainnet"].includes(network) || (await isForkedNet())) {
+    // mainnet sablier
     sablier = "0xA4fc358455Febe425536fd1878bE67FfDBDEC59a";
   } else if (network === "rinkeby") {
-    // rinkeby DAI
+    // rinkeby sablier
     sablier = "0xc04Ad234E01327b24a831e3718DBFcbE245904CC";
   } else {
     // deploy!

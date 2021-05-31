@@ -3,7 +3,7 @@
 //
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-import { ethers } from "hardhat";
+import hre, { ethers } from "hardhat";
 import { WETH } from "./utils/deployer";
 import {
   COMMIT,
@@ -94,17 +94,15 @@ export interface WorkhardDAOFixture extends CommonsFixture {
   workhard: Workhard;
 }
 
+const forked = process.env.FORK ? process.env.FORK.length > 0 : false;
+
 export async function getHelperFixture(): Promise<HelperFixture> {
   const [deployer] = await ethers.getSigners();
   // 1. Get base currency. (In mainnet use DAI & for testing deploy new)
-  const baseCurrency = ERC20__factory.connect(
-    (
-      await (
-        await ethers.getContractFactory("contracts/utils/ERC20Mock.sol:ERC20")
-      ).deploy()
-    ).address,
-    deployer
-  );
+  const mock = await (
+    await ethers.getContractFactory("contracts/utils/ERC20Mock.sol:ERC20")
+  ).deploy();
+  const baseCurrency = ERC20__factory.connect(mock.address, deployer);
   return {
     baseCurrency,
     multisig: deployer,
@@ -116,12 +114,37 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
   const helperFixture: HelperFixture = await getHelperFixture();
 
   const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
-  const pool2Factory = await UniswapV2Factory.deploy(deployer.address);
+  const pool2Factory = await ethers.getContractAt(
+    "UniswapV2Factory",
+    forked
+      ? "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"
+      : (
+          await UniswapV2Factory.deploy(deployer.address)
+        ).address,
+    deployer
+  );
 
   const WETH9Factory = await ethers.getContractFactory("WETH9");
-  const weth = await WETH9Factory.deploy();
+  const weth = await ethers.getContractAt(
+    "WETH9",
+    forked
+      ? "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+      : (
+          await WETH9Factory.deploy()
+        ).address,
+    deployer
+  );
+
   const SablierFactory = await ethers.getContractFactory("Sablier");
-  const sablier = await SablierFactory.deploy(deployer.address); // we'll not use cToken manager
+  const sablier = await ethers.getContractAt(
+    "Sablier",
+    forked
+      ? "0xA4fc358455Febe425536fd1878bE67FfDBDEC59a"
+      : (
+          await SablierFactory.deploy(deployer.address)
+        ).address,
+    deployer
+  );
 
   // 14. Deploy ERC20BurnMiningV1Factory
   const erc20BurnMiningV1Factory = ERC20BurnMiningV1Factory__factory.connect(

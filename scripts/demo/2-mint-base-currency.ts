@@ -1,7 +1,12 @@
-import { mintBaseCurrency } from "./actions";
+import { isForkedNet } from "../utils/deployer";
+import { mintBaseCurrency, swapBaseCurrency } from "./actions";
 
 export async function main() {
-  await mintBaseCurrency();
+  if (await isForkedNet()) {
+    await swapBaseCurrency();
+  } else {
+    await mintBaseCurrency();
+  }
 }
 
 main()
