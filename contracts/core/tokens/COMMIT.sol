@@ -18,6 +18,7 @@ contract COMMIT is ERC20Burnable, Initializable {
     address public minter;
     string private _name;
     string private _symbol;
+    uint256 public totalBurned;
 
     constructor() ERC20("", "") {
         // this constructor will not be called since it'll be cloned by proxy pattern.
@@ -57,5 +58,10 @@ contract COMMIT is ERC20Burnable, Initializable {
 
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
+    }
+
+    function _burn(address account, uint256 amount) internal override {
+        super._burn(account, amount);
+        totalBurned = totalBurned.add(amount);
     }
 }
