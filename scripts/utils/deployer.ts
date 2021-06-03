@@ -121,8 +121,10 @@ export async function getWETH(signer: SignerWithAddress): Promise<IERC20> {
   if (deployedAddress) {
     wethAddress = deployedAddress;
   } else {
-    if (["mainnet", "rinkeby"].includes(network) || (await isForkedNet())) {
+    if (["mainnet"].includes(network) || (await isForkedNet())) {
       wethAddress = WETH;
+    } else if (["rinkeby"].includes(network)) {
+      wethAddress = "0xc778417E063141139Fce010982780140Aa0cD5Ab";
     } else {
       const WETHFactory = await ethers.getContractFactory("WETH9", signer);
       const weth = await WETHFactory.deploy();
@@ -232,10 +234,10 @@ export async function getBaseCurrency(
     stablecoin = deployedAddress;
   } else if (["mainnet"].includes(network) || (await isForkedNet())) {
     // mainnet DAI
-    stablecoin = "0x6b175474e89094c44da98b954eedeac495271d0f";
+    stablecoin = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
   } else if (network === "rinkeby") {
     // rinkeby DAI
-    stablecoin = "0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea";
+    stablecoin = "0xc7AD46e0b8a400Bb3C915120d284AafbA8fc4735";
   } else {
     // deploy!
     const mockERC20 = await new ERC20__factory(signer).deploy();
