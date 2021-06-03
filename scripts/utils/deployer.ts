@@ -1,5 +1,5 @@
 import hre, { ethers } from "hardhat";
-import { Contract, constants } from "ethers";
+import { Contract, constants, ContractTransaction } from "ethers";
 
 import { autoDeploy, getDB, getRoleHash, record } from "./helper";
 import {
@@ -398,25 +398,35 @@ export async function upgradeToMasterDAO(
 ): Promise<void> {
   const network = hre.network.name as MyNetwork;
   const isMainnet = network === "mainnet";
-  await workhardDAO.upgradeToDAO(0, {
-    multisig: (await getMultisig(signer)).address,
-    baseCurrency: (await getBaseCurrency(signer)).address,
-    projectName: "Workhard Master Dev",
-    projectSymbol: "WMD",
-    visionName: "Workhard Master Vision",
-    visionSymbol: "VISION",
-    commitName: "Workhard Master Commit",
-    commitSymbol: "COMMIT",
-    rightName: "Workhard Master Right",
-    rightSymbol: "RIGHT",
-    emissionStartDelay: isMainnet ? 86400 * 7 : 60,
-    minDelay: isMainnet ? 86400 : 60,
-    voteLaunchDelay: isMainnet ? 86400 * 7 * 4 : 60,
-    initialEmission: parseEther("24000000").toString(),
-    minEmissionRatePerWeek: 60,
-    emissionCutRate: 1000,
-    founderShare: 500,
-  });
+  let result: ContractTransaction;
+  let success: boolean = false;
+  do {
+    result = await workhardDAO.upgradeToDAO(0, {
+      multisig: (await getMultisig(signer)).address,
+      baseCurrency: (await getBaseCurrency(signer)).address,
+      projectName: "Workhard Master Dev",
+      projectSymbol: "WMD",
+      visionName: "Workhard Master Vision",
+      visionSymbol: "VISION",
+      commitName: "Workhard Master Commit",
+      commitSymbol: "COMMIT",
+      rightName: "Workhard Master Right",
+      rightSymbol: "RIGHT",
+      emissionStartDelay: isMainnet ? 86400 * 7 : 60,
+      minDelay: isMainnet ? 86400 : 60,
+      voteLaunchDelay: isMainnet ? 86400 * 7 * 4 : 60,
+      initialEmission: parseEther("24000000").toString(),
+      minEmissionRatePerWeek: 60,
+      emissionCutRate: 1000,
+      founderShare: 500,
+    });
+    try {
+      const receipt = await result.wait();
+      success = true;
+    } catch (_err) {
+      console.log("Upgrading to DAO tx failed. Try again.");
+    }
+  } while (!success);
 }
 
 export async function launchMasterDAO(
