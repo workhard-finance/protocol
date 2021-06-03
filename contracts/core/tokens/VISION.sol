@@ -49,4 +49,8 @@ contract VISION is ERC20, Initializable {
     function symbol() public view virtual override returns (string memory) {
         return _symbol;
     }
+
+    function decimals() public pure override returns (uint8) {
+        return 18;
+    }
 }

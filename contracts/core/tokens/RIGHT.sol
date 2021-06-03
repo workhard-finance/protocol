@@ -4,4 +4,8 @@ pragma abicoder v2;
 
 import "../../core/governance/libraries/VotingEscrowToken.sol";
 
-contract RIGHT is VotingEscrowToken {}
+contract RIGHT is VotingEscrowToken {
+    function decimals() public pure override returns (uint8) {
+        return 18;
+    }
+}

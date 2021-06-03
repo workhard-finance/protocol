@@ -60,6 +60,10 @@ contract COMMIT is ERC20Burnable, Initializable {
         return _symbol;
     }
 
+    function decimals() public pure override returns (uint8) {
+        return 18;
+    }
+
     function _burn(address account, uint256 amount) internal override {
         super._burn(account, amount);
         totalBurned = totalBurned.add(amount);
