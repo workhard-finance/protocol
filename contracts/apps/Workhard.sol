@@ -389,7 +389,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                 fork.timelock, // treasury
                 address(this), // gov => will be transfered to timelock
                 fork.vision,
-                id != 0 ? getMasterDAO().dividendPool : address(0),
+                id != 0 ? parentDAO.dividendPool : address(0),
                 parentDAO.contributionBoard,
                 commons.erc20BurnMiningV1Factory,
                 commons.erc20StakeMiningV1Factory,
