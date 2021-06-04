@@ -82,6 +82,9 @@ describe("StableReserve.sol", function () {
       await commit
         .connect(account)
         .approve(stableReserve.address, parseEther("10000"));
+      await commit
+        .connect(account)
+        .approve(contributionBoard.address, parseEther("10000"));
     };
     await prepare(projOwner);
     await prepare(alice);
@@ -91,19 +94,8 @@ describe("StableReserve.sol", function () {
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
-    budget = { currency: baseCurrency.address, amount: parseEther("100") };
-    const result = await workhard
-      .connect(projOwner)
-      .createProject(0, project.uri);
+    await workhard.connect(projOwner).createProject(0, project.uri);
     projId = await workhard.tokenByIndex((await workhard.totalSupply()).sub(1));
-    await contributionBoard
-      .connect(projOwner)
-      .addBudget(projId, budget.currency, budget.amount);
-    await runTimelockTx(
-      timelock,
-      contributionBoard.populateTransaction.approveProject(projId)
-    );
-    await contributionBoard.connect(manager).executeBudget(projId, 0);
   });
   let snapshot: string;
   beforeEach(async () => {
@@ -111,29 +103,6 @@ describe("StableReserve.sol", function () {
   });
   afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshot]);
-  });
-  describe("redeem()", async () => {
-    beforeEach("compensate", async () => {
-      contributionBoard
-        .connect(projOwner)
-        .compensate(projId, alice.address, parseEther("1"));
-    });
-    it("should return the base currency and burn the commit token", async () => {
-      const base0 = await baseCurrency.balanceOf(alice.address);
-      const comm0 = await commit.balanceOf(alice.address);
-      await expect(stableReserve.connect(alice).redeem(parseEther("1")))
-        .to.emit(stableReserve, "Redeemed")
-        .withArgs(alice.address, parseEther("1"));
-      const base1 = await baseCurrency.balanceOf(alice.address);
-      const comm1 = await commit.balanceOf(alice.address);
-      expect(base1.sub(base0)).eq(comm0.sub(comm1));
-    });
-    it("should not change the remaining budget", async () => {
-      const remaining0 = await stableReserve.mintable();
-      await stableReserve.connect(alice).redeem(parseEther("1"));
-      const remaining1 = await stableReserve.mintable();
-      expect(remaining1).eq(remaining0);
-    });
   });
   describe("payInsteadOfWorking()", async () => {
     it("should mint commit tokens when someone pays twice", async () => {
@@ -153,6 +122,35 @@ describe("StableReserve.sol", function () {
       await stableReserve.connect(alice).payInsteadOfWorking(parseEther("1"));
       const remaining1 = await stableReserve.mintable();
       expect(remaining1.sub(remaining0)).eq(parseEther("1"));
+    });
+  });
+  describe("redeem()", async () => {
+    beforeEach("redeem", async () => {
+      await stableReserve
+        .connect(projOwner)
+        .payInsteadOfWorking(parseEther("2"));
+      await contributionBoard
+        .connect(projOwner)
+        .addProjectFund(projId, parseEther("1"));
+      await contributionBoard
+        .connect(projOwner)
+        .compensate(projId, alice.address, parseEther("1"));
+    });
+    it("should return the base currency and burn the commit token", async () => {
+      const base0 = await baseCurrency.balanceOf(alice.address);
+      const comm0 = await commit.balanceOf(alice.address);
+      await expect(stableReserve.connect(alice).redeem(parseEther("1")))
+        .to.emit(stableReserve, "Redeemed")
+        .withArgs(alice.address, parseEther("1"));
+      const base1 = await baseCurrency.balanceOf(alice.address);
+      const comm1 = await commit.balanceOf(alice.address);
+      expect(base1.sub(base0)).eq(comm0.sub(comm1));
+    });
+    it("should not change the remaining budget", async () => {
+      const remaining0 = await stableReserve.mintable();
+      await stableReserve.connect(alice).redeem(parseEther("1"));
+      const remaining1 = await stableReserve.mintable();
+      expect(remaining1).eq(remaining0);
     });
   });
   describe("grant()", async () => {

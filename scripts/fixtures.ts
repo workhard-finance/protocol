@@ -57,6 +57,8 @@ import {
   ERC1155BurnMiningV1Factory,
   InitialContributorShareFactory__factory,
   ERC1155BurnMiningV1Factory__factory,
+  JobBoard,
+  JobBoard__factory,
 } from "../src";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { constants, Contract } from "ethers";
@@ -341,6 +343,7 @@ export async function getWorkhard(): Promise<WorkhardClient> {
     deployer
   ).recordContribution(deployer.address, 0, ethers.utils.parseEther("1000000"));
   await workhard.launch(0, 4750, 4750, 499, 1);
+
   const client = await WorkhardClient.from(ethers.provider, workhard.address);
   return client;
 }

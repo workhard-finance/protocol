@@ -355,7 +355,6 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             fork.timelock,
             fork.dividendPool,
             fork.stableReserve,
-            fork.baseCurrency,
             fork.commit,
             commons.sablier
         );

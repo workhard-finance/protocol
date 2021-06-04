@@ -26,6 +26,8 @@ import {
   InitialContributorShareFactory__factory,
   GnosisSafe,
   GnosisSafe__factory,
+  JobBoard,
+  JobBoard__factory,
   ContributionBoard,
   ContributionBoard__factory,
   Marketplace,

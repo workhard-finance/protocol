@@ -20,9 +20,7 @@ contract Governed {
     );
     event Anarchized();
 
-    constructor() {
-        initialize(msg.sender);
-    }
+    constructor() {}
 
     modifier governed {
         require(msg.sender == gov, "Not authorized");

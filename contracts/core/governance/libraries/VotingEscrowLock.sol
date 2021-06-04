@@ -74,7 +74,7 @@ contract VotingEscrowLock is
         veToken = _veToken;
         _name = _veLockName;
         _symbol = _veLockSymbol;
-        gov = _gov;
+        Governed.initialize(_gov);
     }
 
     function updateBaseUri(string memory _baseURI) public governed {
