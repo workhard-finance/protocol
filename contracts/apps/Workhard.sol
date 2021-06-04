@@ -321,7 +321,12 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                     _belongsTo.get(id, "owner query for nonexistent token")
                 )
             ];
-        // dao[belongsTo].contributionBoard;
+
+        require(
+            params.founderShare >=
+                ContributionBoard(parentDAO.contributionBoard).minimumShare(id),
+            "founder share should be greater than the committed minimum share"
+        );
         TimelockedGovernance(payable(fork.timelock)).initialize(
             params.minDelay,
             fork.multisig,

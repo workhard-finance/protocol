@@ -47,7 +47,7 @@ contract ContributionBoard is
 
     mapping(bytes32 => bool) public claimed;
 
-    mapping(uint256 => bool) public isFundable;
+    mapping(uint256 => uint256) public minimumShare;
 
     mapping(uint256 => bool) public fundingPaused;
 
@@ -123,7 +123,8 @@ contract ContributionBoard is
         require(!fundingPaused[projId], "Should unpause funding");
         IERC20(commitToken).safeTransferFrom(msg.sender, address(this), amount);
         projectFund[projId] = projectFund[projId].add(amount);
-        if (isFundable[projId]) {
+        if (minimumShare[projId] != 0) {
+            // record funding
             _recordContribution(msg.sender, projId, amount);
         }
     }
@@ -144,12 +145,14 @@ contract ContributionBoard is
         return true;
     }
 
-    function enableFunding(uint256 projectId)
+    function enableFunding(uint256 projectId, uint256 _minimumShare)
         public
         onlyProjectOwner(projectId)
     {
-        require(!isFundable[projectId], "Funding is already enabled.");
-        isFundable[projectId] = true;
+        require(0 < _minimumShare, "Should be greater than 0");
+        require(_minimumShare < 10000, "Cannot be greater than denominator");
+        require(minimumShare[projectId] == 0, "Funding is already enabled.");
+        minimumShare[projectId] = _minimumShare;
     }
 
     function pauseFunding(uint256 projectId)
@@ -222,7 +225,7 @@ contract ContributionBoard is
         uint256 amount
     ) external override onlyProjectOwner(id) {
         require(
-            !isFundable[id],
+            minimumShare[id] == 0,
             "Once it starts to get funding, you cannot record additional contribution"
         );
         require(
