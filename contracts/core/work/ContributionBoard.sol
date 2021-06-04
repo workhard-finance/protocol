@@ -47,6 +47,8 @@ contract ContributionBoard is
 
     mapping(bytes32 => bool) public claimed;
 
+    mapping(uint256 => uint256) public totalSupplyOf;
+
     mapping(uint256 => uint256) public minimumShare;
 
     mapping(uint256 => bool) public fundingPaused;
@@ -293,6 +295,25 @@ contract ContributionBoard is
         bytes memory zero;
         _mint(to, id, amount, zero);
         return true;
+    }
+
+    function _mint(
+        address account,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) internal override {
+        super._mint(account, id, amount, data);
+        totalSupplyOf[id] = totalSupplyOf[id].add(amount);
+    }
+
+    function _burn(
+        address account,
+        uint256 id,
+        uint256 amount
+    ) internal override {
+        super._burn(account, id, amount);
+        totalSupplyOf[id] = totalSupplyOf[id].sub(amount);
     }
 
     function _beforeTokenTransfer(
