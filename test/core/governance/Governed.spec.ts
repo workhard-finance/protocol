@@ -18,6 +18,7 @@ describe("Governed.sol", function () {
     initialGov = signers[0];
     newGov = signers[1];
     governed = await new Governed__factory(initialGov).deploy();
+    await governed.initialize(initialGov.address);
   });
   let snapshot: string;
   beforeEach(async () => {
