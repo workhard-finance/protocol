@@ -40,6 +40,8 @@ contract Marketplace is
 
     mapping(uint256 => Product) public override products;
 
+    uint256[] public featured;
+
     uint256 public constant RATE_DENOMINATOR = 10000;
 
     modifier onlyManufacturer(uint256 id) {
@@ -168,6 +170,14 @@ contract Marketplace is
         require(profitRate <= RATE_DENOMINATOR, "Profit rate is too high");
         products[id].profitRate = profitRate;
         emit ProfitRateUpdated(id, profitRate);
+    }
+
+    function setFeatured(uint256[] calldata _featured)
+        external
+        override
+        governed
+    {
+        featured = _featured;
     }
 
     function setTaxRate(uint256 rate) public override governed {

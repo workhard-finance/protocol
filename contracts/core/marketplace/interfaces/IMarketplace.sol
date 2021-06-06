@@ -43,6 +43,8 @@ interface IMarketplace is IERC1155MetadataURI {
 
     function setTaxRate(uint256 rate) external;
 
+    function setFeatured(uint256[] calldata _featured) external;
+
     event NewProduct(uint256 id, address manufacturer, string uri);
 
     event TaxRateUpdated(uint256 taxRate);
