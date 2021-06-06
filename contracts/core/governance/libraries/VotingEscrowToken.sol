@@ -17,6 +17,7 @@ import "../../../utils/Int128.sol";
  */
 
 contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
+    using SafeMath for uint256;
     using Int128 for uint256;
 
     address public override veLocker;
@@ -101,7 +102,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
         for (uint256 i = 0; i < numOfLocks; i++) {
             uint256 veLockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
-            balance += balanceOfLock(veLockId);
+            balance = balance.add(balanceOfLock(veLockId));
         }
         return balance;
     }
@@ -117,7 +118,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
         for (uint256 i = 0; i < numOfLocks; i++) {
             uint256 veLockId =
                 IERC721Enumerable(veLocker).tokenOfOwnerByIndex(account, i);
-            balance += balanceOfLockAt(veLockId, timestamp);
+            balance = balance.add(balanceOfLockAt(veLockId, timestamp));
         }
         return balance;
     }
