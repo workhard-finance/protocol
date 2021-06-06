@@ -28,6 +28,7 @@ contract VotingEscrowLock is
     Initializable,
     Governed
 {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
@@ -82,13 +83,13 @@ contract VotingEscrowLock is
     }
 
     function createLock(uint256 amount, uint256 epochs) public override {
-        uint256 until = block.timestamp + epochs * 1 weeks;
+        uint256 until = block.timestamp.add(epochs.mul(1 weeks));
         createLockUntil(amount, until);
     }
 
     function createLockUntil(uint256 amount, uint256 lockEnd) public override {
         require(amount > 0, "should be greater than zero");
-        uint256 roundedEnd = (lockEnd / 1 weeks) * 1 weeks;
+        uint256 roundedEnd = (lockEnd / 1 weeks).mul(1 weeks);
 
         uint256 veLockId =
             uint256(keccak256(abi.encodePacked(block.number, msg.sender)));
@@ -99,9 +100,13 @@ contract VotingEscrowLock is
         emit LockCreated(veLockId);
     }
 
-    function increaseAmount(uint256 veLockId, uint256 amount) public override {
+    function increaseAmount(uint256 veLockId, uint256 amount)
+        public
+        override
+        onlyOwner(veLockId)
+    {
         require(amount > 0, "should be greater than zero");
-        uint256 newAmount = locks[veLockId].amount + amount;
+        uint256 newAmount = locks[veLockId].amount.add(amount);
         _updateLock(veLockId, newAmount, locks[veLockId].end);
     }
 
@@ -110,7 +115,7 @@ contract VotingEscrowLock is
         override
         onlyOwner(veLockId)
     {
-        uint256 until = block.timestamp + epochs * 1 weeks;
+        uint256 until = block.timestamp.add(epochs.mul(1 weeks));
         extendLockUntil(veLockId, until);
     }
 
@@ -119,7 +124,7 @@ contract VotingEscrowLock is
         override
         onlyOwner(veLockId)
     {
-        uint256 roundedEnd = (end / 1 weeks) * 1 weeks;
+        uint256 roundedEnd = (end / 1 weeks).mul(1 weeks);
         _updateLock(veLockId, locks[veLockId].amount, roundedEnd);
     }
 
@@ -128,17 +133,17 @@ contract VotingEscrowLock is
         require(block.timestamp >= lock.end, "Locked.");
         // transfer
         IERC20(baseToken).safeTransfer(msg.sender, lock.amount);
-        totalLockedSupply -= lock.amount;
+        totalLockedSupply = totalLockedSupply.sub(lock.amount);
         VotingEscrowToken(veToken).checkpoint(veLockId, lock, Lock(0, 0, 0));
         locks[veLockId].amount = 0;
         emit Withdraw(veLockId, lock.amount);
     }
 
-    function delegate(uint256 veLockId, address to) external override {
-        require(
-            ownerOf(veLockId) == msg.sender,
-            "Only owner can decide the delegatee"
-        );
+    function delegate(uint256 veLockId, address to)
+        external
+        override
+        onlyOwner(veLockId)
+    {
         _delegate(veLockId, to);
     }
 
@@ -231,7 +236,7 @@ contract VotingEscrowLock is
         );
 
         // 3. increase locked amount
-        totalLockedSupply += increment;
+        totalLockedSupply = totalLockedSupply.add(increment);
         locks[veLockId] = newLock;
 
         // 4. updateCheckpoint
