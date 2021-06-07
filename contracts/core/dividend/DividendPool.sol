@@ -93,6 +93,39 @@ contract DividendPool is
         emit NewDistribution(_token, _amount);
     }
 
+    /**
+     * @notice If there's no ve token holder for that given epoch, anyone can call
+     *          this function to redistribute the rewards to the closest epoch.
+     */
+    function redistribute(address _token, uint256 _epoch) public {
+        require(
+            _epoch < getCurrentEpoch(),
+            "Given epoch is still accepting rights."
+        );
+        uint256 timestamp = genesis + _epoch * epochUnit + 1 weeks;
+        require(
+            IVotingEscrowToken(veVISION).totalSupplyAt(timestamp) == 0,
+            "Locked Token exists for that epoch"
+        );
+        uint256 move = 1;
+        while (
+            IVotingEscrowToken(veVISION).totalSupplyAt(
+                timestamp + (move * 1 weeks)
+            ) == 0
+        ) {
+            require(
+                timestamp + (move * 1 weeks) < block.timestamp,
+                "No Voting Escrow Token exists."
+            );
+            move += 1;
+        }
+        Distribution storage distribution = distributions[_token];
+        distribution.tokenPerWeek[_epoch + move] += distribution.tokenPerWeek[
+            _epoch
+        ];
+        distribution.tokenPerWeek[_epoch] = 0;
+    }
+
     // claim
 
     function claim(address token) public nonReentrant {
