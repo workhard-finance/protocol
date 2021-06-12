@@ -334,7 +334,7 @@ export async function getWorkhard(): Promise<WorkhardClient> {
     voteLaunchDelay: 2419200,
     initialEmission: ethers.utils.parseEther("24000000"),
     minEmissionRatePerWeek: 60,
-    emissionCutRate: 3000,
+    emissionCutRate: 1000,
     founderShare: 500,
   });
   const masterDAO = await workhard.getMasterDAO();

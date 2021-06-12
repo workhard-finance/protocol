@@ -243,7 +243,7 @@ describe("VisionEmitter.sol", function () {
         for (let weekNum = 1; weekNum < 52; weekNum++) {
           const cutEmission = Array(weekNum)
             .fill(0)
-            .reduce((acc, _) => acc.mul(70).div(100), INITIAL_EMISSION_AMOUNT);
+            .reduce((acc, _) => acc.mul(90).div(100), INITIAL_EMISSION_AMOUNT);
           const minimum = totalSupply.mul(60).div(10000);
           const emission = cutEmission.gt(minimum) ? cutEmission : minimum;
           totalSupply = totalSupply.add(emission);
@@ -268,7 +268,7 @@ describe("VisionEmitter.sol", function () {
           const totalSupply = parseFloat(
             formatEther(stat.totalSupply.toString())
           ).toFixed(2);
-          it.skip(`emission of week ${weekNum}(${per}% of the 1 year supply) should be ${emission} and total supply should be ${totalSupply}`, async () => {
+          it(`emission of week ${weekNum}(${per}% of the 1 year supply) should be ${emission} and total supply should be ${totalSupply}`, async () => {
             // await testingERC20StakeMiningV1Pool.connect(alice).stake();
             for (let w = 0; w < weekNum; w++) {
               await goToNextWeek();
