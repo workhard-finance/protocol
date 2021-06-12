@@ -11,16 +11,16 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
 import "@openzeppelin/contracts/math/Math.sol";
-import "../../core/governance/Governed.sol";
-import "../../core/work/libraries/CommitMinter.sol";
-import "../../core/work/libraries/GrantReceiver.sol";
-import "../../core/work/interfaces/IStableReserve.sol";
-import "../../core/work/interfaces/IContributionBoard.sol";
-import "../../core/dividend/libraries/Distributor.sol";
-import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../apps/Workhard.sol";
-import "../../utils/IERC1620.sol";
-import "../../utils/Utils.sol";
+import "../../../core/governance/Governed.sol";
+import "../../../core/work/libraries/CommitMinter.sol";
+import "../../../core/work/libraries/GrantReceiver.sol";
+import "../../../core/work/interfaces/IStableReserve.sol";
+import "../../../core/work/interfaces/IContributionBoard.sol";
+import "../../../core/dividend/libraries/Distributor.sol";
+import "../../../core/dividend/interfaces/IDividendPool.sol";
+import "../../../apps/Workhard.sol";
+import "../../../utils/IERC1620.sol";
+import "../../../utils/Utils.sol";
 
 struct Budget {
     uint256 amount;

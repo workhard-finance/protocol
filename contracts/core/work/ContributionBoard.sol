@@ -37,68 +37,35 @@ contract ContributionBoard is
     using ECDSA for bytes32;
     using Utils for address[];
 
-    address public sablier;
-
-    address public commit;
-
-    Workhard public workhard;
-
-    mapping(uint256 => uint256) public projectFund;
-
-    mapping(bytes32 => bool) public claimed;
-
-    mapping(uint256 => uint256) public totalSupplyOf;
-
-    mapping(uint256 => uint256) public maxSupplyOf;
-
-    mapping(uint256 => uint256) public minimumShare;
-
-    mapping(uint256 => bool) public fundingPaused;
-
-    mapping(uint256 => bool) public finalized;
-
+    address private _sablier;
+    Workhard private _workhard;
+    mapping(uint256 => uint256) private _projectFund;
+    mapping(uint256 => uint256) private _totalSupplyOf;
+    mapping(uint256 => uint256) private _maxSupplyOf;
+    mapping(uint256 => uint256) private _minimumShare;
+    mapping(uint256 => bool) private _fundingPaused;
+    mapping(uint256 => bool) private _finalized;
     mapping(uint256 => uint256) private _projectOf;
-
     mapping(uint256 => uint256[]) private _streams;
-
     mapping(uint256 => address[]) private _contributors;
-
-    event ManagerUpdated(address indexed manager, bool active);
-
-    event ProjectPosted(uint256 projId);
-
-    event ProjectClosed(uint256 projId);
-
-    event Grant(uint256 projId, uint256 amount);
-
-    event Payed(uint256 projId, address to, uint256 amount);
-
-    event PayedInStream(
-        uint256 projId,
-        address to,
-        uint256 amount,
-        uint256 streamId
-    );
-
-    event ProjectFunded(uint256 indexed projId, uint256 amount);
 
     constructor() ERC1155("") {
         // this will not be called
     }
 
     function initialize(
-        address _workhard,
-        address _gov,
-        address _dividendPool,
-        address _stableReserve,
-        address _commit,
-        address _sablier
+        address workhard_,
+        address gov_,
+        address dividendPool_,
+        address stableReserve_,
+        address commit_,
+        address sablier_
     ) public initializer {
-        CommitMinter._setup(_stableReserve, _commit);
-        Distributor._setup(_dividendPool);
-        workhard = Workhard(_workhard);
-        sablier = _sablier;
-        Governed.initialize(_gov);
+        CommitMinter._setup(stableReserve_, commit_);
+        Distributor._setup(dividendPool_);
+        _workhard = Workhard(workhard_);
+        _sablier = sablier_;
+        Governed.initialize(gov_);
         _setURI("");
 
         // register the supported interfaces to conform to ERC1155 via ERC165
@@ -119,46 +86,30 @@ contract ContributionBoard is
     }
 
     modifier onlyProjectOwner(uint256 projId) {
-        require(workhard.ownerOf(projId) == msg.sender, "Not authorized");
+        require(_workhard.ownerOf(projId) == msg.sender, "Not authorized");
         _;
     }
 
-    function addProjectFund(uint256 projId, uint256 amount) public {
-        require(!fundingPaused[projId], "Should unpause funding");
+    function addProjectFund(uint256 projId, uint256 amount) public override {
+        require(!_fundingPaused[projId], "Should unpause funding");
         IERC20(commitToken).safeTransferFrom(msg.sender, address(this), amount);
-        uint256 updated = projectFund[projId].add(amount);
-        projectFund[projId] = updated;
-        if (minimumShare[projId] != 0) {
+        uint256 updated = _projectFund[projId].add(amount);
+        _projectFund[projId] = updated;
+        if (_minimumShare[projId] != 0) {
             // record funding
             _recordContribution(msg.sender, projId, amount);
         }
     }
 
-    function receiveGrant(
-        address currency,
-        uint256 amount,
-        bytes calldata data
-    ) external override onlyStableReserve returns (bool result) {
-        require(
-            currency == commitToken,
-            "Only can get $COMMIT token for its grant"
-        );
-        uint256 projId = abi.decode(data, (uint256));
-        require(workhard.ownerOf(projId) != address(0), "No budget owner");
-        projectFund[projId] = projectFund[projId].add(amount);
-        emit Grant(projId, amount);
-        return true;
-    }
-
     function enableFunding(
         uint256 projectId,
-        uint256 _minimumShare,
+        uint256 __minimumShare,
         uint256 _maxContribution
-    ) public onlyProjectOwner(projectId) {
-        require(0 < _minimumShare, "Should be greater than 0");
-        require(_minimumShare < 10000, "Cannot be greater than denominator");
-        require(minimumShare[projectId] == 0, "Funding is already enabled.");
-        minimumShare[projectId] = _minimumShare;
+    ) public override onlyProjectOwner(projectId) {
+        require(0 < __minimumShare, "Should be greater than 0");
+        require(__minimumShare < 10000, "Cannot be greater than denominator");
+        require(_minimumShare[projectId] == 0, "Funding is already enabled.");
+        _minimumShare[projectId] = __minimumShare;
         _setMaxContribution(projectId, _maxContribution);
     }
 
@@ -168,6 +119,7 @@ contract ContributionBoard is
      */
     function setMaxContribution(uint256 projectId, uint256 maxContribution)
         public
+        override
         onlyProjectOwner(projectId)
     {
         _setMaxContribution(projectId, maxContribution);
@@ -175,27 +127,29 @@ contract ContributionBoard is
 
     function pauseFunding(uint256 projectId)
         public
+        override
         onlyProjectOwner(projectId)
     {
-        require(!fundingPaused[projectId], "Already paused");
-        fundingPaused[projectId] = true;
+        require(!_fundingPaused[projectId], "Already paused");
+        _fundingPaused[projectId] = true;
     }
 
     function resumeFunding(uint256 projectId)
         public
+        override
         onlyProjectOwner(projectId)
     {
-        require(fundingPaused[projectId], "Already unpaused");
-        fundingPaused[projectId] = false;
+        require(_fundingPaused[projectId], "Already unpaused");
+        _fundingPaused[projectId] = false;
     }
 
     function compensate(
         uint256 projectId,
         address to,
         uint256 amount
-    ) public onlyProjectOwner(projectId) {
-        require(projectFund[projectId] >= amount, "Not enough fund.");
-        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+    ) public override onlyProjectOwner(projectId) {
+        require(_projectFund[projectId] >= amount, "Not enough fund.");
+        _projectFund[projectId] = _projectFund[projectId] - amount; // "require" protects underflow
         IERC20(commitToken).safeTransfer(to, amount);
         _recordContribution(to, projectId, amount);
         emit Payed(projectId, to, amount);
@@ -206,13 +160,13 @@ contract ContributionBoard is
         address to,
         uint256 amount,
         uint256 period
-    ) public onlyProjectOwner(projectId) {
-        require(projectFund[projectId] >= amount);
-        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+    ) public override onlyProjectOwner(projectId) {
+        require(_projectFund[projectId] >= amount);
+        _projectFund[projectId] = _projectFund[projectId] - amount; // "require" protects underflow
         _recordContribution(to, projectId, amount);
-        IERC20(commitToken).approve(sablier, amount); // approve the transfer
+        IERC20(commitToken).approve(_sablier, amount); // approve the transfer
         uint256 streamId =
-            IERC1620(sablier).createStream(
+            IERC1620(_sablier).createStream(
                 to,
                 amount,
                 commitToken,
@@ -227,15 +181,16 @@ contract ContributionBoard is
 
     function cancelStream(uint256 projectId, uint256 streamId)
         public
+        override
         onlyProjectOwner(projectId)
     {
         require(projectOf(streamId) == projectId, "Invalid project id");
 
         (, address recipient, , , , , uint256 remainingBalance, ) =
-            IERC1620(sablier).getStream(streamId);
+            IERC1620(_sablier).getStream(streamId);
 
-        require(IERC1620(sablier).cancelStream(streamId), "Failed to cancel");
-        projectFund[projectId] = projectFund[projectId].add(remainingBalance);
+        require(IERC1620(_sablier).cancelStream(streamId), "Failed to cancel");
+        _projectFund[projectId] = _projectFund[projectId].add(remainingBalance);
         uint256 cancelContribution =
             Math.min(balanceOf(recipient, projectId), remainingBalance);
         _burn(recipient, projectId, cancelContribution);
@@ -247,7 +202,7 @@ contract ContributionBoard is
         uint256 amount
     ) external override onlyProjectOwner(id) {
         require(
-            minimumShare[id] == 0,
+            _minimumShare[id] == 0,
             "Once it starts to get funding, you cannot record additional contribution"
         );
         require(
@@ -258,24 +213,105 @@ contract ContributionBoard is
 
     function finalize(uint256 id) external override {
         require(
-            msg.sender == address(workhard),
+            msg.sender == address(_workhard),
             "this should be called only for upgrade"
         );
-        require(!finalized[id], "Already finalized");
-        finalized[id] = true;
+        require(!_finalized[id], "Already _finalized");
+        _finalized[id] = true;
     }
 
-    function projectOf(uint256 streamId) public view returns (uint256 id) {
+    function receiveGrant(
+        address currency,
+        uint256 amount,
+        bytes calldata data
+    ) external override onlyStableReserve returns (bool result) {
+        require(
+            currency == commitToken,
+            "Only can get $COMMIT token for its grant"
+        );
+        uint256 projId = abi.decode(data, (uint256));
+        require(_workhard.ownerOf(projId) != address(0), "No budget owner");
+        _projectFund[projId] = _projectFund[projId].add(amount);
+        emit Grant(projId, amount);
+        return true;
+    }
+
+    function sablier() public view override returns (address) {
+        return _sablier;
+    }
+
+    function workhard() public view override returns (address) {
+        return address(_workhard);
+    }
+
+    function projectFund(uint256 projId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _projectFund[projId];
+    }
+
+    function claimed(uint256 projId) public view override returns (uint256) {}
+
+    function totalSupplyOf(uint256 projId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _totalSupplyOf[projId];
+    }
+
+    function maxSupplyOf(uint256 projId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _maxSupplyOf[projId];
+    }
+
+    function minimumShare(uint256 projId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _minimumShare[projId];
+    }
+
+    function fundingPaused(uint256 projId) public view override returns (bool) {
+        return _fundingPaused[projId];
+    }
+
+    function finalized(uint256 projId) public view override returns (bool) {
+        return _finalized[projId];
+    }
+
+    function projectOf(uint256 streamId)
+        public
+        view
+        override
+        returns (uint256 id)
+    {
         return _projectOf[streamId];
     }
 
-    function getStreams(uint256 projId) public view returns (uint256[] memory) {
+    function getStreams(uint256 projId)
+        public
+        view
+        override
+        returns (uint256[] memory)
+    {
         return _streams[projId];
     }
 
     function getContributors(uint256 projId)
         public
         view
+        override
         returns (address[] memory)
     {
         return _contributors[projId];
@@ -284,17 +320,17 @@ contract ContributionBoard is
     function uri(uint256 id)
         external
         view
-        override(ERC1155, IERC1155MetadataURI)
+        override(ERC1155, IContributionBoard)
         returns (string memory)
     {
-        return IERC721Metadata(address(workhard)).tokenURI(id);
+        return IERC721Metadata(address(_workhard)).tokenURI(id);
     }
 
     function _setMaxContribution(uint256 _id, uint256 _maxContribution)
         internal
     {
-        require(!finalized[_id], "DAO is launched. You cannot update it.");
-        maxSupplyOf[_id] = _maxContribution;
+        require(!_finalized[_id], "DAO is launched. You cannot update it.");
+        _maxSupplyOf[_id] = _maxContribution;
         emit NewMaxContribution(_id, _maxContribution);
     }
 
@@ -303,7 +339,7 @@ contract ContributionBoard is
         uint256 id,
         uint256 amount
     ) internal returns (bool) {
-        if (finalized[id]) return false;
+        if (_finalized[id]) return false;
         (bool exist, ) = _contributors[id].find(to);
         if (!exist) {
             _contributors[id].push(to);
@@ -320,9 +356,9 @@ contract ContributionBoard is
         bytes memory data
     ) internal override {
         super._mint(account, id, amount, data);
-        totalSupplyOf[id] = totalSupplyOf[id].add(amount);
+        _totalSupplyOf[id] = _totalSupplyOf[id].add(amount);
         require(
-            maxSupplyOf[id] == 0 || totalSupplyOf[id] <= maxSupplyOf[id],
+            _maxSupplyOf[id] == 0 || _totalSupplyOf[id] <= _maxSupplyOf[id],
             "Exceeds the max supply. Set a new max supply value."
         );
     }
@@ -333,7 +369,7 @@ contract ContributionBoard is
         uint256 amount
     ) internal override {
         super._burn(account, id, amount);
-        totalSupplyOf[id] = totalSupplyOf[id].sub(amount);
+        _totalSupplyOf[id] = _totalSupplyOf[id].sub(amount);
     }
 
     function _beforeTokenTransfer(
@@ -349,7 +385,7 @@ contract ContributionBoard is
         } else {
             // transfer is only allowed after the finalization
             for (uint256 i = 0; i < ids.length; i++) {
-                require(finalized[ids[i]], "Not finalized");
+                require(_finalized[ids[i]], "Not _finalized");
             }
         }
     }

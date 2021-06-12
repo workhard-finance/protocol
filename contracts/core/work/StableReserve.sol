@@ -21,64 +21,56 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
     using SafeERC20 for IERC20;
     using Address for address;
 
-    address public override commitToken;
-
-    address public override baseCurrency;
-
-    uint256 public priceOfCOMMIT;
-
-    mapping(address => bool) public minters; // allowed crypto job board contracts
-
-    event MinterUpdated(address indexed minter);
-
-    event Redeemed(address to, uint256 amount);
-
+    address private _commitToken;
+    address private _baseCurrency;
+    uint256 private _priceOfCommit;
+    mapping(address => bool) private _allowed; // allowed crypto job board contracts
     address private _deployer;
 
     function initialize(
-        address _gov,
-        address _commitToken,
-        address _baseCurrency,
-        address[] memory _minters
+        address gov_,
+        address commitToken_,
+        address baseCurrency_,
+        address[] memory admins
     ) public initializer {
-        priceOfCOMMIT = 20000; // denominator = 10000, ~= $2
-        commitToken = _commitToken;
-        baseCurrency = _baseCurrency;
+        _priceOfCommit = 20000; // denominator = 10000, ~= $2
+        _commitToken = commitToken_;
+        _baseCurrency = baseCurrency_;
 
         address[] memory disable = new address[](2);
-        disable[0] = _commitToken;
-        disable[1] = _baseCurrency;
-        ERC20Recoverer.initialize(_gov, disable);
-        Governed.initialize(_gov);
+        disable[0] = commitToken_;
+        disable[1] = baseCurrency_;
+        ERC20Recoverer.initialize(gov_, disable);
+        Governed.initialize(gov_);
         _deployer = msg.sender;
-        _setMinter(_gov, true);
-        for (uint256 i = 0; i < _minters.length; i++) {
-            _setMinter(_minters[i], true);
+        _allow(gov_, true);
+        for (uint256 i = 0; i < admins.length; i++) {
+            _allow(admins[i], true);
         }
     }
 
-    modifier onlyMinter() {
-        require(minters[msg.sender], "Not authorized");
+    modifier onlyAllowed() {
+        require(_allowed[msg.sender], "Not authorized");
         _;
     }
 
     function init(address minter) public initializer {
-        _setMinter(minter, true);
+        _allow(minter, true);
     }
 
-    function redeem(uint256 amount) public {
+    function redeem(uint256 amount) public override {
         require(
-            COMMIT(commitToken).balanceOf(msg.sender) >= amount,
+            COMMIT(_commitToken).balanceOf(msg.sender) >= amount,
             "Not enough balance"
         );
-        COMMIT(commitToken).burnFrom(msg.sender, amount);
-        IERC20(baseCurrency).transfer(msg.sender, amount);
+        COMMIT(_commitToken).burnFrom(msg.sender, amount);
+        IERC20(_baseCurrency).transfer(msg.sender, amount);
         emit Redeemed(msg.sender, amount);
     }
 
-    function payInsteadOfWorking(uint256 amount) public {
-        uint256 amountToPay = amount.mul(priceOfCOMMIT).div(10000);
-        IERC20(baseCurrency).safeTransferFrom(
+    function payInsteadOfWorking(uint256 amount) public override {
+        uint256 amountToPay = amount.mul(_priceOfCommit).div(10000);
+        IERC20(_baseCurrency).safeTransferFrom(
             msg.sender,
             address(this),
             amountToPay
@@ -86,8 +78,8 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
         _mintCOMMIT(msg.sender, amount);
     }
 
-    function reserveAndMint(uint256 amount) public override onlyMinter {
-        IERC20(baseCurrency).safeTransferFrom(
+    function reserveAndMint(uint256 amount) public override onlyAllowed {
+        IERC20(_baseCurrency).safeTransferFrom(
             msg.sender,
             address(this),
             amount
@@ -99,13 +91,13 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
         address recipient,
         uint256 amount,
         bytes memory data
-    ) public governed {
+    ) public override governed {
         _mintCOMMIT(recipient, amount);
         bytes memory returndata =
             address(recipient).functionCall(
                 abi.encodeWithSelector(
                     IGrantReceiver(recipient).receiveGrant.selector,
-                    commitToken,
+                    _commitToken,
                     amount,
                     data
                 ),
@@ -121,26 +113,42 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
         }
     }
 
-    function setMinter(address minter, bool active) public governed {
-        _setMinter(minter, active);
+    function allow(address account, bool active) public override governed {
+        _allow(account, active);
     }
 
-    function mintable() public view returns (uint256) {
-        uint256 currentSupply = COMMIT(commitToken).totalSupply();
+    function baseCurrency() public view override returns (address) {
+        return _baseCurrency;
+    }
+
+    function commitToken() public view override returns (address) {
+        return _commitToken;
+    }
+
+    function priceOfCommit() public view override returns (uint256) {
+        return _priceOfCommit;
+    }
+
+    function mintable() public view override returns (uint256) {
+        uint256 currentSupply = COMMIT(_commitToken).totalSupply();
         uint256 currentRedeemable =
-            IERC20(baseCurrency).balanceOf(address(this));
+            IERC20(_baseCurrency).balanceOf(address(this));
         return currentRedeemable.sub(currentSupply);
+    }
+
+    function allowed(address account) public view override returns (bool) {
+        return _allowed[account];
     }
 
     function _mintCOMMIT(address to, uint256 amount) internal {
         require(amount <= mintable(), "Not enough reserve");
-        COMMIT(commitToken).mint(to, amount);
+        COMMIT(_commitToken).mint(to, amount);
     }
 
-    function _setMinter(address minter, bool active) internal {
-        if (minters[minter] != active) {
-            emit MinterUpdated(minter);
+    function _allow(address account, bool active) internal {
+        if (_allowed[account] != active) {
+            emit AdminUpdated(account);
         }
-        minters[minter] = active;
+        _allowed[account] = active;
     }
 }
