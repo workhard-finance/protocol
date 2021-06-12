@@ -222,7 +222,7 @@ describe("VisionEmitter.sol", function () {
       await expect(visionEmitter.distribute()).not.to.be.reverted;
     });
     describe("after start() executed", async () => {
-      describe("distribute()", async () => {
+      describe.skip("distribute()", async () => {
         it("should fail when if the emission rate is not set properly", async () => {
           await expect(visionEmitter.distribute()).to.be.reverted;
         });

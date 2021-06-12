@@ -51,7 +51,7 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
         ERC20Recoverer.initialize(_gov, disable);
         Governed.initialize(_gov);
         _deployer = msg.sender;
-        _setMinter(gov, true);
+        _setMinter(_gov, true);
         for (uint256 i = 0; i < _minters.length; i++) {
             _setMinter(_minters[i], true);
         }

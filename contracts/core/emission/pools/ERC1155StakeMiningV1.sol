@@ -12,11 +12,11 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
 
     mapping(address => mapping(uint256 => uint256)) staking;
 
-    function initialize(address _tokenEmitter, address _baseToken)
+    function initialize(address tokenEmitter_, address baseToken_)
         public
         override
     {
-        super.initialize(_tokenEmitter, _baseToken);
+        super.initialize(tokenEmitter_, baseToken_);
         _registerInterface(ERC1155StakeMiningV1(0).stake.selector);
         _registerInterface(ERC1155StakeMiningV1(0).mine.selector);
         _registerInterface(ERC1155StakeMiningV1(0).withdraw.selector);
@@ -29,7 +29,7 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
 
     function stake(uint256 id, uint256 amount) public {
         bytes memory zero;
-        IERC1155(baseToken).safeTransferFrom(
+        IERC1155(baseToken()).safeTransferFrom(
             msg.sender,
             address(this),
             id,
@@ -46,7 +46,7 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
         uint256 miners = dispatchableMiners(tokenId).mul(staked);
         _withdrawMiners(miners);
         bytes memory zero;
-        IERC1155(baseToken).safeTransferFrom(
+        IERC1155(baseToken()).safeTransferFrom(
             address(this),
             msg.sender,
             tokenId,
@@ -61,7 +61,7 @@ contract ERC1155StakeMiningV1 is MiningPool, ERC1155Holder {
 
     function exit(uint256 tokenId) public {
         mine();
-        withdraw(tokenId, IERC1155(baseToken).balanceOf(msg.sender, tokenId));
+        withdraw(tokenId, IERC1155(baseToken()).balanceOf(msg.sender, tokenId));
     }
 
     function _stake(uint256 tokenId, uint256 amount) internal {

@@ -8,7 +8,7 @@ contract Governed {
 
     bool private initialized;
 
-    address public gov;
+    address internal _gov;
 
     uint256 public anarchizedAt = 0;
 
@@ -23,7 +23,7 @@ contract Governed {
     constructor() {}
 
     modifier governed {
-        require(msg.sender == gov, "Not authorized");
+        require(msg.sender == _gov, "Not authorized");
         _;
     }
 
@@ -33,15 +33,15 @@ contract Governed {
         _;
     }
 
-    function initialize(address _gov) public {
+    function initialize(address gov_) public {
         require(!initialized, "Initialized");
         initialized = true;
-        gov = _gov;
+        _gov = gov_;
     }
 
-    function setGovernance(address _gov) public governed {
-        require(_gov != address(0), "Use anarchize() instead.");
-        _setGovernance(_gov);
+    function setGovernance(address gov_) public governed {
+        require(gov_ != address(0), "Use anarchize() instead.");
+        _setGovernance(gov_);
     }
 
     function setAnarchyPoint(uint256 timestamp) public governed {
@@ -63,14 +63,18 @@ contract Governed {
         _anarchize();
     }
 
+    function gov() public view returns (address) {
+        return _gov;
+    }
+
     function _anarchize() internal {
         _setGovernance(address(0));
         anarchizedAt = block.timestamp;
         emit Anarchized();
     }
 
-    function _setGovernance(address _gov) internal {
-        emit NewGovernance(gov, _gov);
-        gov = _gov;
+    function _setGovernance(address gov_) internal {
+        emit NewGovernance(_gov, gov_);
+        _gov = gov_;
     }
 }

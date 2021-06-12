@@ -13,11 +13,11 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     mapping(uint256 => address) staker;
 
-    function initialize(address _tokenEmitter, address _baseToken)
+    function initialize(address tokenEmitter_, address baseToken_)
         public
         override
     {
-        super.initialize(_tokenEmitter, _baseToken);
+        super.initialize(tokenEmitter_, baseToken_);
         _registerInterface(ERC721StakeMiningV1(0).stake.selector);
         _registerInterface(ERC721StakeMiningV1(0).mine.selector);
         _registerInterface(ERC721StakeMiningV1(0).withdraw.selector);
@@ -28,7 +28,7 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     function stake(uint256 id) public {
         try
-            IERC721(baseToken).safeTransferFrom(msg.sender, address(this), id)
+            IERC721(baseToken()).safeTransferFrom(msg.sender, address(this), id)
         {} catch {
             _stake(id);
         }
@@ -45,7 +45,11 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
         staker[tokenId] = address(0);
         uint256 miners = dispatchableMiners(tokenId);
         _withdrawMiners(miners);
-        IERC721(baseToken).safeTransferFrom(address(this), msg.sender, tokenId);
+        IERC721(baseToken()).safeTransferFrom(
+            address(this),
+            msg.sender,
+            tokenId
+        );
     }
 
     function mine() public {
@@ -54,10 +58,13 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     function exit() public {
         mine();
-        uint256 bal = IERC721Enumerable(baseToken).balanceOf(msg.sender);
+        uint256 bal = IERC721Enumerable(baseToken()).balanceOf(msg.sender);
         for (uint256 i = 0; i < bal; i++) {
             uint256 tokenId =
-                IERC721Enumerable(baseToken).tokenOfOwnerByIndex(msg.sender, i);
+                IERC721Enumerable(baseToken()).tokenOfOwnerByIndex(
+                    msg.sender,
+                    i
+                );
             withdraw(tokenId);
         }
     }
@@ -81,7 +88,7 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
         virtual
         returns (uint256 numOfMiner)
     {
-        if (IERC721(baseToken).ownerOf(tokenId) != address(0)) return 1;
+        if (IERC721(baseToken()).ownerOf(tokenId) != address(0)) return 1;
         else return 0;
     }
 

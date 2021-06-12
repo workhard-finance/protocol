@@ -12,12 +12,12 @@ import "../../../core/emission/interfaces/ITokenEmitter.sol";
 contract ERC1155BurnMiningV1 is MiningPool, ERC1155Holder {
     using SafeMath for uint256;
 
-    function initialize(address _tokenEmitter, address _baseToken)
+    function initialize(address tokenEmitter_, address baseToken_)
         public
         virtual
         override
     {
-        super.initialize(_tokenEmitter, _baseToken);
+        super.initialize(tokenEmitter_, baseToken_);
         _registerInterface(ERC1155BurnMiningV1(0).burn.selector);
         _registerInterface(ERC1155BurnMiningV1(0).exit.selector);
         _registerInterface(ERC1155BurnMiningV1(0).dispatchableMiners.selector);
@@ -26,14 +26,14 @@ contract ERC1155BurnMiningV1 is MiningPool, ERC1155Holder {
 
     function burn(uint256 tokenId, uint256 amount) public virtual {
         _dispatchMiners(amount);
-        ERC1155Burnable(address(baseToken)).burn(msg.sender, tokenId, amount);
+        ERC1155Burnable(baseToken()).burn(msg.sender, tokenId, amount);
     }
 
     function exit() public {
         // transfer vision token
         _mine();
         // withdraw all miners
-        uint256 numOfMiners = dispatchedMiners[msg.sender];
+        uint256 numOfMiners = dispatchedMiners(msg.sender);
         _withdrawMiners(numOfMiners);
     }
 
@@ -45,7 +45,7 @@ contract ERC1155BurnMiningV1 is MiningPool, ERC1155Holder {
         bytes calldata
     ) public virtual override returns (bytes4) {
         _dispatchMiners(value);
-        ERC1155Burnable(address(baseToken)).burn(address(this), id, value);
+        ERC1155Burnable(baseToken()).burn(address(this), id, value);
         return this.onERC1155Received.selector;
     }
 
@@ -59,11 +59,7 @@ contract ERC1155BurnMiningV1 is MiningPool, ERC1155Holder {
         require(ids.length == values.length, "Not a valid input");
         for (uint256 i = 0; i < ids.length; i++) {
             _dispatchMiners(values[i]);
-            ERC1155Burnable(address(baseToken)).burn(
-                address(this),
-                ids[i],
-                values[i]
-            );
+            ERC1155Burnable(baseToken()).burn(address(this), ids[i], values[i]);
         }
 
         return this.onERC1155BatchReceived.selector;

@@ -9,11 +9,11 @@ contract ERC20StakeMiningV1 is MiningPool {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    function initialize(address _tokenEmitter, address _baseToken)
+    function initialize(address tokenEmitter_, address baseToken_)
         public
         override
     {
-        super.initialize(_tokenEmitter, _baseToken);
+        super.initialize(tokenEmitter_, baseToken_);
         _registerInterface(ERC20StakeMiningV1(0).stake.selector);
         _registerInterface(ERC20StakeMiningV1(0).mine.selector);
         _registerInterface(ERC20StakeMiningV1(0).withdraw.selector);
@@ -22,13 +22,13 @@ contract ERC20StakeMiningV1 is MiningPool {
     }
 
     function stake(uint256 amount) public {
-        IERC20(baseToken).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(baseToken()).safeTransferFrom(msg.sender, address(this), amount);
         _dispatchMiners(amount);
     }
 
     function withdraw(uint256 amount) public {
         _withdrawMiners(amount);
-        IERC20(baseToken).safeTransfer(msg.sender, amount);
+        IERC20(baseToken()).safeTransfer(msg.sender, amount);
     }
 
     function mine() public {
@@ -37,7 +37,7 @@ contract ERC20StakeMiningV1 is MiningPool {
 
     function exit() public {
         mine();
-        withdraw(dispatchedMiners[msg.sender]);
+        withdraw(dispatchedMiners(msg.sender));
     }
 
     function erc20StakeMiningV1() external pure returns (bool) {

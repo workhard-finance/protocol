@@ -10,63 +10,67 @@ import "../../../core/emission/interfaces/IMiningPool.sol";
 abstract contract MiningPoolFactory is IMiningPoolFactory, ERC165 {
     using Clones for address;
 
-    address public controller;
+    address private _controller;
 
     constructor() ERC165() {
         _registerInterface(IMiningPoolFactory(0).newPool.selector);
         _registerInterface(IMiningPoolFactory(0).poolType.selector);
     }
 
-    function _setController(address _controller) internal {
-        controller = _controller;
+    function _setController(address controller_) internal {
+        _controller = controller_;
     }
 
-    function newPool(address _emitter, address _baseToken)
+    function newPool(address emitter, address baseToken)
         public
         virtual
         override
-        returns (address _pool)
+        returns (address pool)
     {
-        address _predicted = this.poolAddress(_emitter, _baseToken);
-        if (_isDeployed(_predicted)) {
+        address predicted = this.poolAddress(emitter, baseToken);
+        if (_isDeployed(predicted)) {
             // already deployed;
-            return _predicted;
+            return predicted;
         } else {
             // not deployed;
-            bytes32 salt = keccak256(abi.encodePacked(_emitter, _baseToken));
-            _pool = controller.cloneDeterministic(salt);
+            bytes32 salt = keccak256(abi.encodePacked(emitter, baseToken));
+            pool = _controller.cloneDeterministic(salt);
             require(
-                _predicted == _pool,
+                predicted == pool,
                 "Different result. This factory has a serious problem."
             );
-            IMiningPool(_pool).initialize(_emitter, _baseToken);
-            emit NewMiningPool(_emitter, _baseToken, _pool);
-            return _pool;
+            IMiningPool(pool).initialize(emitter, baseToken);
+            emit NewMiningPool(emitter, baseToken, pool);
+            return pool;
         }
     }
 
-    function getPool(address _emitter, address _baseToken)
+    function controller() public view override returns (address) {
+        return _controller;
+    }
+
+    function getPool(address emitter, address baseToken)
         public
         view
         override
         returns (address)
     {
-        address _predicted = this.poolAddress(_emitter, _baseToken);
-        return _isDeployed(_predicted) ? _predicted : address(0);
+        address predicted = this.poolAddress(emitter, baseToken);
+        return _isDeployed(predicted) ? predicted : address(0);
     }
 
-    function _isDeployed(address _pool) private view returns (bool) {
-        return Address.isContract(_pool);
-    }
-
-    function poolAddress(address _emitter, address _baseToken)
+    function poolAddress(address emitter, address baseToken)
         external
         view
         virtual
         override
-        returns (address _pool)
+        returns (address pool)
     {
-        bytes32 salt = keccak256(abi.encodePacked(_emitter, _baseToken));
-        _pool = controller.predictDeterministicAddress(salt);
+        bytes32 salt = keccak256(abi.encodePacked(emitter, baseToken));
+        pool = _controller.predictDeterministicAddress(salt);
+    }
+
+    function _isDeployed(address pool) private view returns (bool) {
+        return Address.isContract(pool);
     }
 }

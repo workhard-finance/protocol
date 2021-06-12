@@ -7,11 +7,11 @@ import "../../../core/emission/libraries/MiningPool.sol";
 contract ERC20BurnMiningV1 is MiningPool {
     using SafeMath for uint256;
 
-    function initialize(address _tokenEmitter, address _baseToken)
+    function initialize(address tokenEmitter_, address baseToken_)
         public
         override
     {
-        super.initialize(_tokenEmitter, _baseToken);
+        super.initialize(tokenEmitter_, baseToken_);
         _registerInterface(ERC20BurnMiningV1(0).burn.selector);
         _registerInterface(ERC20BurnMiningV1(0).exit.selector);
         _registerInterface(ERC20BurnMiningV1(0).erc20BurnMiningV1.selector);
@@ -19,14 +19,14 @@ contract ERC20BurnMiningV1 is MiningPool {
 
     function burn(uint256 amount) public {
         _dispatchMiners(amount);
-        ERC20Burnable(address(baseToken)).burnFrom(msg.sender, amount);
+        ERC20Burnable(baseToken()).burnFrom(msg.sender, amount);
     }
 
     function exit() public {
         // transfer vision token
         _mine();
         // withdraw all miners
-        uint256 numOfMiners = dispatchedMiners[msg.sender];
+        uint256 numOfMiners = dispatchedMiners(msg.sender);
         _withdrawMiners(numOfMiners);
     }
 

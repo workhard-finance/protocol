@@ -12,6 +12,8 @@ interface IMiningPoolFactory {
         external
         returns (address);
 
+    function controller() external view returns (address);
+
     function getPool(address _emitter, address _baseToken)
         external
         view

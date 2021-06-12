@@ -2,21 +2,23 @@
 pragma solidity ^0.7.0;
 
 interface IDividendPool {
+    function distribute(address token, uint256 amount) external;
+
     function veVISION() external view returns (address);
 
     function veLocker() external view returns (address);
 
-    function distribute(address token, uint256 amount) external;
+    function genesis() external view returns (uint256);
 
-    function distributed(address token) external view returns (bool);
-
-    function distributedTokens() external view returns (address[] memory);
-
-    function featuredRewards() external view returns (address[] memory);
+    function getEpoch(uint256 timestamp) external view returns (uint256);
 
     function getCurrentEpoch() external view returns (uint256);
 
-    function claimable(address token) external view returns (uint256);
+    function getNextEpoch() external view returns (uint256);
+
+    function distributedTokens() external view returns (address[] memory);
+
+    function distributed(address token) external view returns (bool);
 
     function totalDistributed(address token) external view returns (uint256);
 
@@ -31,4 +33,8 @@ interface IDividendPool {
         external
         view
         returns (uint256);
+
+    function claimable(address token) external view returns (uint256);
+
+    function featuredRewards() external view returns (address[] memory);
 }

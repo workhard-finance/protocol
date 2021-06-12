@@ -31,43 +31,32 @@ contract DividendPool is
     using SafeERC20 for IERC20;
     using Utils for address[];
 
-    address public override veVISION; // a.k.a RIGHT
-    address public override veLocker;
-
-    mapping(address => Distribution) public distributions;
-
-    mapping(address => bool) public override distributed;
-
-    address[] internal _distributedTokens;
-
-    address[] internal _featuredRewards;
-
-    /** @notice The block timestamp when the contract is deployed */
-    uint256 public genesis;
-
+    // public constants
     uint256 public constant epochUnit = 1 weeks; // default 1 epoch is 1 week
 
-    mapping(address => bool) admin;
+    // state variables
+    address private _veVISION; // a.k.a RIGHT
+    address private _veLocker;
+    mapping(address => Distribution) private _distributions;
+    mapping(address => bool) private _distributed;
+    uint256 private _genesis;
+    address[] private _distributedTokens;
+    address[] private _featuredRewards;
 
+    // events
     event NewReward(address token);
-
     event NewDistribution(address indexed token, uint256 amount);
 
     function initialize(
-        address _gov,
-        address _RIGHT,
+        address gov,
+        address RIGHT,
         address[] memory _rewardTokens
     ) public initializer {
-        veVISION = _RIGHT;
-        veLocker = IVotingEscrowToken(_RIGHT).veLocker();
-        Governed.initialize(_gov);
-        genesis = (block.timestamp / epochUnit) * epochUnit;
+        _veVISION = RIGHT;
+        _veLocker = IVotingEscrowToken(RIGHT).veLocker();
+        Governed.initialize(gov);
+        _genesis = (block.timestamp / epochUnit) * epochUnit;
         _featuredRewards = _rewardTokens;
-    }
-
-    modifier onlyAdmin() {
-        require(admin[msg.sender] || msg.sender == gov, "Not allowed");
-        _;
     }
 
     // distribution
@@ -77,14 +66,14 @@ contract DividendPool is
         override
         nonReentrant
     {
-        if (!distributed[_token]) {
-            distributed[_token] = true;
+        if (!_distributed[_token]) {
+            _distributed[_token] = true;
             _distributedTokens.push(_token);
             emit NewReward(_token);
         }
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         uint256 newBalance = IERC20(_token).balanceOf(address(this));
-        Distribution storage distribution = distributions[_token];
+        Distribution storage distribution = _distributions[_token];
         uint256 increment = newBalance.sub(distribution.balance);
         distribution.balance = newBalance;
         distribution.totalDistribution += increment;
@@ -97,19 +86,19 @@ contract DividendPool is
      * @notice If there's no ve token holder for that given epoch, anyone can call
      *          this function to redistribute the rewards to the closest epoch.
      */
-    function redistribute(address _token, uint256 _epoch) public {
+    function redistribute(address token, uint256 epoch) public {
         require(
-            _epoch < getCurrentEpoch(),
+            epoch < getCurrentEpoch(),
             "Given epoch is still accepting rights."
         );
-        uint256 timestamp = genesis + _epoch * epochUnit + 1 weeks;
+        uint256 timestamp = _genesis + epoch * epochUnit + 1 weeks;
         require(
-            IVotingEscrowToken(veVISION).totalSupplyAt(timestamp) == 0,
+            IVotingEscrowToken(_veVISION).totalSupplyAt(timestamp) == 0,
             "Locked Token exists for that epoch"
         );
         uint256 move = 1;
         while (
-            IVotingEscrowToken(veVISION).totalSupplyAt(
+            IVotingEscrowToken(_veVISION).totalSupplyAt(
                 timestamp + (move * 1 weeks)
             ) == 0
         ) {
@@ -119,11 +108,11 @@ contract DividendPool is
             );
             move += 1;
         }
-        Distribution storage distribution = distributions[_token];
-        distribution.tokenPerWeek[_epoch + move] += distribution.tokenPerWeek[
-            _epoch
+        Distribution storage distribution = _distributions[token];
+        distribution.tokenPerWeek[epoch + move] += distribution.tokenPerWeek[
+            epoch
         ];
-        distribution.tokenPerWeek[_epoch] = 0;
+        distribution.tokenPerWeek[epoch] = 0;
     }
 
     // claim
@@ -144,67 +133,39 @@ contract DividendPool is
         }
     }
 
+    // governance
+    function setFeaturedRewards(address[] memory featured) public governed {
+        _featuredRewards = featured;
+    }
+
+    function genesis() public view override returns (uint256) {
+        return _genesis;
+    }
+
+    function veVISION() public view override returns (address) {
+        return _veVISION;
+    }
+
+    function veLocker() public view override returns (address) {
+        return _veLocker;
+    }
+
+    function getEpoch(uint256 timestamp)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return (timestamp - _genesis) / epochUnit; // safe from underflow
+    }
+
     /** @notice 1 epoch is 1 week */
     function getCurrentEpoch() public view override returns (uint256) {
         return getEpoch(block.timestamp);
     }
 
-    function getNextEpoch() public view returns (uint256) {
+    function getNextEpoch() public view override returns (uint256) {
         return getCurrentEpoch() + 1;
-    }
-
-    function getEpoch(uint256 timestamp) public view returns (uint256) {
-        return (timestamp - genesis) / epochUnit; // safe from underflow
-    }
-
-    function totalDistributed(address token)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return distributions[token].totalDistribution;
-    }
-
-    function distributionBalance(address token)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return distributions[token].balance;
-    }
-
-    function distributionOfWeek(address token, uint256 epochNum)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return distributions[token].tokenPerWeek[epochNum];
-    }
-
-    function claimStartWeek(address token, uint256 veLockId)
-        public
-        view
-        override
-        returns (uint256)
-    {
-        return distributions[token].claimStartWeekNum[veLockId];
-    }
-
-    function claimable(address _token) public view override returns (uint256) {
-        Distribution storage distribution = distributions[_token];
-        uint256 currentEpoch = getCurrentEpoch();
-        if (currentEpoch == 0) return 0;
-        uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
-        uint256 acc;
-        for (uint256 i = 0; i < myLocks; i++) {
-            uint256 lockId =
-                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(msg.sender, i);
-            acc = acc.add(_claimable(distribution, lockId, currentEpoch - 1));
-        }
-        return acc;
     }
 
     function distributedTokens()
@@ -216,57 +177,110 @@ contract DividendPool is
         return _distributedTokens;
     }
 
+    function distributed(address token) public view override returns (bool) {
+        return _distributed[token];
+    }
+
+    function totalDistributed(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _distributions[token].totalDistribution;
+    }
+
+    function distributionBalance(address token)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _distributions[token].balance;
+    }
+
+    function distributionOfWeek(address token, uint256 epochNum)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _distributions[token].tokenPerWeek[epochNum];
+    }
+
+    function claimStartWeek(address token, uint256 veLockId)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        return _distributions[token].claimStartWeekNum[veLockId];
+    }
+
+    function claimable(address token) public view override returns (uint256) {
+        Distribution storage distribution = _distributions[token];
+        uint256 currentEpoch = getCurrentEpoch();
+        if (currentEpoch == 0) return 0;
+        uint256 myLocks = IVotingEscrowLock(_veLocker).balanceOf(msg.sender);
+        uint256 acc;
+        for (uint256 i = 0; i < myLocks; i++) {
+            uint256 lockId =
+                IERC721Enumerable(_veLocker).tokenOfOwnerByIndex(msg.sender, i);
+            acc = acc.add(_claimable(distribution, lockId, currentEpoch - 1));
+        }
+        return acc;
+    }
+
     function featuredRewards() public view override returns (address[] memory) {
         return _featuredRewards;
     }
 
-    function setFeaturedRewards(address[] memory featured) public governed {
-        _featuredRewards = featured;
-    }
-
     function _claimUpTo(address token, uint256 timestamp) internal {
         uint256 epoch = getEpoch(timestamp);
-        uint256 myLocks = IVotingEscrowLock(veLocker).balanceOf(msg.sender);
+        uint256 myLocks = IVotingEscrowLock(_veLocker).balanceOf(msg.sender);
         for (uint256 i = 0; i < myLocks; i++) {
             uint256 lockId =
-                IERC721Enumerable(veLocker).tokenOfOwnerByIndex(msg.sender, i);
+                IERC721Enumerable(_veLocker).tokenOfOwnerByIndex(msg.sender, i);
             _claim(token, lockId, epoch);
         }
     }
 
     function _claim(
-        address _token,
-        uint256 _tokenId,
-        uint256 _epoch
+        address token,
+        uint256 tokenId,
+        uint256 epoch
     ) internal {
-        Distribution storage distribution = distributions[_token];
-        uint256 amount = _claimable(distribution, _tokenId, _epoch);
-        distribution.claimStartWeekNum[_tokenId] = _epoch + 1;
+        Distribution storage distribution = _distributions[token];
+        uint256 amount = _claimable(distribution, tokenId, epoch);
+        distribution.claimStartWeekNum[tokenId] = epoch + 1;
         distribution.balance = distribution.balance.sub(amount);
-        IERC20(_token).safeTransfer(msg.sender, amount);
+        IERC20(token).safeTransfer(msg.sender, amount);
     }
 
     function _claimable(
         Distribution storage distribution,
-        uint256 _tokenId,
-        uint256 _epoch
+        uint256 tokenId,
+        uint256 epoch
     ) internal view returns (uint256 amount) {
         uint256 currentEpoch = getCurrentEpoch();
-        require(_epoch < currentEpoch, "Current epoch is being updated.");
+        require(epoch < currentEpoch, "Current epoch is being updated.");
         uint256 accumulated;
-        uint256 epochCursor = distribution.claimStartWeekNum[_tokenId];
+        uint256 epochCursor = distribution.claimStartWeekNum[tokenId];
         if (epochCursor == 0) {
-            (, uint256 _start, ) = IVotingEscrowLock(veLocker).locks(_tokenId);
+            (, uint256 _start, ) = IVotingEscrowLock(_veLocker).locks(tokenId);
             epochCursor = getEpoch(_start);
         }
-        while (epochCursor <= _epoch) {
+        while (epochCursor <= epoch) {
             // check the balance when the epoch ends
-            uint256 timestamp = genesis + epochCursor * epochUnit + 1 weeks;
+            uint256 timestamp = _genesis + epochCursor * epochUnit + 1 weeks;
             // calculate amount;
             uint256 bal =
-                IVotingEscrowToken(veVISION).balanceOfAt(msg.sender, timestamp);
+                IVotingEscrowToken(_veVISION).balanceOfAt(
+                    msg.sender,
+                    timestamp
+                );
             uint256 supply =
-                IVotingEscrowToken(veVISION).totalSupplyAt(timestamp);
+                IVotingEscrowToken(_veVISION).totalSupplyAt(timestamp);
             if (supply != 0) {
                 accumulated += distribution.tokenPerWeek[epochCursor]
                     .mul(bal)

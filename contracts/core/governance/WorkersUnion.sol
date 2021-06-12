@@ -431,6 +431,6 @@ contract WorkersUnion is Pausable, Governed, Initializable {
     }
 
     function _timelock() internal view returns (TimelockedGovernance) {
-        return TimelockedGovernance(payable(gov));
+        return TimelockedGovernance(payable(_gov));
     }
 }
