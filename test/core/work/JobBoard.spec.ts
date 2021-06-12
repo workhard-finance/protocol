@@ -80,7 +80,7 @@ describe("JobBoard.sol", function () {
     timelock = masterDAO.timelock;
     await runTimelockTx(
       timelock,
-      stableReserve.populateTransaction.setMinter(jobBoard.address, true)
+      stableReserve.populateTransaction.allow(jobBoard.address, true)
     );
     await baseCurrency.mint(deployer.address, parseEther("10000"));
     const prepare = async (account: SignerWithAddress) => {

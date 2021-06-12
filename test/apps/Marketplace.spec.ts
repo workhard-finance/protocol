@@ -10,14 +10,12 @@ import {
   DividendPool,
   ERC20,
   ERC20__factory,
-  IERC20,
   Marketplace,
   StableReserve,
   TimelockedGovernance,
   WorkhardClient,
   WorkhardDAO,
 } from "../../src";
-import { domain } from "process";
 
 chai.use(solidity);
 
