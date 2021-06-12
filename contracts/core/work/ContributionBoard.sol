@@ -49,6 +49,8 @@ contract ContributionBoard is
 
     mapping(uint256 => uint256) public totalSupplyOf;
 
+    mapping(uint256 => uint256) public maxSupplyOf;
+
     mapping(uint256 => uint256) public minimumShare;
 
     mapping(uint256 => bool) public fundingPaused;
@@ -124,7 +126,8 @@ contract ContributionBoard is
     function addProjectFund(uint256 projId, uint256 amount) public {
         require(!fundingPaused[projId], "Should unpause funding");
         IERC20(commitToken).safeTransferFrom(msg.sender, address(this), amount);
-        projectFund[projId] = projectFund[projId].add(amount);
+        uint256 updated = projectFund[projId].add(amount);
+        projectFund[projId] = updated;
         if (minimumShare[projId] != 0) {
             // record funding
             _recordContribution(msg.sender, projId, amount);
@@ -147,14 +150,27 @@ contract ContributionBoard is
         return true;
     }
 
-    function enableFunding(uint256 projectId, uint256 _minimumShare)
-        public
-        onlyProjectOwner(projectId)
-    {
+    function enableFunding(
+        uint256 projectId,
+        uint256 _minimumShare,
+        uint256 _maxContribution
+    ) public onlyProjectOwner(projectId) {
         require(0 < _minimumShare, "Should be greater than 0");
         require(_minimumShare < 10000, "Cannot be greater than denominator");
         require(minimumShare[projectId] == 0, "Funding is already enabled.");
         minimumShare[projectId] = _minimumShare;
+        _setMaxContribution(projectId, _maxContribution);
+    }
+
+    /**
+     * @notice Usually the total supply = funded + paid. If you want to raise
+     *         10000 COMMITs you should set the max contribution at least 20000.
+     */
+    function setMaxContribution(uint256 projectId, uint256 maxContribution)
+        public
+        onlyProjectOwner(projectId)
+    {
+        _setMaxContribution(projectId, maxContribution);
     }
 
     function pauseFunding(uint256 projectId)
@@ -165,7 +181,7 @@ contract ContributionBoard is
         fundingPaused[projectId] = true;
     }
 
-    function unpauseFunding(uint256 projectId)
+    function resumeFunding(uint256 projectId)
         public
         onlyProjectOwner(projectId)
     {
@@ -178,7 +194,11 @@ contract ContributionBoard is
         address to,
         uint256 amount
     ) public onlyProjectOwner(projectId) {
-        _compensate(projectId, to, amount);
+        require(projectFund[projectId] >= amount, "Not enough fund.");
+        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
+        IERC20(commitToken).safeTransfer(to, amount);
+        _recordContribution(to, projectId, amount);
+        emit Payed(projectId, to, amount);
     }
 
     function compensateInStream(
@@ -270,16 +290,12 @@ contract ContributionBoard is
         return IERC721Metadata(address(workhard)).tokenURI(id);
     }
 
-    function _compensate(
-        uint256 projectId,
-        address to,
-        uint256 amount
-    ) internal {
-        require(projectFund[projectId] >= amount);
-        projectFund[projectId] = projectFund[projectId] - amount; // "require" protects underflow
-        IERC20(commitToken).safeTransfer(to, amount);
-        _recordContribution(to, projectId, amount);
-        emit Payed(projectId, to, amount);
+    function _setMaxContribution(uint256 _id, uint256 _maxContribution)
+        internal
+    {
+        require(!finalized[_id], "DAO is launched. You cannot update it.");
+        maxSupplyOf[_id] = _maxContribution;
+        emit NewMaxContribution(_id, _maxContribution);
     }
 
     function _recordContribution(
@@ -305,6 +321,10 @@ contract ContributionBoard is
     ) internal override {
         super._mint(account, id, amount, data);
         totalSupplyOf[id] = totalSupplyOf[id].add(amount);
+        require(
+            maxSupplyOf[id] == 0 || totalSupplyOf[id] <= maxSupplyOf[id],
+            "Exceeds the max supply. Set a new max supply value."
+        );
     }
 
     function _burn(
