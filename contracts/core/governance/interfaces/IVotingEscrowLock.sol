@@ -1,11 +1,14 @@
 //SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.7.0;
-pragma abicoder v2;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {Lock} from "../../../core/governance/libraries/VotingEscrowLib.sol";
 
 interface IVotingEscrowLock is IERC721 {
+    event LockCreated(uint256 veLockId);
+    event LockUpdate(uint256 veLockId, uint256 amount, uint256 end);
+    event Withdraw(uint256 veLockId, uint256 amount);
+    event VoteDelegated(uint256 veLockId, address to);
+
     function locks(uint256 veLockId)
         external
         view

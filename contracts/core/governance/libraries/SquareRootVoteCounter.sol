@@ -17,6 +17,6 @@ contract SquareRootVoteCounter is VoteCounter {
     }
 
     function getTotalVotes() public view virtual override returns (uint256) {
-        return veToken.totalSupply().sqrt();
+        return IVotingEscrowToken(veToken()).totalSupply().sqrt();
     }
 }

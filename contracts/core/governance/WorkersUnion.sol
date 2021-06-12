@@ -10,43 +10,21 @@ import "../../core/dividend/interfaces/IDividendPool.sol";
 import "../../core/governance/Governed.sol";
 import "../../core/governance/TimelockedGovernance.sol";
 import "../../core/governance/interfaces/IVoteCounter.sol";
+import "../../core/governance/interfaces/IWorkersUnion.sol";
 import "../../utils/Sqrt.sol";
-struct Proposal {
-    address proposer;
-    uint256 start;
-    uint256 end;
-    uint256 totalForVotes;
-    uint256 totalAgainstVotes;
-    mapping(uint256 => uint256) forVotes; // votingRightId => for vote amount
-    mapping(uint256 => uint256) againstVotes; // votingRightId => against vote amount
-}
-
-struct VotingRule {
-    uint256 minimumPending;
-    uint256 maximumPending;
-    uint256 minimumVotingPeriod;
-    uint256 maximumVotingPeriod;
-    uint256 minimumVotesForProposing;
-    uint256 minimumVotes;
-    IVoteCounter voteCounter;
-}
 
 /**
  * @notice referenced openzeppelin's TimelockController.sol
  */
-contract WorkersUnion is Pausable, Governed, Initializable {
+contract WorkersUnion is Pausable, Governed, Initializable, IWorkersUnion {
     using SafeMath for uint256;
     using Sqrt for uint256;
 
-    enum VotingState {Pending, Voting, Passed, Rejected, Executed} // Enum
-
     bytes32 public constant NO_DEPENDENCY = bytes32(0);
 
-    VotingRule public votingRule;
-
-    mapping(bytes32 => Proposal) public proposals;
-
     uint256 private _launch;
+    VotingRule private _votingRule;
+    mapping(bytes32 => Proposal) private _proposals;
 
     event TxProposed(
         bytes32 indexed txHash,
@@ -74,22 +52,22 @@ contract WorkersUnion is Pausable, Governed, Initializable {
     event VoteUpdated(bytes32 txHash, uint256 forVotes, uint256 againsVotes);
 
     function initialize(
-        address _voteCounter,
-        address _timelockGov,
-        uint256 _launchDelay
+        address voteCounter,
+        address timelockGov,
+        uint256 launchDelay
     ) public initializer {
-        votingRule = VotingRule(
+        _votingRule = VotingRule(
             1 days, // minimum pending for vote
             1 weeks, // maximum pending for vote
             1 weeks, // minimum voting period
             4 weeks, // maximum voting period
             0 gwei, // minimum votes for proposing
             0 gwei, // minimum votes
-            IVoteCounter(_voteCounter)
+            voteCounter
         );
-        Governed.initialize(_timelockGov);
+        Governed.initialize(timelockGov);
         _pause();
-        _launch = block.timestamp.add(_launchDelay);
+        _launch = block.timestamp.add(launchDelay);
     }
 
     /**
@@ -97,7 +75,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
      */
     receive() external payable {}
 
-    function launch() public {
+    function launch() public override {
         require(block.timestamp >= _launch, "Wait a bit please.");
         _unpause();
     }
@@ -109,9 +87,9 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         uint256 maximumVotingPeriod,
         uint256 minimumVotesForProposing,
         uint256 minimumVotes,
-        IVoteCounter voteCounter
-    ) public governed {
-        uint256 totalVotes = voteCounter.getTotalVotes();
+        address voteCounter
+    ) public override governed {
+        uint256 totalVotes = IVoteCounter(voteCounter).getTotalVotes();
 
         require(minimumPendingPeriod <= maximumPendingPeriod, "invalid arg");
         require(minimumVotingPeriod <= maximumVotingPeriod, "invalid arg");
@@ -125,7 +103,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         );
         require(minimumVotes <= totalVotes.div(2), "too large number");
         require(address(voteCounter) != address(0), "null address");
-        votingRule = VotingRule(
+        _votingRule = VotingRule(
             minimumPendingPeriod,
             maximumPendingPeriod,
             minimumVotingPeriod,
@@ -144,7 +122,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes32 salt,
         uint256 startsIn,
         uint256 votingPeriod
-    ) public {
+    ) public override {
         _beforePropose(startsIn, votingPeriod);
         bytes32 txHash =
             _timelock().hashOperation(target, value, data, predecessor, salt);
@@ -169,7 +147,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes32 salt,
         uint256 startsIn,
         uint256 votingPeriod
-    ) public whenNotPaused {
+    ) public override whenNotPaused {
         _beforePropose(startsIn, votingPeriod);
         bytes32 txHash =
             _timelock().hashOperationBatch(
@@ -195,9 +173,9 @@ contract WorkersUnion is Pausable, Governed, Initializable {
     /**
      * @notice Should use vote(bytes32, uint256[], bool) when too many voting rights are delegated to avoid out of gas.
      */
-    function vote(bytes32 txHash, bool agree) public {
+    function vote(bytes32 txHash, bool agree) public override {
         uint256[] memory votingRights =
-            votingRule.voteCounter.votingRights(msg.sender);
+            IVoteCounter(_votingRule.voteCounter).votingRights(msg.sender);
         manualVote(txHash, votingRights, agree);
     }
 
@@ -211,8 +189,8 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes32 txHash,
         uint256[] memory rightIds,
         bool agree
-    ) public {
-        Proposal storage proposal = proposals[txHash];
+    ) public override {
+        Proposal storage proposal = _proposals[txHash];
         uint256 timestamp = proposal.start;
         require(
             getVotingStatus(txHash) == VotingState.Voting,
@@ -223,12 +201,13 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         for (uint256 i = 0; i < rightIds.length; i++) {
             uint256 id = rightIds[i];
             require(
-                votingRule.voteCounter.voterOf(id) == msg.sender,
+                IVoteCounter(_votingRule.voteCounter).voterOf(id) == msg.sender,
                 "not the voting right owner"
             );
             uint256 prevForVotes = proposal.forVotes[id];
             uint256 prevAgainstVotes = proposal.againstVotes[id];
-            uint256 votes = votingRule.voteCounter.getVotes(id, timestamp);
+            uint256 votes =
+                IVoteCounter(_votingRule.voteCounter).getVotes(id, timestamp);
             proposal.forVotes[id] = agree ? votes : 0;
             proposal.againstVotes[id] = agree ? 0 : votes;
             totalForVotes = totalForVotes.add(agree ? votes : 0).sub(
@@ -244,52 +223,13 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         emit VoteUpdated(txHash, totalForVotes, totalAgainstVotes);
     }
 
-    function getVotingStatus(bytes32 txHash) public view returns (VotingState) {
-        Proposal storage proposal = proposals[txHash];
-        require(proposal.start != 0, "Not an existing proposal");
-        if (block.timestamp < proposal.start) return VotingState.Pending;
-        else if (block.timestamp <= proposal.end) return VotingState.Voting;
-        else if (_timelock().isOperationDone(txHash))
-            return VotingState.Executed;
-        else if (proposal.totalForVotes < votingRule.minimumVotes)
-            return VotingState.Rejected;
-        else if (proposal.totalForVotes > proposal.totalAgainstVotes)
-            return VotingState.Passed;
-        else return VotingState.Rejected;
-    }
-
-    function getVotesFor(address account, bytes32 txHash)
-        public
-        view
-        returns (uint256)
-    {
-        uint256 timestamp = proposals[txHash].start;
-        return getVotesAt(account, timestamp);
-    }
-
-    function getVotesAt(address account, uint256 timestamp)
-        public
-        view
-        returns (uint256)
-    {
-        uint256[] memory votingRights =
-            votingRule.voteCounter.votingRights(account);
-        uint256 votes;
-        for (uint256 i = 0; i < votingRights.length; i++) {
-            votes = votes.add(
-                votingRule.voteCounter.getVotes(votingRights[i], timestamp)
-            );
-        }
-        return votes;
-    }
-
     function schedule(
         address target,
         uint256 value,
         bytes calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public {
+    ) public override {
         bytes32 txHash =
             _timelock().hashOperation(target, value, data, predecessor, salt);
         require(
@@ -312,7 +252,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes[] calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public {
+    ) public override {
         bytes32 txHash =
             _timelock().hashOperationBatch(
                 target,
@@ -341,7 +281,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable {
+    ) public payable override {
         bytes32 txHash =
             _timelock().hashOperation(target, value, data, predecessor, salt);
         require(
@@ -363,7 +303,7 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         bytes[] calldata data,
         bytes32 predecessor,
         bytes32 salt
-    ) public payable {
+    ) public payable override {
         require(target.length == value.length, "length mismatch");
         require(target.length == data.length, "length mismatch");
         bytes32 txHash =
@@ -391,13 +331,88 @@ contract WorkersUnion is Pausable, Governed, Initializable {
         );
     }
 
+    function votingRule() public view override returns (VotingRule memory) {
+        return _votingRule;
+    }
+
+    function getVotingStatus(bytes32 txHash)
+        public
+        view
+        override
+        returns (VotingState)
+    {
+        Proposal storage proposal = _proposals[txHash];
+        require(proposal.start != 0, "Not an existing proposal");
+        if (block.timestamp < proposal.start) return VotingState.Pending;
+        else if (block.timestamp <= proposal.end) return VotingState.Voting;
+        else if (_timelock().isOperationDone(txHash))
+            return VotingState.Executed;
+        else if (proposal.totalForVotes < _votingRule.minimumVotes)
+            return VotingState.Rejected;
+        else if (proposal.totalForVotes > proposal.totalAgainstVotes)
+            return VotingState.Passed;
+        else return VotingState.Rejected;
+    }
+
+    function getVotesFor(address account, bytes32 txHash)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256 timestamp = _proposals[txHash].start;
+        return getVotesAt(account, timestamp);
+    }
+
+    function getVotesAt(address account, uint256 timestamp)
+        public
+        view
+        override
+        returns (uint256)
+    {
+        uint256[] memory votingRights =
+            IVoteCounter(_votingRule.voteCounter).votingRights(account);
+        uint256 votes;
+        for (uint256 i = 0; i < votingRights.length; i++) {
+            votes = votes.add(
+                IVoteCounter(_votingRule.voteCounter).getVotes(
+                    votingRights[i],
+                    timestamp
+                )
+            );
+        }
+        return votes;
+    }
+
+    function proposals(bytes32 proposalHash)
+        public
+        view
+        override
+        returns (
+            address proposer,
+            uint256 start,
+            uint256 end,
+            uint256 totalForVotes,
+            uint256 totalAgainstVotes
+        )
+    {
+        Proposal storage proposal = _proposals[proposalHash];
+        return (
+            proposal.proposer,
+            proposal.start,
+            proposal.end,
+            proposal.totalForVotes,
+            proposal.totalAgainstVotes
+        );
+    }
+
     function _propose(
         bytes32 txHash,
         uint256 startsIn,
         uint256 votingPeriod
     ) private whenNotPaused {
-        require(proposals[txHash].proposer == address(0));
-        Proposal storage proposal = proposals[txHash];
+        Proposal storage proposal = _proposals[txHash];
+        require(proposal.proposer == address(0));
         proposal.proposer = msg.sender;
         proposal.start = block.timestamp + startsIn;
         proposal.end = proposal.start + votingPeriod;
@@ -409,23 +424,23 @@ contract WorkersUnion is Pausable, Governed, Initializable {
     {
         uint256 votes = getVotesAt(msg.sender, block.timestamp);
         require(
-            votingRule.minimumVotesForProposing <= votes,
+            _votingRule.minimumVotesForProposing <= votes,
             "Not enough votes for proposing."
         );
         require(
-            votingRule.minimumPending <= startsIn,
+            _votingRule.minimumPending <= startsIn,
             "Pending period is too short."
         );
         require(
-            startsIn <= votingRule.maximumPending,
+            startsIn <= _votingRule.maximumPending,
             "Pending period is too long."
         );
         require(
-            votingRule.minimumVotingPeriod <= votingPeriod,
+            _votingRule.minimumVotingPeriod <= votingPeriod,
             "Voting period is too short."
         );
         require(
-            votingPeriod <= votingRule.maximumVotingPeriod,
+            votingPeriod <= _votingRule.maximumVotingPeriod,
             "Voting period is too long."
         );
     }

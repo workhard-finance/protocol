@@ -6,13 +6,10 @@ import "../../utils/Utils.sol";
 contract Governed {
     using Utils for address[];
 
-    bool private initialized;
-
+    bool private _initialized;
     address internal _gov;
-
-    uint256 public anarchizedAt = 0;
-
-    uint256 public forceAnarchizeAt = 0;
+    uint256 private _anarchizedAt = 0;
+    uint256 private _forceAnarchizeAt = 0;
 
     event NewGovernance(
         address indexed _prevGovernance,
@@ -34,8 +31,8 @@ contract Governed {
     }
 
     function initialize(address gov_) public {
-        require(!initialized, "Initialized");
-        initialized = true;
+        require(!_initialized, "Initialized");
+        _initialized = true;
         _gov = gov_;
     }
 
@@ -45,12 +42,12 @@ contract Governed {
     }
 
     function setAnarchyPoint(uint256 timestamp) public governed {
-        require(forceAnarchizeAt == 0, "Cannot update.");
+        require(_forceAnarchizeAt == 0, "Cannot update.");
         require(
             timestamp >= block.timestamp,
             "Timepoint should be in the future."
         );
-        forceAnarchizeAt = timestamp;
+        _forceAnarchizeAt = timestamp;
     }
 
     function anarchize() public governed {
@@ -58,8 +55,8 @@ contract Governed {
     }
 
     function forceAnarchize() public {
-        require(forceAnarchizeAt != 0, "Cannot disband the gov");
-        require(block.timestamp >= forceAnarchizeAt, "Cannot disband the gov");
+        require(_forceAnarchizeAt != 0, "Cannot disband the gov");
+        require(block.timestamp >= _forceAnarchizeAt, "Cannot disband the gov");
         _anarchize();
     }
 
@@ -67,9 +64,17 @@ contract Governed {
         return _gov;
     }
 
+    function anarchizedAt() public view returns (uint256) {
+        return _anarchizedAt;
+    }
+
+    function forceAnarchizeAt() public view returns (uint256) {
+        return _forceAnarchizeAt;
+    }
+
     function _anarchize() internal {
         _setGovernance(address(0));
-        anarchizedAt = block.timestamp;
+        _anarchizedAt = block.timestamp;
         emit Anarchized();
     }
 

@@ -10,16 +10,16 @@ import "../../../core/governance/interfaces/IVotingEscrowLock.sol";
 import "../../../utils/Sqrt.sol";
 
 contract VoteCounter is IVoteCounter, Initializable {
-    IVotingEscrowLock veLock;
-    IVotingEscrowToken veToken;
+    IVotingEscrowLock private _veLock;
+    IVotingEscrowToken private _veToken;
 
-    function initialize(address _veToken) public initializer {
-        veToken = IVotingEscrowToken(_veToken);
-        veLock = IVotingEscrowLock(IVotingEscrowToken(_veToken).veLocker());
+    function initialize(address veToken_) public initializer {
+        _veToken = IVotingEscrowToken(veToken_);
+        _veLock = IVotingEscrowLock(_veToken.veLocker());
     }
 
     function getTotalVotes() public view virtual override returns (uint256) {
-        return veToken.totalSupply();
+        return _veToken.totalSupply();
     }
 
     function getVotes(uint256 veLockId, uint256 timestamp)
@@ -29,7 +29,7 @@ contract VoteCounter is IVoteCounter, Initializable {
         override
         returns (uint256)
     {
-        return veToken.balanceOfLockAt(veLockId, timestamp);
+        return _veToken.balanceOfLockAt(veLockId, timestamp);
     }
 
     function voterOf(uint256 veLockId)
@@ -39,7 +39,7 @@ contract VoteCounter is IVoteCounter, Initializable {
         override
         returns (address)
     {
-        return veLock.delegateeOf(veLockId);
+        return _veLock.delegateeOf(veLockId);
     }
 
     function votingRights(address voter)
@@ -49,10 +49,10 @@ contract VoteCounter is IVoteCounter, Initializable {
         override
         returns (uint256[] memory rights)
     {
-        uint256 totalLocks = veLock.delegatedRights(voter);
+        uint256 totalLocks = _veLock.delegatedRights(voter);
         rights = new uint256[](totalLocks);
         for (uint256 i = 0; i < rights.length; i++) {
-            rights[i] = veLock.delegatedRightByIndex(voter, i);
+            rights[i] = _veLock.delegatedRightByIndex(voter, i);
         }
     }
 
@@ -72,5 +72,13 @@ contract VoteCounter is IVoteCounter, Initializable {
             sum += getVotes(rights[i], block.timestamp);
         }
         return sum;
+    }
+
+    function veLock() public view returns (address) {
+        return address(_veLock);
+    }
+
+    function veToken() public view returns (address) {
+        return address(_veToken);
     }
 }
