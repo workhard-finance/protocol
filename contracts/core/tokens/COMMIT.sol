@@ -15,10 +15,10 @@ import "@openzeppelin/contracts/proxy/Initializable.sol";
 contract COMMIT is ERC20Burnable, Initializable {
     using SafeMath for uint256;
 
-    address public minter;
+    address private _minter;
+    uint256 private _totalBurned;
     string private _name;
     string private _symbol;
-    uint256 public totalBurned;
 
     constructor() ERC20("", "") {
         // this constructor will not be called since it'll be cloned by proxy pattern.
@@ -26,30 +26,30 @@ contract COMMIT is ERC20Burnable, Initializable {
     }
 
     modifier onlyMinter {
-        require(msg.sender == minter, "Not a minter");
+        require(msg.sender == _minter, "Not a minter");
         _;
     }
 
     function initialize(
         string memory name_,
         string memory symbol_,
-        address _minter
+        address minter_
     ) public initializer {
         _name = name_;
         _symbol = symbol_;
-        minter = _minter;
+        _minter = minter_;
     }
 
     function mint(address to, uint256 amount) public onlyMinter {
         _mint(to, amount);
     }
 
-    function setMinter(address _minter) public onlyMinter {
-        _setMinter(_minter);
+    function setMinter(address minter_) public onlyMinter {
+        _setMinter(minter_);
     }
 
-    function _setMinter(address _minter) internal {
-        minter = _minter;
+    function _setMinter(address minter_) internal {
+        _minter = minter_;
     }
 
     function name() public view virtual override returns (string memory) {
@@ -64,8 +64,16 @@ contract COMMIT is ERC20Burnable, Initializable {
         return 18;
     }
 
+    function minter() public view returns (address) {
+        return _minter;
+    }
+
+    function totalBurned() public view returns (uint256) {
+        return _totalBurned;
+    }
+
     function _burn(address account, uint256 amount) internal override {
         super._burn(account, amount);
-        totalBurned = totalBurned.add(amount);
+        _totalBurned = _totalBurned.add(amount);
     }
 }

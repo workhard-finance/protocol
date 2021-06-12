@@ -5,8 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
 
 contract VISION is ERC20, Initializable {
-    address public minter;
-
+    address private _minter;
     string private _name;
     string private _symbol;
 
@@ -16,30 +15,30 @@ contract VISION is ERC20, Initializable {
     }
 
     modifier onlyMinter {
-        require(msg.sender == minter, "Not a minter");
+        require(msg.sender == _minter, "Not a minter");
         _;
     }
 
     function initialize(
         string memory name_,
         string memory symbol_,
-        address _minter
+        address minter_
     ) public initializer {
         _name = name_;
         _symbol = symbol_;
-        minter = _minter;
+        _minter = minter_;
     }
 
     function mint(address to, uint256 amount) public onlyMinter {
         _mint(to, amount);
     }
 
-    function setMinter(address _minter) public onlyMinter {
-        _setMinter(_minter);
+    function setMinter(address minter_) public onlyMinter {
+        _setMinter(minter_);
     }
 
-    function _setMinter(address _minter) internal {
-        minter = _minter;
+    function _setMinter(address minter_) internal {
+        _minter = minter_;
     }
 
     function name() public view virtual override returns (string memory) {
@@ -52,5 +51,9 @@ contract VISION is ERC20, Initializable {
 
     function decimals() public pure override returns (uint8) {
         return 18;
+    }
+
+    function minter() public view returns (address) {
+        return _minter;
     }
 }
