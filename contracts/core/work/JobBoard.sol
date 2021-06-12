@@ -18,7 +18,7 @@ import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../apps/IWorkhard.sol";
+import "../../apps/Workhard.sol";
 import "../../utils/IERC1620.sol";
 import "../../utils/Utils.sol";
 
@@ -46,7 +46,7 @@ contract JobBoard is
 
     address public baseCurrency;
 
-    IWorkhard public workhard;
+    Workhard public workhard;
 
     uint256 public normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
 
@@ -116,7 +116,7 @@ contract JobBoard is
         CommitMinter._setup(_stableReserve, _commit);
         Distributor._setup(_dividendPool);
         baseCurrency = _baseCurrency;
-        workhard = IWorkhard(_workhard);
+        workhard = Workhard(_workhard);
         acceptableTokens[_baseCurrency] = true;
         thirdPartyAccess = true;
         sablier = _sablier;

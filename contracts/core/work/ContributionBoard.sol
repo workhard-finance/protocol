@@ -18,7 +18,7 @@ import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../apps/IWorkhard.sol";
+import "../../apps/Workhard.sol";
 import "../../utils/IERC1620.sol";
 import "../../utils/Utils.sol";
 
@@ -41,7 +41,7 @@ contract ContributionBoard is
 
     address public commit;
 
-    IWorkhard public workhard;
+    Workhard public workhard;
 
     mapping(uint256 => uint256) public projectFund;
 
@@ -96,7 +96,7 @@ contract ContributionBoard is
     ) public initializer {
         CommitMinter._setup(_stableReserve, _commit);
         Distributor._setup(_dividendPool);
-        workhard = IWorkhard(_workhard);
+        workhard = Workhard(_workhard);
         sablier = _sablier;
         Governed.initialize(_gov);
         _setURI("");

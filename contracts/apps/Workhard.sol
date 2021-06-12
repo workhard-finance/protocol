@@ -23,36 +23,94 @@ import "../core/emission/VisionEmitter.sol";
 import "../core/emission/factories/ERC20BurnMiningV1Factory.sol";
 import "../core/emission/libraries/PoolType.sol";
 import "../core/marketplace/Marketplace.sol";
-import "../apps/IWorkhard.sol";
 
-contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
+contract Workhard is ERC721, ERC20Recoverer {
     using Clones for address;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    mapping(uint256 => uint256) public override growth;
-    CommonContracts private commons;
-    WorkhardDAO private controller;
-    mapping(uint256 => WorkhardDAO) private dao;
-    mapping(uint256 => string) public override nameOf;
-    mapping(uint256 => string) public override symbolOf;
-    uint256[] private allDAOs;
+    struct WorkhardDAO {
+        address multisig;
+        address baseCurrency;
+        address timelock;
+        address vision;
+        address commit;
+        address right;
+        address stableReserve;
+        address contributionBoard;
+        address marketplace;
+        address dividendPool;
+        address voteCounter;
+        address workersUnion;
+        address visionEmitter;
+        address votingEscrow;
+    }
+
+    struct CommonContracts {
+        address pool2Factory;
+        address weth;
+        address sablier;
+        address erc20StakeMiningV1Factory;
+        address erc20BurnMiningV1Factory;
+        address erc721StakeMiningV1Factory;
+        address erc1155StakeMiningV1Factory;
+        address erc1155BurnMiningV1Factory;
+        address initialContributorShareFactory;
+    }
+
+    struct CloneParams {
+        address multisig;
+        address baseCurrency;
+        // Project
+        string projectName;
+        string projectSymbol;
+        // tokens
+        string visionName;
+        string visionSymbol;
+        string commitName;
+        string commitSymbol;
+        string rightName;
+        string rightSymbol;
+        uint256 emissionStartDelay;
+        uint256 minDelay; // timelock
+        uint256 voteLaunchDelay;
+        uint256 initialEmission;
+        uint256 minEmissionRatePerWeek;
+        uint256 emissionCutRate;
+        uint256 founderShare;
+    }
+
+    // Metadata for each project
+    mapping(uint256 => uint256) private _growth;
+    mapping(uint256 => string) private _nameOf;
+    mapping(uint256 => string) private _symbolOf;
+    mapping(uint256 => bool) private _immortalized;
+
+    // Common contracts and controller(not upgradeable)
+    CommonContracts private _commons;
+    WorkhardDAO private _controller;
+
+    // Launched DAO's contracts
+    mapping(uint256 => WorkhardDAO) private _dao;
+    uint256[] private _allDAOs;
 
     mapping(address => uint256) private _daoAddressBook;
-    mapping(uint256 => bool) public override immortalized;
 
     // Mapping from holder address to their (enumerable) set of owned tokens
     mapping(address => EnumerableSet.UintSet) private _daoProjects; // timelock will be the pointing contract
     EnumerableMap.UintToAddressMap private _belongsTo;
-
     uint256 private projNum;
 
-    constructor(WorkhardDAO memory _controller, CommonContracts memory _commons)
+    event DAOLaunched(uint256 id);
+    event NewProject(uint256 indexed daoId, uint256 id);
+    event ProjectMoved(uint256 indexed from, uint256 indexed to);
+
+    constructor(WorkhardDAO memory controller, CommonContracts memory commons)
         ERC721("WORKHARD DAO", "WORKHARD")
     {
         _setBaseURI("ipfs://");
-        controller = _controller;
-        commons = _commons;
+        _controller = controller;
+        _commons = commons;
         uint256 masterDAOId = 0;
         address masterTimelock =
             Clones.predictDeterministicAddress(
@@ -75,17 +133,16 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
     /**
      * Creating a project for another forked DAO.
      */
-    function createProject(uint256 daoId, string memory _uri)
+    function createProject(uint256 daoId, string memory uri)
         public
-        override
         returns (uint256 id)
     {
         id = projNum;
         projNum++;
-        require(growth[id] < 1, "Already created.");
-        growth[id] = 1;
+        require(_growth[id] < 1, "Already created.");
+        _growth[id] = 1;
         _mint(msg.sender, id);
-        _setTokenURI(id, _uri);
+        _setTokenURI(id, uri);
         address daoAddress = convertDAOIdToAddress(daoId);
         _daoProjects[daoAddress].add(id);
         _belongsTo.set(id, daoAddress);
@@ -93,25 +150,22 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         return id;
     }
 
-    function upgradeToDAO(uint256 _tokenId, CloneParams memory params)
+    function upgradeToDAO(uint256 id, CloneParams memory params)
         public
-        override
-        onlyOwnerOf(_tokenId)
+        onlyOwnerOf(id)
     {
-        require(dao[_tokenId].vision == address(0), "Already upgraded.");
-        _deploy(_tokenId);
-        _initialize(_tokenId, params);
-        _daoAddressBook[convertDAOIdToAddress(_tokenId)] = _tokenId;
+        require(_dao[id].vision == address(0), "Already upgraded.");
+        _deploy(id);
+        _initialize(id, params);
+        _daoAddressBook[convertDAOIdToAddress(id)] = id;
         // Now it does not belong to any dao. A new dao!
-        _daoProjects[
-            _belongsTo.get(_tokenId, "owner query for nonexistent token")
-        ]
-            .remove(_tokenId);
-        _belongsTo.remove(_tokenId);
-        nameOf[_tokenId] = params.projectName;
-        symbolOf[_tokenId] = params.projectSymbol;
-        emit DAOLaunched(_tokenId);
-        allDAOs.push(_tokenId);
+        _daoProjects[_belongsTo.get(id, "owner query for nonexistent token")]
+            .remove(id);
+        _belongsTo.remove(id);
+        _nameOf[id] = params.projectName;
+        _symbolOf[id] = params.projectSymbol;
+        emit DAOLaunched(id);
+        _allDAOs.push(id);
     }
 
     function launch(
@@ -120,22 +174,22 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
         uint256 commitMiningRate,
         uint256 treasury,
         uint256 caller
-    ) public override onlyOwnerOf(id) {
+    ) public onlyOwnerOf(id) {
         // 1. deploy sushi LP
-        WorkhardDAO storage fork = dao[id];
+        WorkhardDAO storage fork = _dao[id];
         address lp =
-            IUniswapV2Factory(commons.pool2Factory).getPair(
+            IUniswapV2Factory(_commons.pool2Factory).getPair(
                 fork.vision,
-                commons.weth
+                _commons.weth
             );
         if (lp == address(0)) {
-            IUniswapV2Factory(commons.pool2Factory).createPair(
+            IUniswapV2Factory(_commons.pool2Factory).createPair(
                 fork.vision,
-                commons.weth
+                _commons.weth
             );
-            lp = IUniswapV2Factory(commons.pool2Factory).getPair(
+            lp = IUniswapV2Factory(_commons.pool2Factory).getPair(
                 fork.vision,
-                commons.weth
+                _commons.weth
             );
         }
         MiningConfig memory miningConfig;
@@ -163,49 +217,89 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
 
     function launchHard(uint256 id, MiningConfig memory config)
         public
-        override
         onlyOwnerOf(id)
     {
         _launch(id, config);
     }
 
-    function immortalize(uint256 _tokenId)
-        public
-        override
-        onlyOwnerOf(_tokenId)
-    {
-        immortalized[_tokenId] = true;
+    function immortalize(uint256 id) public onlyOwnerOf(id) {
+        _immortalized[id] = true;
     }
 
-    function updateURI(uint256 _tokenId, string memory _uri)
-        public
-        override
-        onlyOwnerOf(_tokenId)
-    {
-        require(!immortalized[_tokenId], "This project is immortalized.");
-        _setTokenURI(_tokenId, _uri);
+    function updateURI(uint256 id, string memory uri) public onlyOwnerOf(id) {
+        require(!_immortalized[id], "This project is immortalized.");
+        _setTokenURI(id, uri);
     }
 
-    function changeMultisig(uint256 id, address newMultisig) public override {
+    function changeMultisig(uint256 id, address newMultisig) public {
         require(
-            msg.sender == dao[id].multisig,
+            msg.sender == _dao[id].multisig,
             "Only the prev owner can change this value."
         );
-        dao[id].multisig = newMultisig;
+        _dao[id].multisig = newMultisig;
+    }
+
+    function growth(uint256 id) public view returns (uint256) {
+        return _growth[id];
+    }
+
+    function nameOf(uint256 id) public view returns (string memory) {
+        return _nameOf[id];
+    }
+
+    function symbolOf(uint256 id) public view returns (string memory) {
+        return _symbolOf[id];
+    }
+
+    function immortalized(uint256 id) public view returns (bool) {
+        return _immortalized[id];
+    }
+
+    function daoOf(uint256 id) public view returns (uint256 daoId) {
+        address daoAddress =
+            _belongsTo.get(id, "owner query for nonexistent token");
+        return convertDAOAddressToId(daoAddress);
+    }
+
+    function projectsOf(uint256 daoId) public view returns (uint256 len) {
+        return _daoProjects[convertDAOIdToAddress(daoId)].length();
+    }
+
+    function projectsOfDAOByIndex(uint256 daoId, uint256 index)
+        public
+        view
+        returns (uint256 id)
+    {
+        return _daoProjects[convertDAOIdToAddress(daoId)].at(index);
+    }
+
+    function getMasterDAO() public view returns (WorkhardDAO memory) {
+        return _dao[0];
+    }
+
+    function getCommons() public view returns (CommonContracts memory) {
+        return _commons;
+    }
+
+    function getDAO(uint256 id) public view returns (WorkhardDAO memory) {
+        return _dao[id];
+    }
+
+    function getAllDAOs() public view returns (uint256[] memory) {
+        return _allDAOs;
+    }
+
+    function getController() public view returns (WorkhardDAO memory) {
+        return _controller;
     }
 
     /**
      * @notice it returns timelock governance contract's address.
      */
-    function convertDAOIdToAddress(uint256 id)
-        public
-        view
-        override
-        returns (address)
-    {
+    function convertDAOIdToAddress(uint256 id) public view returns (address) {
         return
             Clones.predictDeterministicAddress(
-                controller.timelock,
+                _controller.timelock,
                 bytes32(id),
                 address(this)
             );
@@ -217,106 +311,46 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
     function convertDAOAddressToId(address daoAddress)
         public
         view
-        override
         returns (uint256 daoId)
     {
         return _daoAddressBook[daoAddress];
     }
 
-    function daoOf(uint256 projId)
-        public
-        view
-        override
-        returns (uint256 daoId)
-    {
-        address daoAddress =
-            _belongsTo.get(projId, "owner query for nonexistent token");
-        return convertDAOAddressToId(daoAddress);
-    }
-
-    function projectsOf(uint256 daoId)
-        public
-        view
-        override
-        returns (uint256 len)
-    {
-        return _daoProjects[convertDAOIdToAddress(daoId)].length();
-    }
-
-    function projectsOfDAOByIndex(uint256 daoId, uint256 index)
-        public
-        view
-        override
-        returns (uint256 projId)
-    {
-        return _daoProjects[convertDAOIdToAddress(daoId)].at(index);
-    }
-
-    function getMasterDAO() public view override returns (WorkhardDAO memory) {
-        return dao[0];
-    }
-
-    function getCommons()
-        public
-        view
-        override
-        returns (CommonContracts memory)
-    {
-        return commons;
-    }
-
-    function getDAO(uint256 id)
-        public
-        view
-        override
-        returns (WorkhardDAO memory)
-    {
-        return dao[id];
-    }
-
-    function getAllDAOs() public view override returns (uint256[] memory) {
-        return allDAOs;
-    }
-
-    function getController() public view override returns (WorkhardDAO memory) {
-        return controller;
-    }
-
     function _deploy(uint256 id) internal {
         require(msg.sender == ownerOf(id));
-        require(growth[id] < 2, "Already deployed.");
-        require(growth[id] > 0, "Project does not exists.");
-        growth[id] = 2;
-        WorkhardDAO storage fork = dao[id];
+        require(_growth[id] < 2, "Already deployed.");
+        require(_growth[id] > 0, "Project does not exists.");
+        _growth[id] = 2;
+        WorkhardDAO storage fork = _dao[id];
         bytes32 salt = bytes32(id);
-        fork.timelock = controller.timelock.cloneDeterministic(salt);
-        fork.vision = controller.vision.cloneDeterministic(salt);
-        fork.commit = controller.commit.cloneDeterministic(salt);
-        fork.right = controller.right.cloneDeterministic(salt);
-        fork.stableReserve = controller.stableReserve.cloneDeterministic(salt);
-        fork.dividendPool = controller.dividendPool.cloneDeterministic(salt);
-        fork.voteCounter = controller.voteCounter.cloneDeterministic(salt);
-        fork.contributionBoard = controller
+        fork.timelock = _controller.timelock.cloneDeterministic(salt);
+        fork.vision = _controller.vision.cloneDeterministic(salt);
+        fork.commit = _controller.commit.cloneDeterministic(salt);
+        fork.right = _controller.right.cloneDeterministic(salt);
+        fork.stableReserve = _controller.stableReserve.cloneDeterministic(salt);
+        fork.dividendPool = _controller.dividendPool.cloneDeterministic(salt);
+        fork.voteCounter = _controller.voteCounter.cloneDeterministic(salt);
+        fork.contributionBoard = _controller
             .contributionBoard
             .cloneDeterministic(salt);
-        fork.marketplace = controller.marketplace.cloneDeterministic(salt);
-        fork.workersUnion = controller.workersUnion.cloneDeterministic(salt);
-        fork.visionEmitter = controller.visionEmitter.cloneDeterministic(salt);
-        fork.votingEscrow = controller.votingEscrow.cloneDeterministic(salt);
+        fork.marketplace = _controller.marketplace.cloneDeterministic(salt);
+        fork.workersUnion = _controller.workersUnion.cloneDeterministic(salt);
+        fork.visionEmitter = _controller.visionEmitter.cloneDeterministic(salt);
+        fork.votingEscrow = _controller.votingEscrow.cloneDeterministic(salt);
     }
 
     function _initialize(uint256 id, CloneParams memory params) internal {
         require(msg.sender == ownerOf(id));
 
-        require(growth[id] < 3, "Already initialized.");
-        require(growth[id] > 1, "Contracts are not deployed.");
-        growth[id] = 3;
-        WorkhardDAO storage fork = dao[id];
+        require(_growth[id] < 3, "Already initialized.");
+        require(_growth[id] > 1, "Contracts are not deployed.");
+        _growth[id] = 3;
+        WorkhardDAO storage fork = _dao[id];
         fork.multisig = params.multisig;
         fork.baseCurrency = params.baseCurrency;
 
         WorkhardDAO storage parentDAO =
-            dao[
+            _dao[
                 convertDAOAddressToId(
                     _belongsTo.get(id, "owner query for nonexistent token")
                 )
@@ -361,7 +395,7 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
             fork.dividendPool,
             fork.stableReserve,
             fork.commit,
-            commons.sablier
+            _commons.sablier
         );
         Marketplace(fork.marketplace).initialize(
             fork.timelock,
@@ -395,12 +429,12 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
                 fork.vision,
                 id != 0 ? parentDAO.dividendPool : address(0),
                 parentDAO.contributionBoard,
-                commons.erc20BurnMiningV1Factory,
-                commons.erc20StakeMiningV1Factory,
-                commons.erc721StakeMiningV1Factory,
-                commons.erc1155StakeMiningV1Factory,
-                commons.erc1155BurnMiningV1Factory,
-                commons.initialContributorShareFactory
+                _commons.erc20BurnMiningV1Factory,
+                _commons.erc20StakeMiningV1Factory,
+                _commons.erc721StakeMiningV1Factory,
+                _commons.erc1155StakeMiningV1Factory,
+                _commons.erc1155BurnMiningV1Factory,
+                _commons.initialContributorShareFactory
             )
         );
         VotingEscrowLock(fork.votingEscrow).initialize(
@@ -413,11 +447,11 @@ contract Workhard is IWorkhard, ERC721, ERC20Recoverer {
     }
 
     function _launch(uint256 id, MiningConfig memory config) internal {
-        require(growth[id] < 4, "Already launched.");
-        require(growth[id] > 2, "Not initialized.");
-        growth[id] = 4;
+        require(_growth[id] < 4, "Already launched.");
+        require(_growth[id] > 2, "Not initialized.");
+        _growth[id] = 4;
 
-        WorkhardDAO storage fork = dao[id];
+        WorkhardDAO storage fork = _dao[id];
         // 1. set emission
         VisionEmitter(fork.visionEmitter).setEmission(config);
         // 2. start emission
