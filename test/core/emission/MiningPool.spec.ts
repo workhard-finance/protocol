@@ -60,6 +60,7 @@ describe("MiningPool.sol", function () {
   let erc1155StakeMining: ERC1155StakeMiningV1;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   before(async () => {
+    this.timeout(60000);
     signers = await ethers.getSigners();
     deployer = signers[0];
     dev = signers[1];

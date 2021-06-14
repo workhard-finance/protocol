@@ -42,6 +42,7 @@ describe("DividendPool.sol", function () {
   let testingRewardToken: ERC20;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   before(async () => {
+    this.timeout(60000);
     signers = await ethers.getSigners();
     deployer = signers[0];
     distributor = signers[1];
