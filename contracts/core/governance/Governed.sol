@@ -24,12 +24,6 @@ contract Governed {
         _;
     }
 
-    modifier permit(address[] memory list) {
-        (bool exists, ) = list.find(msg.sender);
-        require(exists, "Not authorized");
-        _;
-    }
-
     function initialize(address gov_) public {
         require(!_initialized, "Initialized");
         _initialized = true;
