@@ -166,11 +166,15 @@ describe("DividendPool.sol", function () {
         expect(await dividendPool.distributedTokens()).deep.eq([
           testingRewardToken.address,
         ]);
+        await vision
+          .connect(distributor)
+          .approve(dividendPool.address, parseEther("100"));
         await dividendPool
           .connect(distributor)
-          .distribute(testingRewardToken.address, parseEther("100"));
+          .distribute(vision.address, parseEther("100"));
         expect(await dividendPool.distributedTokens()).deep.eq([
           testingRewardToken.address,
+          vision.address,
         ]);
       });
     });

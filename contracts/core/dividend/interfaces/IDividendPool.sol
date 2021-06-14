@@ -14,11 +14,7 @@ interface IDividendPool {
 
     function getCurrentEpoch() external view returns (uint256);
 
-    function getNextEpoch() external view returns (uint256);
-
     function distributedTokens() external view returns (address[] memory);
-
-    function distributed(address token) external view returns (bool);
 
     function totalDistributed(address token) external view returns (uint256);
 

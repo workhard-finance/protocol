@@ -170,10 +170,6 @@ contract DividendPool is
         return getEpoch(block.timestamp);
     }
 
-    function getNextEpoch() public view override returns (uint256) {
-        return getCurrentEpoch() + 1;
-    }
-
     function distributedTokens()
         public
         view
@@ -181,10 +177,6 @@ contract DividendPool is
         returns (address[] memory)
     {
         return _distributedTokens;
-    }
-
-    function distributed(address token) public view override returns (bool) {
-        return _distributed[token];
     }
 
     function totalDistributed(address token)
