@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { constants } from "ethers";
 import { goTo } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Governed, Governed__factory } from "../../../src";
+import { Governed } from "../../../src";
 
 chai.use(solidity);
 
@@ -17,7 +17,9 @@ describe("Governed.sol", function () {
     signers = await ethers.getSigners();
     initialGov = signers[0];
     newGov = signers[1];
-    governed = await new Governed__factory(initialGov).deploy();
+    governed = (await (
+      await ethers.getContractFactory("Governed")
+    ).deploy()) as Governed;
     await governed.initialize(initialGov.address);
   });
   let snapshot: string;
@@ -79,6 +81,34 @@ describe("Governed.sol", function () {
         .withArgs();
       expect(await _governed.gov()).eq(constants.AddressZero);
       await expect(_governed.setGovernance(newGov.address)).to.be.reverted;
+    });
+  });
+
+  describe("getters", () => {
+    describe("gov", () => {
+      it("should return governance account(contract) address", async () => {
+        expect(await governed.gov()).to.eq(initialGov.address);
+      });
+    });
+    describe("anarchizedAt", () => {
+      it("should return 0 when it is not anarchized", async () => {
+        expect(await governed.anarchizedAt()).to.eq(0);
+      });
+      it("should return the anarchized timestamp after it's anarchized", async () => {
+        await governed.anarchize();
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        expect(await governed.anarchizedAt()).to.eq(timestamp);
+      });
+    });
+    describe("forceAnarchizeAt", () => {
+      it("should return 0 when the force anarchization point is not set", async () => {
+        expect(await governed.forceAnarchizeAt()).to.eq(0);
+      });
+      it("should return the force anarchization date's timestamp after it's anarchization is setup", async () => {
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await governed.setAnarchyPoint(timestamp + 10000);
+        expect(await governed.forceAnarchizeAt()).to.eq(timestamp + 10000);
+      });
     });
   });
 });

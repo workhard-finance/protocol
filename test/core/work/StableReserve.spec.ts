@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { BigNumber, BigNumberish } from "ethers";
+import { BigNumber, BigNumberish, constants } from "ethers";
 import {
   defaultAbiCoder,
   parseEther,
@@ -46,10 +46,6 @@ describe("StableReserve.sol", function () {
     title: string;
     description: string;
     uri: string;
-  };
-  let budget: {
-    currency: string;
-    amount: BigNumber;
   };
   before(async () => {
     signers = await ethers.getSigners();
@@ -171,6 +167,88 @@ describe("StableReserve.sol", function () {
       const budget1 = await contributionBoard.projectFund(projId);
       expect(remaining1).eq(BigNumber.from(0));
       expect(budget1.sub(budget0)).eq(remaining0);
+    });
+  });
+  describe("reserveAndMint()", async () => {
+    it("should be reverted when a not authorized account executes", async () => {
+      await baseCurrency
+        .connect(bob)
+        .approve(stableReserve.address, constants.MaxUint256);
+      console.log(await baseCurrency.balanceOf(bob.address));
+      await expect(
+        stableReserve.connect(bob).reserveAndMint(1)
+      ).to.be.revertedWith("Not authorized");
+    });
+    it("should be executed by the allowed accounts", async () => {
+      await baseCurrency
+        .connect(bob)
+        .approve(stableReserve.address, constants.MaxUint256);
+      await runTimelockTx(
+        timelock,
+        stableReserve.populateTransaction.allow(bob.address, true)
+      );
+      await expect(stableReserve.connect(bob).reserveAndMint(1)).not.to.be
+        .reverted;
+      expect(await commit.balanceOf(bob.address)).to.eq(1);
+    });
+  });
+  describe("getters", () => {
+    describe("baseCurrency()", () => {
+      it("should return base currency address", async () => {
+        expect(await stableReserve.baseCurrency()).eq(baseCurrency.address);
+      });
+    });
+    describe("commitToken()", () => {
+      it("should return commit token address", async () => {
+        expect(await stableReserve.commitToken()).eq(commit.address);
+      });
+    });
+    describe("priceOfCommit()", () => {
+      it("should return 20000 as its denomintaor is 10000", async () => {
+        expect(await stableReserve.priceOfCommit()).eq(20000);
+      });
+    });
+    describe("mintable()", () => {
+      it("should increase its value when it receives DAI", async () => {
+        const prevMintable = await stableReserve.mintable();
+        await baseCurrency
+          .connect(bob)
+          .transfer(stableReserve.address, parseEther("10"));
+        const newMintable = await stableReserve.mintable();
+        expect(newMintable).to.eq(prevMintable.add(parseEther("10")));
+      });
+      it("should decrease when it mint and give some grants", async () => {
+        await baseCurrency
+          .connect(bob)
+          .transfer(stableReserve.address, parseEther("10"));
+        const prevMintable = await stableReserve.mintable();
+        await runTimelockTx(
+          timelock,
+          stableReserve.populateTransaction.grant(
+            contributionBoard.address,
+            parseEther("5"),
+            defaultAbiCoder.encode(["uint256"], [projId])
+          )
+        );
+        const newMintable = await stableReserve.mintable();
+        expect(newMintable).to.eq(prevMintable.sub(parseEther("5")));
+      });
+    });
+    describe("allowed()", () => {
+      it("should return true when the account is allowed by gov", async () => {
+        await runTimelockTx(
+          timelock,
+          stableReserve.populateTransaction.allow(bob.address, true)
+        );
+        expect(await stableReserve.allowed(bob.address)).to.be.true;
+      });
+      it("should return false when the account is disallowed by gov", async () => {
+        await runTimelockTx(
+          timelock,
+          stableReserve.populateTransaction.allow(bob.address, false)
+        );
+        expect(await stableReserve.allowed(bob.address)).to.be.false;
+      });
     });
   });
 });

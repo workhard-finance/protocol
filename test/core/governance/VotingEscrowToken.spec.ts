@@ -9,9 +9,7 @@ import {
   ERC20,
   ERC20__factory,
   VotingEscrowLock,
-  VotingEscrowLock__factory,
   VotingEscrowToken,
-  VotingEscrowToken__factory,
 } from "../../../src";
 
 chai.use(solidity);
@@ -30,8 +28,12 @@ describe("VotingEscrowToken.sol", function () {
     bob = signers[1];
     carl = signers[2];
     token = await new ERC20__factory(alice).deploy();
-    veToken = await new VotingEscrowToken__factory(alice).deploy();
-    votingEscrow = await new VotingEscrowLock__factory(alice).deploy();
+    veToken = (await (await ethers.getContractFactory("VotingEscrowToken"))
+      .connect(alice)
+      .deploy()) as VotingEscrowToken;
+    votingEscrow = (await (await ethers.getContractFactory("VotingEscrowLock"))
+      .connect(alice)
+      .deploy()) as VotingEscrowLock;
     await votingEscrow["initialize(string,string,address,address,address)"](
       "VE LOCKER",
       "VEL",

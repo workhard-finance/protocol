@@ -7,18 +7,17 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   RIGHT,
   VISION,
-  VoteCounter,
   VotingEscrowLock,
   DAO,
+  SquareRootVoteCounter,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
 chai.use(solidity);
 
-describe("VoteCounter.sol", function () {
+describe("SquareRootVoteCounter.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
-  let planter: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
@@ -26,19 +25,24 @@ describe("VoteCounter.sol", function () {
   let vision: VISION;
   let votingEscrow: VotingEscrowLock;
   let right: RIGHT;
-  let voteCounter: VoteCounter;
+  let voteCounter: SquareRootVoteCounter;
   before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
-    planter = signers[1];
-    alice = signers[2];
-    bob = signers[3];
-    carl = signers[4];
+    alice = signers[1];
+    bob = signers[2];
+    carl = signers[3];
     masterDAO = await (await getWorkhard()).getMasterDAO({ account: deployer });
     vision = masterDAO.vision;
     votingEscrow = masterDAO.votingEscrow;
     right = masterDAO.right;
-    voteCounter = masterDAO.voteCounter;
+    const SquareRootVoteCounterFactory = await ethers.getContractFactory(
+      "SquareRootVoteCounter"
+    );
+    voteCounter = (await SquareRootVoteCounterFactory.connect(
+      deployer
+    ).deploy()) as SquareRootVoteCounter;
+    await voteCounter.initialize(right.address);
     const mineVision = async () => {
       await goToNextWeek();
       await masterDAO.visionEmitter.connect(deployer).distribute();
@@ -70,7 +74,7 @@ describe("VoteCounter.sol", function () {
       await votingEscrow.connect(bob).createLock(parseEther("10"), 2 * 52);
       await votingEscrow.connect(carl).createLock(parseEther("100"), 1 * 52);
     });
-    it("should be proportional to the staked and locked amount", async () => {
+    it("should be proportional to the square root of its staked and locked amount", async () => {
       const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
       const aliceLockId = await votingEscrow.tokenOfOwnerByIndex(
         alice.address,
@@ -87,9 +91,15 @@ describe("VoteCounter.sol", function () {
       const aliceVotes = await voteCounter.getVotes(aliceLockId, timestamp);
       const bobVotes = await voteCounter.getVotes(bobLockId, timestamp);
       const carlVotes = await voteCounter.getVotes(carlLockId, timestamp);
-      almostEquals(aliceVotes, aliceVeVISION);
-      almostEquals(bobVotes, bobVeVISION);
-      almostEquals(carlVotes, carlVeVISION);
+      almostEquals(
+        aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+        bobVotes.pow(2).mul(10000).div(bobVeVISION)
+      );
+      almostEquals(
+        aliceVotes.pow(2).mul(10000).div(aliceVeVISION),
+        carlVotes.pow(2).mul(10000).div(carlVeVISION)
+      );
+      expect(aliceVotes.pow(2).mul(10000).div(aliceVeVISION)).not.eq(0);
     });
   });
   describe("getters", () => {
@@ -98,21 +108,27 @@ describe("VoteCounter.sol", function () {
       await votingEscrow.connect(carl).createLock(parseEther("100"), 1 * 52);
     });
     describe("getTotalVotes()", () => {
-      it("should return the total supply of rights", async () => {
-        expect(await voteCounter.getTotalVotes()).to.eq(
-          await right.totalSupply()
-        );
+      it("should return the square root of the total supply of rights", async () => {
+        expect(
+          (await voteCounter.getTotalVotes()).pow(2).div(parseEther("1"))
+        ).to.eq((await right.totalSupply()).div(parseEther("1")));
       });
     });
     describe("getVotes()", () => {
-      it("should return a lock's right balance at a specific timestamp", async () => {
+      it("should return the square root of a lock's right balance at a specific timestamp", async () => {
         const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
         const bobLockId = await votingEscrow.tokenOfOwnerByIndex(
           bob.address,
           0
         );
-        expect(await voteCounter.getVotes(bobLockId, timestamp)).to.eq(
-          await right.balanceOfLockAt(bobLockId, timestamp)
+        expect(
+          (await voteCounter.getVotes(bobLockId, timestamp))
+            .pow(2)
+            .div(parseEther("1"))
+        ).to.eq(
+          (await right.balanceOfLockAt(bobLockId, timestamp)).div(
+            parseEther("1")
+          )
         );
       });
     });
@@ -154,24 +170,12 @@ describe("VoteCounter.sol", function () {
       });
     });
     describe("balanceOf()", () => {
-      it("should return the summation of whole right balance", async () => {
-        const carlLockId = await votingEscrow.tokenOfOwnerByIndex(
-          carl.address,
-          0
-        );
-        expect(await voteCounter.balanceOf(carl.address)).to.eq(
-          await right.balanceOf(carl.address)
-        );
-        const bobLockId = await votingEscrow.tokenOfOwnerByIndex(
-          bob.address,
-          0
-        );
-        await votingEscrow.connect(bob).delegate(bobLockId, carl.address);
-        expect(await voteCounter.balanceOf(carl.address)).to.eq(
-          (await right.balanceOf(carl.address)).add(
-            await right.balanceOf(bob.address)
-          )
-        );
+      it("should return the summation of whole votes", async () => {
+        expect(
+          (await voteCounter.balanceOf(carl.address))
+            .pow(2)
+            .div(parseEther("1"))
+        ).to.eq((await right.balanceOf(carl.address)).div(parseEther("1")));
       });
     });
     describe("veLock()", () => {
