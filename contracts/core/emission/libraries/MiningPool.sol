@@ -186,39 +186,51 @@ contract MiningPool is
         return _totalMiners;
     }
 
-    function _dispatchMiners(uint256 miners)
+    function _dispatchMiners(uint256 miners) internal {
+        _dispatchMiners(msg.sender, miners);
+    }
+
+    function _dispatchMiners(address account, uint256 miners)
         internal
         nonReentrant
         whenNotPaused
-        recordMining(msg.sender)
+        recordMining(account)
     {
         require(miners > 0, "Cannot stake 0");
         _totalMiners = _totalMiners.add(miners);
-        _dispatchedMiners[msg.sender] = _dispatchedMiners[msg.sender].add(
-            miners
-        );
-        emit Dispatched(msg.sender, miners);
+        _dispatchedMiners[account] = _dispatchedMiners[account].add(miners);
+        emit Dispatched(account, miners);
     }
 
-    function _withdrawMiners(uint256 miners)
+    function _withdrawMiners(uint256 miners) internal {
+        _withdrawMiners(msg.sender, miners);
+    }
+
+    function _withdrawMiners(address account, uint256 miners)
         internal
         nonReentrant
-        recordMining(msg.sender)
+        recordMining(account)
     {
         require(miners > 0, "Cannot withdraw 0");
         _totalMiners = _totalMiners.sub(miners);
-        _dispatchedMiners[msg.sender] = _dispatchedMiners[msg.sender].sub(
-            miners
-        );
-        emit Withdrawn(msg.sender, miners);
+        _dispatchedMiners[account] = _dispatchedMiners[account].sub(miners);
+        emit Withdrawn(account, miners);
     }
 
-    function _mine() internal nonReentrant recordMining(msg.sender) {
-        uint256 amount = _mined[msg.sender];
+    function _mine() internal {
+        _mine(msg.sender);
+    }
+
+    function _mine(address account)
+        internal
+        nonReentrant
+        recordMining(account)
+    {
+        uint256 amount = _mined[account];
         if (amount > 0) {
-            _mined[msg.sender] = 0;
-            IERC20(_token).safeTransfer(msg.sender, amount);
-            emit Mined(msg.sender, amount);
+            _mined[account] = 0;
+            IERC20(_token).safeTransfer(account, amount);
+            emit Mined(account, amount);
         }
     }
 }

@@ -39,6 +39,15 @@ contract InitialContributorShare is ERC1155BurnMiningV1 {
         super.burn(_projId, amount);
     }
 
+    function exit() public {
+        exit(_projId);
+    }
+
+    function exit(uint256 projId_) public override {
+        require(_projId == projId_);
+        super.exit(_projId);
+    }
+
     /**
      * @dev override this function if you customize this mining pool
      */

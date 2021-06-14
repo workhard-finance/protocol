@@ -6,12 +6,17 @@ import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Enumerable.sol";
+import "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/EnumerableMap.sol";
 import "../../../core/emission/libraries/MiningPool.sol";
 
 contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
     using SafeMath for uint256;
+    using EnumerableSet for EnumerableSet.UintSet;
+    using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    mapping(uint256 => address) staker;
+    mapping(address => EnumerableSet.UintSet) private _stakedTokensOf;
+    EnumerableMap.UintToAddressMap private _stakers;
 
     function initialize(address tokenEmitter_, address baseToken_)
         public
@@ -27,22 +32,16 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
     }
 
     function stake(uint256 id) public {
-        try
-            IERC721(baseToken()).safeTransferFrom(msg.sender, address(this), id)
-        {} catch {
-            _stake(id);
-        }
-    }
-
-    function _stake(uint256 tokenId) public {
-        uint256 miners = dispatchableMiners(tokenId);
-        staker[tokenId] = msg.sender;
-        _dispatchMiners(miners);
+        IERC721(baseToken()).safeTransferFrom(msg.sender, address(this), id);
     }
 
     function withdraw(uint256 tokenId) public {
-        require(staker[tokenId] == msg.sender, "Only staker can withdraw");
-        staker[tokenId] = address(0);
+        require(
+            _stakers.get(tokenId) == msg.sender,
+            "Only staker can withdraw"
+        );
+        _stakedTokensOf[msg.sender].remove(tokenId);
+        _stakers.remove(tokenId);
         uint256 miners = dispatchableMiners(tokenId);
         _withdrawMiners(miners);
         IERC721(baseToken()).safeTransferFrom(
@@ -58,24 +57,20 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     function exit() public {
         mine();
-        uint256 bal = IERC721Enumerable(baseToken()).balanceOf(msg.sender);
+        uint256 bal = _stakedTokensOf[msg.sender].length();
         for (uint256 i = 0; i < bal; i++) {
-            uint256 tokenId =
-                IERC721Enumerable(baseToken()).tokenOfOwnerByIndex(
-                    msg.sender,
-                    i
-                );
+            uint256 tokenId = _stakedTokensOf[msg.sender].at(i);
             withdraw(tokenId);
         }
     }
 
     function onERC721Received(
         address,
-        address,
+        address from,
         uint256 tokenId,
         bytes calldata
     ) public override returns (bytes4) {
-        _stake(tokenId);
+        _stake(from, tokenId);
         return this.onERC721Received.selector;
     }
 
@@ -94,5 +89,12 @@ contract ERC721StakeMiningV1 is MiningPool, ERC721Holder {
 
     function erc721StakeMiningV1() external pure returns (bool) {
         return true;
+    }
+
+    function _stake(address from, uint256 tokenId) internal {
+        uint256 miners = dispatchableMiners(tokenId);
+        _stakedTokensOf[from].add(tokenId);
+        _stakers.set(tokenId, from);
+        _dispatchMiners(from, miners);
     }
 }
