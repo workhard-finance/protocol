@@ -1,3 +1,6 @@
 module.exports = {
-  skipFiles: ['utils']
+  skipFiles: ['utils'],
+  mocha: {
+    enableTimeouts: false
+  }
 };
