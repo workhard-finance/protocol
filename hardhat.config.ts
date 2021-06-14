@@ -3,6 +3,7 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
 import "hardhat-dependency-compiler";
+import "solidity-coverage";
 
 require("dotenv").config();
 
