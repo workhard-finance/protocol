@@ -1,3 +1,3 @@
 module.exports = {
-  skipFiles: ['utils']
+  skipFiles: ['utils', 'core/tokens']
 };
