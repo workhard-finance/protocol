@@ -350,7 +350,8 @@ contract Project is ERC721, ERC20Recoverer {
         VISION(fork.vision).initialize(
             params.visionName,
             params.visionSymbol,
-            fork.visionEmitter
+            fork.visionEmitter,
+            fork.timelock
         );
         COMMIT(fork.commit).initialize(
             params.commitName,

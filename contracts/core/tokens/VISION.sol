@@ -3,8 +3,9 @@ pragma solidity ^0.7.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/proxy/Initializable.sol";
+import "../../core/governance/Governed.sol";
 
-contract VISION is ERC20, Initializable {
+contract VISION is ERC20, Governed, Initializable {
     address private _minter;
     string private _name;
     string private _symbol;
@@ -22,18 +23,20 @@ contract VISION is ERC20, Initializable {
     function initialize(
         string memory name_,
         string memory symbol_,
-        address minter_
+        address minter_,
+        address gov_
     ) public initializer {
         _name = name_;
         _symbol = symbol_;
         _minter = minter_;
+        Governed.initialize(gov_);
     }
 
     function mint(address to, uint256 amount) public onlyMinter {
         _mint(to, amount);
     }
 
-    function setMinter(address minter_) public onlyMinter {
+    function setMinter(address minter_) public governed {
         _setMinter(minter_);
     }
 
