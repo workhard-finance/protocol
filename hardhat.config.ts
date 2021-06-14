@@ -1,8 +1,8 @@
 import { task } from "hardhat/config";
+import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-gas-reporter";
 import "hardhat-dependency-compiler";
-import { parseEther } from "@ethersproject/units";
 
 require("dotenv").config();
 
