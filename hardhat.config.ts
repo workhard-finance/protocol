@@ -115,4 +115,7 @@ export default {
   dependencyCompiler: {
     paths: ["@sablier/protocol/contracts/Sablier.sol"],
   },
+  mocha: {
+    timeout: 60000,
+  },
 };

@@ -109,7 +109,6 @@ describe("DividendPool.sol", function () {
     const forked = await fork();
     forkedDAOId = forked.toNumber();
     forkedDAO = await workhard.getDAO(forkedDAOId, { account: deployer });
-    return;
   });
   let snapshot: string;
   beforeEach(async () => {
