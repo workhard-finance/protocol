@@ -140,6 +140,10 @@ contract Project is ERC721, ERC20Recoverer {
         id = projNum;
         projNum++;
         require(_growth[id] < 1, "Already created.");
+        require(
+            daoId == 0 || _growth[daoId] == 4,
+            "Parent project should be a DAO."
+        );
         _growth[id] = 1;
         _mint(msg.sender, id);
         _setTokenURI(id, uri);

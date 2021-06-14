@@ -276,7 +276,7 @@ export async function getWorkhard(): Promise<Workhard> {
     (await (await ethers.getContractFactory("VisionEmitter")).deploy()).address,
     deployer
   );
-  const workhard = Project__factory.connect(
+  const project = Project__factory.connect(
     (
       await (
         await ethers.getContractFactory("Project")
@@ -318,7 +318,7 @@ export async function getWorkhard(): Promise<Workhard> {
     ).address,
     deployer
   );
-  await workhard.upgradeToDAO(0, {
+  await project.upgradeToDAO(0, {
     multisig: commonsFixture.multisig.address,
     baseCurrency: commonsFixture.baseCurrency.address,
     projectName: "Workhard Master Dev",
@@ -337,13 +337,33 @@ export async function getWorkhard(): Promise<Workhard> {
     emissionCutRate: 1000,
     founderShare: 500,
   });
-  const masterDAO = await workhard.getMasterDAO();
+  const masterDAO = await project.getMasterDAO();
   await ContributionBoard__factory.connect(
     masterDAO.contributionBoard,
     deployer
   ).recordContribution(deployer.address, 0, ethers.utils.parseEther("1000000"));
-  await workhard.launch(0, 4750, 4750, 499, 1);
+  await project.launch(0, 4750, 4750, 499, 1);
 
-  const client = await Workhard.from(ethers.provider, workhard.address);
-  return client;
+  const workhard = await Workhard.from(ethers.provider, project.address);
+  return workhard;
 }
+
+export const defaultDAOParam = (multisig: string, baseCurrency: string) => ({
+  multisig,
+  baseCurrency,
+  projectName: "Workhard Sample Project",
+  projectSymbol: "WSP",
+  visionName: "Workhard Sample Project Vision",
+  visionSymbol: "sVISION",
+  commitName: "Workhard Sample Project Commit",
+  commitSymbol: "sCOMMIT",
+  rightName: "Workhard Sample Project Right",
+  rightSymbol: "sRIGHT",
+  emissionStartDelay: 86400 * 7,
+  minDelay: 86400,
+  voteLaunchDelay: 2419200,
+  initialEmission: ethers.utils.parseEther("24000000"),
+  minEmissionRatePerWeek: 60,
+  emissionCutRate: 1000,
+  founderShare: 500,
+});
