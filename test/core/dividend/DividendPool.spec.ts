@@ -12,9 +12,9 @@ import {
   TimelockedGovernance,
   VISION,
   VotingEscrowLock,
+  Project,
   Workhard,
-  WorkhardClient,
-  WorkhardDAO,
+  DAO,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
@@ -30,10 +30,10 @@ describe("DividendPool.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let client: WorkhardClient;
   let workhard: Workhard;
-  let masterDAO: WorkhardDAO;
-  let forkedDAO: WorkhardDAO;
+  let project: Project;
+  let masterDAO: DAO;
+  let forkedDAO: DAO;
   let forkedDAOId: number;
   let vision: VISION;
   let dividendPool: DividendPool;
@@ -48,9 +48,9 @@ describe("DividendPool.sol", function () {
     alice = signers[2];
     bob = signers[3];
     carl = signers[4];
-    client = await getWorkhard();
-    workhard = client.workhard.connect(deployer);
-    masterDAO = await client.getMasterDAO();
+    workhard = await getWorkhard();
+    project = workhard.project.connect(deployer);
+    masterDAO = await workhard.getMasterDAO();
     vision = masterDAO.vision;
     dividendPool = masterDAO.dividendPool;
     votingEscrow = masterDAO.votingEscrow;
@@ -79,12 +79,12 @@ describe("DividendPool.sol", function () {
     await prepare(bob);
     await prepare(carl);
     const fork = async () => {
-      await workhard.createProject(0, "mockuri");
-      const projId = await workhard.projectsOfDAOByIndex(
+      await project.createProject(0, "mockuri");
+      const projId = await project.projectsOfDAOByIndex(
         0,
-        (await workhard.projectsOf(0)).sub(1)
+        (await project.projectsOf(0)).sub(1)
       );
-      await workhard.upgradeToDAO(projId, {
+      await project.upgradeToDAO(projId, {
         multisig: deployer.address,
         baseCurrency: masterDAO.baseCurrency.address,
         projectName: "Workhard Forked Dev",
@@ -103,12 +103,12 @@ describe("DividendPool.sol", function () {
         emissionCutRate: 3000,
         founderShare: 500,
       });
-      await workhard.launch(projId, 4750, 4750, 499, 1);
+      await project.launch(projId, 4750, 4750, 499, 1);
       return projId;
     };
     const forked = await fork();
     forkedDAOId = forked.toNumber();
-    forkedDAO = await client.getDAO(forkedDAOId, { account: deployer });
+    forkedDAO = await workhard.getDAO(forkedDAOId, { account: deployer });
   });
   let snapshot: string;
   beforeEach(async () => {

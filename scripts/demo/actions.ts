@@ -6,16 +6,16 @@ import {
   SUSHISWAP_FACTORY,
   WETH,
 } from "../utils/deployer";
-import { goToNextWeek, runTimelockTx } from "../../test/utils/utilities";
+import { goToNextWeek } from "../../test/utils/utilities";
 import { constants } from "ethers";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { parseEther } from "ethers/lib/utils";
 import {
   ERC20__factory,
   IUniswapV2Factory__factory,
   IUniswapV2Pair__factory,
   WETH9__factory,
 } from "../../src";
-import { WorkhardClient } from "../../src";
+import { Workhard } from "../../src";
 
 import deployed from "../../deployed.dev.json";
 
@@ -26,7 +26,7 @@ export async function distribute() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
@@ -44,7 +44,7 @@ export async function mintBaseCurrency() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
@@ -63,7 +63,7 @@ export async function swapBaseCurrency() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
@@ -93,7 +93,7 @@ export async function addLiquidity() {
     await ethers.provider.send("evm_snapshot", [])
   );
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
@@ -129,7 +129,7 @@ export async function launchWorkersUnion() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
@@ -149,42 +149,14 @@ export async function newCryptoJob() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();
 
-  await client.workhard.createProject(
+  await client.project.createProject(
     0,
     "QmToBdkMKvKaCYRaZtRVWu1tZb3Zg6HSgz13nugRrwzRiJ"
-  );
-}
-
-export async function approveProject() {
-  console.log(
-    "Approve Project - snapshot id: ",
-    await ethers.provider.send("evm_snapshot", [])
-  );
-
-  const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
-    account: signer,
-  });
-  const masterDAO = await client.getMasterDAO();
-  const { contributionBoard, timelock } = masterDAO;
-  const tokenId = await client.workhard.tokenByIndex(0);
-  // use multisig instead of signer account
-  await ethers.provider.send("hardhat_impersonateAccount", [
-    masterDAO.multisig.address,
-  ]);
-  await signer.sendTransaction({
-    to: masterDAO.multisig.address,
-    value: parseEther("10"),
-  });
-  await runTimelockTx(
-    timelock.connect(await ethers.getSigner(masterDAO.multisig.address)),
-    contributionBoard.populateTransaction.approveProject(tokenId),
-    86400
   );
 }
 
@@ -195,7 +167,7 @@ export async function distributeReward() {
   );
 
   const [signer] = await ethers.getSigners();
-  const client = await WorkhardClient.from(ethers.provider, deployed, {
+  const client = await Workhard.from(ethers.provider, deployed, {
     account: signer,
   });
   const masterDAO = await client.getMasterDAO();

@@ -50,8 +50,8 @@ import {
   WETH9__factory,
   WorkersUnion,
   WorkersUnion__factory,
-  Workhard,
-  Workhard__factory,
+  Project,
+  Project__factory,
   IERC1620,
   IERC1620__factory,
 } from "../build/contracts";
@@ -79,7 +79,7 @@ export type MyNetwork =
   | "localhost"
   | "fork";
 
-export type WorkhardDAOContractNames =
+export type DAOContractNames =
   | "Multisig"
   | "BaseCurrency"
   | "TimelockedGovernance"
@@ -106,7 +106,7 @@ export type CommonContractNames =
   | "ERC1155StakeMiningV1Factory"
   | "ERC1155BurnMiningV1Factory"
   | "InitialContributorShareFactory"
-  | "Workhard";
+  | "Project";
 
 export type MiningPoolNames =
   | "ERC20BurnMiningV1"
@@ -117,13 +117,13 @@ export type MiningPoolNames =
   | "InitialContributorShare";
 
 export type ContractNames =
-  | WorkhardDAOContractNames
+  | DAOContractNames
   | CommonContractNames
   | MiningPoolNames;
 
 export type Deployed = {
   [network in MyNetwork]?: {
-    [contract in CommonContractNames | WorkhardDAOContractNames]?: string;
+    [contract in CommonContractNames | DAOContractNames]?: string;
   };
 } &
   {
@@ -134,8 +134,8 @@ export type Deployed = {
     };
   };
 
-export type WorkhardDAOContracts = {
-  [contract in WorkhardDAOContractNames]: string;
+export type DAOContracts = {
+  [contract in DAOContractNames]: string;
 };
 
 export const getNetworkName = (chainId: number): MyNetwork => {
@@ -147,7 +147,7 @@ export const getNetworkName = (chainId: number): MyNetwork => {
 
 export const deployed: Deployed = deployedContract;
 
-export type WorkhardDAO = {
+export type DAO = {
   multisig: GnosisSafe;
   baseCurrency: ERC20;
   timelock: TimelockedGovernance;
@@ -164,7 +164,7 @@ export type WorkhardDAO = {
   votingEscrow: VotingEscrowLock;
 };
 
-export type WorkhardCommons = {
+export type CommonContracts = {
   pool2Factory: IUniswapV2Factory;
   weth: WETH9;
   sablier: IERC1620;
@@ -176,23 +176,23 @@ export type WorkhardCommons = {
   initialContributorShareFactory: InitialContributorShareFactory;
 };
 
-export type WorkhardPeriphery = {
+export type Periphery = {
   visionLP: IUniswapV2Pair;
   commitMining: ERC20BurnMiningV1;
   liquidityMining: ERC20StakeMiningV1;
 };
 
-export class WorkhardClient {
-  workhard: Workhard;
-  commons: WorkhardCommons;
+export class Workhard {
+  project: Project;
+  commons: CommonContracts;
   signer?: ethers.Signer;
 
   constructor(
-    _workhard: Workhard,
-    _commons: WorkhardCommons,
+    _project: Project,
+    _commons: CommonContracts,
     signer?: ethers.Signer
   ) {
-    this.workhard = _workhard;
+    this.project = _project;
     this.commons = _commons;
     if (signer) {
       this.setSigner(signer);
@@ -205,12 +205,12 @@ export class WorkhardClient {
     option?: {
       account?: Signer;
     }
-  ): Promise<WorkhardClient> {
+  ): Promise<Workhard> {
     const chainId = (await library.getNetwork()).chainId;
     const networkName = getNetworkName(chainId);
     const address =
-      typeof deployed === "string" ? deployed : deployed[networkName].Workhard;
-    const workhard = Workhard__factory.connect(
+      typeof deployed === "string" ? deployed : deployed[networkName].Project;
+    const workhard = Project__factory.connect(
       address,
       option?.account || library
     );
@@ -251,24 +251,24 @@ export class WorkhardClient {
           workhard.provider
         ),
     };
-    return new WorkhardClient(workhard, commons, option?.account);
+    return new Workhard(workhard, commons, option?.account);
   }
 
   connect = (
     signerOrProvider: string | ethers.providers.Provider | ethers.Signer
-  ): WorkhardClient => {
+  ): Workhard => {
     return this._connect(signerOrProvider);
   };
 
-  setSigner = (signer: ethers.Signer): WorkhardClient => {
+  setSigner = (signer: ethers.Signer): Workhard => {
     this.signer = signer;
     return this._connect(signer);
   };
 
   private _connect = (
     signerOrProvider: string | ethers.providers.Provider | ethers.Signer
-  ): WorkhardClient => {
-    this.workhard = this.workhard.connect(signerOrProvider);
+  ): Workhard => {
+    this.project = this.project.connect(signerOrProvider);
     this.commons.pool2Factory =
       this.commons.pool2Factory.connect(signerOrProvider);
     this.commons.weth = this.commons.weth.connect(signerOrProvider);
@@ -287,9 +287,7 @@ export class WorkhardClient {
     return this;
   };
 
-  getMasterDAO = async (option?: {
-    account?: Signer;
-  }): Promise<WorkhardDAO> => {
+  getMasterDAO = async (option?: { account?: Signer }): Promise<DAO> => {
     const dao = await this.getDAO(0, option);
     return dao;
   };
@@ -299,10 +297,10 @@ export class WorkhardClient {
     option?: {
       account?: Signer;
     }
-  ): Promise<WorkhardDAO | undefined> => {
-    const contracts = await this.workhard.getDAO(id);
+  ): Promise<DAO | undefined> => {
+    const contracts = await this.project.getDAO(id);
     if (contracts.timelock === constants.AddressZero) return undefined;
-    const connector = option?.account || this.signer || this.workhard.provider;
+    const connector = option?.account || this.signer || this.project.provider;
     let multisig = GnosisSafe__factory.connect(contracts.multisig, connector);
     let baseCurrency = ERC20__factory.connect(
       contracts.baseCurrency,
@@ -371,8 +369,8 @@ export class WorkhardClient {
     option?: {
       account?: Signer;
     }
-  ): Promise<WorkhardPeriphery | undefined> => {
-    const connector = option?.account || this.signer || this.workhard.provider;
+  ): Promise<Periphery | undefined> => {
+    const connector = option?.account || this.signer || this.project.provider;
     const dao = await this.getDAO(id, option);
     if (!dao) return undefined;
     const visionLPAddress = await this.commons.pool2Factory.getPair(

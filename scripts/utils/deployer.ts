@@ -56,8 +56,8 @@ import {
   RIGHT__factory,
   GnosisSafe,
   GnosisSafe__factory,
-  Workhard,
-  Workhard__factory,
+  Project,
+  Project__factory,
 } from "../../src";
 import { isAddress, parseEther } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -352,9 +352,7 @@ export async function getVotingEscrow(
 
 /** Deploy WORKHARD DAO */
 
-export async function getWorkhard(
-  signer: SignerWithAddress
-): Promise<Workhard> {
+export async function getProject(signer: SignerWithAddress): Promise<Project> {
   const controller = {
     multisig: (await getMultisig(signer)).address,
     baseCurrency: (await getBaseCurrency(signer)).address,
@@ -389,13 +387,13 @@ export async function getWorkhard(
       await getInitialContributorShareFactory(signer)
     ).address,
   };
-  const deployed = await autoDeploy("Workhard", controller, commons);
-  const workhardDAO = Workhard__factory.connect(deployed.address, signer);
+  const deployed = await autoDeploy("Project", controller, commons);
+  const workhardDAO = Project__factory.connect(deployed.address, signer);
   return workhardDAO;
 }
 
 export async function upgradeToMasterDAO(
-  workhardDAO: Workhard,
+  project: Project,
   signer: SignerWithAddress
 ): Promise<void> {
   const network = hre.network.name as MyNetwork;
@@ -403,7 +401,7 @@ export async function upgradeToMasterDAO(
   let result: ContractTransaction;
   let success: boolean = false;
   do {
-    result = await workhardDAO.upgradeToDAO(0, {
+    result = await project.upgradeToDAO(0, {
       multisig: (await getMultisig(signer)).address,
       baseCurrency: (await getBaseCurrency(signer)).address,
       projectName: "Workhard Master Dev",
@@ -432,10 +430,10 @@ export async function upgradeToMasterDAO(
 }
 
 export async function launchMasterDAO(
-  workhardDAO: Workhard,
+  project: Project,
   signer: SignerWithAddress
 ): Promise<void> {
-  await workhardDAO.launch(0, 4750, 4750, 499, 1);
+  await project.launch(0, 4750, 4750, 499, 1);
   // todo if airdrop pool decided, run launchHard() instead of launch() with detail emission settings
 }
 

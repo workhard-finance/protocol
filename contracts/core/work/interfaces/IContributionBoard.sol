@@ -58,7 +58,7 @@ interface IContributionBoard is IERC1155MetadataURI {
 
     function sablier() external view returns (address);
 
-    function workhard() external view returns (address);
+    function project() external view returns (address);
 
     function projectFund(uint256 projId) external view returns (uint256);
 

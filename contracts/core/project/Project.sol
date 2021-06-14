@@ -8,28 +8,28 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/EnumerableMap.sol";
 import "@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol";
-import "../core/tokens/VISION.sol";
-import "../core/tokens/COMMIT.sol";
-import "../core/tokens/RIGHT.sol";
-import "../core/work/StableReserve.sol";
-import "../core/work/ContributionBoard.sol";
-import "../core/work/interfaces/IContributionBoard.sol";
-import "../core/governance/TimelockedGovernance.sol";
-import "../core/governance/WorkersUnion.sol";
-import "../core/governance/libraries/VoteCounter.sol";
-import "../core/governance/libraries/VotingEscrowLock.sol";
-import "../core/dividend/DividendPool.sol";
-import "../core/emission/VisionEmitter.sol";
-import "../core/emission/factories/ERC20BurnMiningV1Factory.sol";
-import "../core/emission/libraries/PoolType.sol";
-import "../core/marketplace/Marketplace.sol";
+import "../../core/tokens/VISION.sol";
+import "../../core/tokens/COMMIT.sol";
+import "../../core/tokens/RIGHT.sol";
+import "../../core/work/StableReserve.sol";
+import "../../core/work/ContributionBoard.sol";
+import "../../core/work/interfaces/IContributionBoard.sol";
+import "../../core/governance/TimelockedGovernance.sol";
+import "../../core/governance/WorkersUnion.sol";
+import "../../core/governance/libraries/VoteCounter.sol";
+import "../../core/governance/libraries/VotingEscrowLock.sol";
+import "../../core/dividend/DividendPool.sol";
+import "../../core/emission/VisionEmitter.sol";
+import "../../core/emission/factories/ERC20BurnMiningV1Factory.sol";
+import "../../core/emission/libraries/PoolType.sol";
+import "../../core/marketplace/Marketplace.sol";
 
-contract Workhard is ERC721, ERC20Recoverer {
+contract Project is ERC721, ERC20Recoverer {
     using Clones for address;
     using EnumerableSet for EnumerableSet.UintSet;
     using EnumerableMap for EnumerableMap.UintToAddressMap;
 
-    struct WorkhardDAO {
+    struct DAO {
         address multisig;
         address baseCurrency;
         address timelock;
@@ -88,10 +88,10 @@ contract Workhard is ERC721, ERC20Recoverer {
 
     // Common contracts and controller(not upgradeable)
     CommonContracts private _commons;
-    WorkhardDAO private _controller;
+    DAO private _controller;
 
     // Launched DAO's contracts
-    mapping(uint256 => WorkhardDAO) private _dao;
+    mapping(uint256 => DAO) private _dao;
     uint256[] private _allDAOs;
 
     mapping(address => uint256) private _daoAddressBook;
@@ -105,7 +105,7 @@ contract Workhard is ERC721, ERC20Recoverer {
     event NewProject(uint256 indexed daoId, uint256 id);
     event ProjectMoved(uint256 indexed from, uint256 indexed to);
 
-    constructor(WorkhardDAO memory controller, CommonContracts memory commons)
+    constructor(DAO memory controller, CommonContracts memory commons)
         ERC721("WORKHARD DAO", "WORKHARD")
     {
         _setBaseURI("ipfs://");
@@ -176,7 +176,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         uint256 caller
     ) public onlyOwnerOf(id) {
         // 1. deploy sushi LP
-        WorkhardDAO storage fork = _dao[id];
+        DAO storage fork = _dao[id];
         address lp =
             IUniswapV2Factory(_commons.pool2Factory).getPair(
                 fork.vision,
@@ -273,7 +273,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         return _daoProjects[convertDAOIdToAddress(daoId)].at(index);
     }
 
-    function getMasterDAO() public view returns (WorkhardDAO memory) {
+    function getMasterDAO() public view returns (DAO memory) {
         return _dao[0];
     }
 
@@ -281,7 +281,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         return _commons;
     }
 
-    function getDAO(uint256 id) public view returns (WorkhardDAO memory) {
+    function getDAO(uint256 id) public view returns (DAO memory) {
         return _dao[id];
     }
 
@@ -289,7 +289,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         return _allDAOs;
     }
 
-    function getController() public view returns (WorkhardDAO memory) {
+    function getController() public view returns (DAO memory) {
         return _controller;
     }
 
@@ -321,7 +321,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         require(_growth[id] < 2, "Already deployed.");
         require(_growth[id] > 0, "Project does not exists.");
         _growth[id] = 2;
-        WorkhardDAO storage fork = _dao[id];
+        DAO storage fork = _dao[id];
         bytes32 salt = bytes32(id);
         fork.timelock = _controller.timelock.cloneDeterministic(salt);
         fork.vision = _controller.vision.cloneDeterministic(salt);
@@ -345,11 +345,11 @@ contract Workhard is ERC721, ERC20Recoverer {
         require(_growth[id] < 3, "Already initialized.");
         require(_growth[id] > 1, "Contracts are not deployed.");
         _growth[id] = 3;
-        WorkhardDAO storage fork = _dao[id];
+        DAO storage fork = _dao[id];
         fork.multisig = params.multisig;
         fork.baseCurrency = params.baseCurrency;
 
-        WorkhardDAO storage parentDAO =
+        DAO storage parentDAO =
             _dao[
                 convertDAOAddressToId(
                     _belongsTo.get(id, "owner query for nonexistent token")
@@ -451,7 +451,7 @@ contract Workhard is ERC721, ERC20Recoverer {
         require(_growth[id] > 2, "Not initialized.");
         _growth[id] = 4;
 
-        WorkhardDAO storage fork = _dao[id];
+        DAO storage fork = _dao[id];
         // 1. set emission
         VisionEmitter(fork.visionEmitter).setEmission(config);
         // 2. start emission

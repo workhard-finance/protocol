@@ -10,7 +10,7 @@ import FileSync from "lowdb/adapters/FileSync";
 import {
   Deployed,
   ContractNames,
-  WorkhardDAOContractNames,
+  DAOContractNames,
   MyNetwork,
   CommonContractNames,
 } from "../../src";
@@ -72,7 +72,7 @@ export async function sequence(
 }
 
 export async function autoDeploy(
-  name: WorkhardDAOContractNames | CommonContractNames,
+  name: DAOContractNames | CommonContractNames,
   ...args: any[]
 ): Promise<Contract> {
   const network: MyNetwork = hre.network.name as MyNetwork;

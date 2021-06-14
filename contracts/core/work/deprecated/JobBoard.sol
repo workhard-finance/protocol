@@ -18,7 +18,7 @@ import "../../../core/work/interfaces/IStableReserve.sol";
 import "../../../core/work/interfaces/IContributionBoard.sol";
 import "../../../core/dividend/libraries/Distributor.sol";
 import "../../../core/dividend/interfaces/IDividendPool.sol";
-import "../../../apps/Workhard.sol";
+import "../../../core/project/Project.sol";
 import "../../../utils/IERC1620.sol";
 import "../../../utils/Utils.sol";
 
@@ -46,7 +46,7 @@ contract JobBoard is
 
     address public baseCurrency;
 
-    Workhard public workhard;
+    Project public project;
 
     uint256 public normalTaxRate = 2000; // 20% goes to the vision sharing farm, 80% is swapped to stable coin and goes to the labor market
 
@@ -103,7 +103,7 @@ contract JobBoard is
     }
 
     function initialize(
-        address _workhard,
+        address _project,
         address _gov,
         address _dividendPool,
         address _stableReserve,
@@ -116,7 +116,7 @@ contract JobBoard is
         CommitMinter._setup(_stableReserve, _commit);
         Distributor._setup(_dividendPool);
         baseCurrency = _baseCurrency;
-        workhard = Workhard(_workhard);
+        project = Project(_project);
         acceptableTokens[_baseCurrency] = true;
         thirdPartyAccess = true;
         sablier = _sablier;
@@ -132,7 +132,7 @@ contract JobBoard is
     }
 
     modifier onlyProjectOwner(uint256 projId) {
-        require(workhard.ownerOf(projId) == msg.sender, "Not authorized");
+        require(project.ownerOf(projId) == msg.sender, "Not authorized");
         _;
     }
 
@@ -197,7 +197,7 @@ contract JobBoard is
             "Only can get $COMMIT token for its grant"
         );
         uint256 projId = abi.decode(data, (uint256));
-        require(workhard.ownerOf(projId) != address(0), "No budget owner");
+        require(project.ownerOf(projId) != address(0), "No budget owner");
         projectFund[projId] = projectFund[projId].add(amount);
         emit Grant(projId, amount);
         return true;
@@ -259,7 +259,7 @@ contract JobBoard is
         require(!claimed[claimHash], "Already claimed");
         claimed[claimHash] = true;
         address signer = claimHash.recover(sig);
-        require(workhard.ownerOf(projectId) == signer, "Invalid signer");
+        require(project.ownerOf(projectId) == signer, "Invalid signer");
         _compensate(projectId, to, amount);
     }
 
@@ -343,7 +343,7 @@ contract JobBoard is
 
     function _withdrawAllBudgets(uint256 projId) internal nonReentrant {
         Budget[] storage budgets = projectBudgets[projId];
-        address projOwner = workhard.ownerOf(projId);
+        address projOwner = project.ownerOf(projId);
         for (uint256 i = 0; i < budgets.length; i += 1) {
             Budget storage budget = budgets[i];
             if (!budget.transferred) {

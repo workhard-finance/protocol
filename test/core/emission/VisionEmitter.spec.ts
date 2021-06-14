@@ -13,8 +13,8 @@ import {
   TimelockedGovernance,
   VISION,
   VisionEmitter,
-  WorkhardDAO,
-  WorkhardClient,
+  DAO,
+  Workhard,
   ERC20__factory,
   ERC20,
   IUniswapV2Pair,
@@ -29,8 +29,8 @@ describe("VisionEmitter.sol", function () {
   let dev: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let workhard: WorkhardClient;
-  let masterDAO: WorkhardDAO;
+  let workhard: Workhard;
+  let masterDAO: DAO;
   let vision: VISION;
   let visionLP: IUniswapV2Pair;
   let visionEmitter: VisionEmitter;

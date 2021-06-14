@@ -18,7 +18,7 @@ import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../apps/Workhard.sol";
+import "../../core/project/Project.sol";
 import "../../utils/IERC1620.sol";
 import "../../utils/Utils.sol";
 
@@ -38,7 +38,7 @@ contract ContributionBoard is
     using Utils for address[];
 
     address private _sablier;
-    Workhard private _workhard;
+    Project private _project;
     mapping(uint256 => uint256) private _projectFund;
     mapping(uint256 => uint256) private _totalSupplyOf;
     mapping(uint256 => uint256) private _maxSupplyOf;
@@ -54,7 +54,7 @@ contract ContributionBoard is
     }
 
     function initialize(
-        address workhard_,
+        address project_,
         address gov_,
         address dividendPool_,
         address stableReserve_,
@@ -63,7 +63,7 @@ contract ContributionBoard is
     ) public initializer {
         CommitMinter._setup(stableReserve_, commit_);
         Distributor._setup(dividendPool_);
-        _workhard = Workhard(workhard_);
+        _project = Project(project_);
         _sablier = sablier_;
         Governed.initialize(gov_);
         _setURI("");
@@ -86,7 +86,7 @@ contract ContributionBoard is
     }
 
     modifier onlyProjectOwner(uint256 projId) {
-        require(_workhard.ownerOf(projId) == msg.sender, "Not authorized");
+        require(_project.ownerOf(projId) == msg.sender, "Not authorized");
         _;
     }
 
@@ -213,7 +213,7 @@ contract ContributionBoard is
 
     function finalize(uint256 id) external override {
         require(
-            msg.sender == address(_workhard),
+            msg.sender == address(_project),
             "this should be called only for upgrade"
         );
         require(!_finalized[id], "Already _finalized");
@@ -230,7 +230,7 @@ contract ContributionBoard is
             "Only can get $COMMIT token for its grant"
         );
         uint256 projId = abi.decode(data, (uint256));
-        require(_workhard.ownerOf(projId) != address(0), "No budget owner");
+        require(_project.ownerOf(projId) != address(0), "No budget owner");
         _projectFund[projId] = _projectFund[projId].add(amount);
         emit Grant(projId, amount);
         return true;
@@ -240,8 +240,8 @@ contract ContributionBoard is
         return _sablier;
     }
 
-    function workhard() public view override returns (address) {
-        return address(_workhard);
+    function project() public view override returns (address) {
+        return address(_project);
     }
 
     function projectFund(uint256 projId)
@@ -323,7 +323,7 @@ contract ContributionBoard is
         override(ERC1155, IContributionBoard)
         returns (string memory)
     {
-        return IERC721Metadata(address(_workhard)).tokenURI(id);
+        return IERC721Metadata(address(_project)).tokenURI(id);
     }
 
     function _setMaxContribution(uint256 _id, uint256 _maxContribution)

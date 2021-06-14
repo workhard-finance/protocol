@@ -26,7 +26,7 @@ import {
   getMultisig,
   getWETH,
   getPool2Factory,
-  getWorkhard,
+  getProject,
   upgradeToMasterDAO,
   launchMasterDAO,
   getInitialContributorShareFactory,
@@ -116,16 +116,16 @@ async function main() {
   await sequence(network, 23, "Deploy VotingEscrowLock", async () => {
     return (await getVotingEscrow(deployer)).address;
   });
-  await sequence(network, 24, "Deploy WorkhardDAOFactory", async () => {
-    return (await getWorkhard(deployer)).address;
+  await sequence(network, 24, "Deploy DAOFactory", async () => {
+    return (await getProject(deployer)).address;
   });
   await sequence(network, 25, "Setup Master DAO", async () => {
-    const workhardDAO = await getWorkhard(deployer);
+    const workhardDAO = await getProject(deployer);
     await upgradeToMasterDAO(workhardDAO, deployer);
     return "success";
   });
   await sequence(network, 26, "Setup Initial Contributor Shares", async () => {
-    const workhardDAO = await getWorkhard(deployer);
+    const workhardDAO = await getProject(deployer);
     const masterDAO = await workhardDAO.getMasterDAO();
     await ContributionBoard__factory.connect(
       masterDAO.contributionBoard,
@@ -139,7 +139,7 @@ async function main() {
   });
 
   await sequence(network, 27, "Launch Master DAO", async () => {
-    const workhardDAO = await getWorkhard(deployer);
+    const workhardDAO = await getProject(deployer);
     await launchMasterDAO(workhardDAO, deployer);
     return "success";
   });

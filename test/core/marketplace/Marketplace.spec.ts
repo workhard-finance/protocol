@@ -4,7 +4,7 @@ import { solidity } from "ethereum-waffle";
 import { BigNumber } from "ethers";
 import { keccak256, parseEther, solidityPack } from "ethers/lib/utils";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { getWorkhard } from "../../scripts/fixtures";
+import { getWorkhard } from "../../../scripts/fixtures";
 import {
   COMMIT,
   DividendPool,
@@ -13,9 +13,9 @@ import {
   Marketplace,
   StableReserve,
   TimelockedGovernance,
-  WorkhardClient,
-  WorkhardDAO,
-} from "../../src";
+  Workhard,
+  DAO,
+} from "../../../src";
 
 chai.use(solidity);
 
@@ -25,8 +25,8 @@ describe("Marketplace.sol", function () {
   let manufacturer: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let workhard: WorkhardClient;
-  let masterDAO: WorkhardDAO;
+  let workhard: Workhard;
+  let masterDAO: DAO;
   let marketplace: Marketplace;
   let stableReserve: StableReserve;
   let commit: COMMIT;

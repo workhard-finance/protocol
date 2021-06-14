@@ -50,9 +50,9 @@ import {
   VotingEscrowLock__factory,
   WorkersUnion,
   WorkersUnion__factory,
-  Workhard__factory,
+  Project__factory,
+  Project,
   Workhard,
-  WorkhardClient,
   InitialContributorShareFactory,
   ERC1155BurnMiningV1Factory,
   InitialContributorShareFactory__factory,
@@ -80,7 +80,7 @@ export interface CommonsFixture extends HelperFixture {
   initialContributorShareFactory: InitialContributorShareFactory;
 }
 
-export interface WorkhardDAOFixture extends CommonsFixture {
+export interface DAOFixture extends CommonsFixture {
   vision: VISION;
   commit: COMMIT;
   right: RIGHT;
@@ -93,7 +93,7 @@ export interface WorkhardDAOFixture extends CommonsFixture {
   voteCounter: VoteCounter;
   workersUnion: WorkersUnion;
   visionEmitter: VisionEmitter;
-  workhard: Workhard;
+  workhard: Project;
 }
 
 const forked = process.env.FORK ? process.env.FORK.length > 0 : false;
@@ -220,7 +220,7 @@ export async function getCommonFixture(): Promise<CommonsFixture> {
   };
 }
 
-export async function getWorkhard(): Promise<WorkhardClient> {
+export async function getWorkhard(): Promise<Workhard> {
   const commonsFixture = await getCommonFixture();
   const [deployer] = await ethers.getSigners();
 
@@ -276,10 +276,10 @@ export async function getWorkhard(): Promise<WorkhardClient> {
     (await (await ethers.getContractFactory("VisionEmitter")).deploy()).address,
     deployer
   );
-  const workhard = Workhard__factory.connect(
+  const workhard = Project__factory.connect(
     (
       await (
-        await ethers.getContractFactory("Workhard")
+        await ethers.getContractFactory("Project")
       ).deploy(
         {
           multisig: commonsFixture.multisig.address,
@@ -344,6 +344,6 @@ export async function getWorkhard(): Promise<WorkhardClient> {
   ).recordContribution(deployer.address, 0, ethers.utils.parseEther("1000000"));
   await workhard.launch(0, 4750, 4750, 499, 1);
 
-  const client = await WorkhardClient.from(ethers.provider, workhard.address);
+  const client = await Workhard.from(ethers.provider, workhard.address);
   return client;
 }

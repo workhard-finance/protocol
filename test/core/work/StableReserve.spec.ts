@@ -18,8 +18,8 @@ import {
   StableReserve,
   TimelockedGovernance,
   Workhard,
-  WorkhardClient,
-  WorkhardDAO,
+  Project,
+  DAO,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
@@ -32,9 +32,9 @@ describe("StableReserve.sol", function () {
   let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let client: WorkhardClient;
   let workhard: Workhard;
-  let masterDAO: WorkhardDAO;
+  let project: Project;
+  let masterDAO: DAO;
   let contributionBoard: ContributionBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
@@ -42,7 +42,7 @@ describe("StableReserve.sol", function () {
   let timelock: TimelockedGovernance;
   let baseCurrency: ERC20;
   let projId: BigNumber;
-  let project: {
+  let projectMetadata: {
     title: string;
     description: string;
     uri: string;
@@ -58,9 +58,9 @@ describe("StableReserve.sol", function () {
     projOwner = signers[2];
     alice = signers[3];
     bob = signers[4];
-    client = await getWorkhard();
-    workhard = client.workhard;
-    masterDAO = await client.getMasterDAO({ account: deployer });
+    workhard = await getWorkhard();
+    project = workhard.project;
+    masterDAO = await workhard.getMasterDAO({ account: deployer });
     baseCurrency = ERC20__factory.connect(
       masterDAO.baseCurrency.address,
       deployer
@@ -89,13 +89,13 @@ describe("StableReserve.sol", function () {
     await prepare(projOwner);
     await prepare(alice);
     await prepare(bob);
-    project = {
+    projectMetadata = {
       title: "Workhard is firing",
       description: "helloworld",
       uri: "ipfs://MY_PROJECT_URL",
     };
-    await workhard.connect(projOwner).createProject(0, project.uri);
-    projId = await workhard.tokenByIndex((await workhard.totalSupply()).sub(1));
+    await project.connect(projOwner).createProject(0, projectMetadata.uri);
+    projId = await project.tokenByIndex((await project.totalSupply()).sub(1));
   });
   let snapshot: string;
   beforeEach(async () => {

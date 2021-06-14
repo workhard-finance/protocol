@@ -10,10 +10,10 @@ import {
   DividendPool,
   ERC20,
   JobBoard,
-  Workhard,
+  Project,
   StableReserve,
   TimelockedGovernance,
-  WorkhardDAO,
+  DAO,
   ERC20__factory,
   JobBoard__factory,
 } from "../../../src";
@@ -27,11 +27,11 @@ describe("JobBoard.sol", function () {
   let projOwner: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
-  let masterDAO: WorkhardDAO;
+  let masterDAO: DAO;
   let jobBoard: JobBoard;
   let stableReserve: StableReserve;
   let commit: COMMIT;
-  let workhard: Workhard;
+  let workhard: Project;
   let baseCurrency: ERC20;
   let dividendPool: DividendPool;
   let timelock: TimelockedGovernance;
@@ -52,7 +52,7 @@ describe("JobBoard.sol", function () {
     alice = signers[2];
     bob = signers[3];
     const client = await getWorkhard();
-    workhard = client.workhard;
+    workhard = client.project;
     masterDAO = await client.getMasterDAO({ account: deployer });
     baseCurrency = ERC20__factory.connect(
       masterDAO.baseCurrency.address,

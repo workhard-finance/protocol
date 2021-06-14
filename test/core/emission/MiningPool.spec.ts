@@ -29,8 +29,8 @@ import {
   ERC1155StakeMiningV1,
   ERC721StakeMiningV1__factory,
   ERC1155StakeMiningV1__factory,
-  WorkhardDAO,
-  WorkhardClient,
+  DAO,
+  Workhard,
   ERC20__factory,
   ERC20,
 } from "../../../src";
@@ -45,8 +45,8 @@ describe("MiningPool.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let workhard: WorkhardClient;
-  let masterDAO: WorkhardDAO;
+  let workhard: Workhard;
+  let masterDAO: DAO;
   let vision: VISION;
   let visionEmitter: VisionEmitter;
   let timelock: TimelockedGovernance;

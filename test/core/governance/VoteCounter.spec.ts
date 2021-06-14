@@ -9,7 +9,7 @@ import {
   VISION,
   VoteCounter,
   VotingEscrowLock,
-  WorkhardDAO,
+  DAO,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
@@ -22,7 +22,7 @@ describe("VoteCounter.sol", function () {
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
   let carl: SignerWithAddress;
-  let masterDAO: WorkhardDAO;
+  let masterDAO: DAO;
   let vision: VISION;
   let votingEscrow: VotingEscrowLock;
   let right: RIGHT;
