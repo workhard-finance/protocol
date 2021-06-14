@@ -29,5 +29,7 @@ describe("Project.sol", function () {
   afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshot]);
   });
-  describe("createProject", () => {});
+  describe("createProject", () => {
+    workhard.project.createProject(0, "");
+  });
 });

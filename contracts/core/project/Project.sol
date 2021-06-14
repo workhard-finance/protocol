@@ -143,7 +143,7 @@ contract Project is ERC721, ERC20Recoverer {
         _growth[id] = 1;
         _mint(msg.sender, id);
         _setTokenURI(id, uri);
-        address daoAddress = convertDAOIdToAddress(daoId);
+        address daoAddress = _getGovAddressOfDAO(daoId);
         _daoProjects[daoAddress].add(id);
         _belongsTo.set(id, daoAddress);
         emit NewProject(daoId, id);
@@ -157,7 +157,7 @@ contract Project is ERC721, ERC20Recoverer {
         require(_dao[id].vision == address(0), "Already upgraded.");
         _deploy(id);
         _initialize(id, params);
-        _daoAddressBook[convertDAOIdToAddress(id)] = id;
+        _daoAddressBook[_getGovAddressOfDAO(id)] = id;
         // Now it does not belong to any dao. A new dao!
         _daoProjects[_belongsTo.get(id, "owner query for nonexistent token")]
             .remove(id);
@@ -258,11 +258,11 @@ contract Project is ERC721, ERC20Recoverer {
     function daoOf(uint256 id) public view returns (uint256 daoId) {
         address daoAddress =
             _belongsTo.get(id, "owner query for nonexistent token");
-        return convertDAOAddressToId(daoAddress);
+        return _getDAOIdOfGov(daoAddress);
     }
 
     function projectsOf(uint256 daoId) public view returns (uint256 len) {
-        return _daoProjects[convertDAOIdToAddress(daoId)].length();
+        return _daoProjects[_getGovAddressOfDAO(daoId)].length();
     }
 
     function projectsOfDAOByIndex(uint256 daoId, uint256 index)
@@ -270,7 +270,7 @@ contract Project is ERC721, ERC20Recoverer {
         view
         returns (uint256 id)
     {
-        return _daoProjects[convertDAOIdToAddress(daoId)].at(index);
+        return _daoProjects[_getGovAddressOfDAO(daoId)].at(index);
     }
 
     function getMasterDAO() public view returns (DAO memory) {
@@ -291,29 +291,6 @@ contract Project is ERC721, ERC20Recoverer {
 
     function getController() public view returns (DAO memory) {
         return _controller;
-    }
-
-    /**
-     * @notice it returns timelock governance contract's address.
-     */
-    function convertDAOIdToAddress(uint256 id) public view returns (address) {
-        return
-            Clones.predictDeterministicAddress(
-                _controller.timelock,
-                bytes32(id),
-                address(this)
-            );
-    }
-
-    /**
-     * @notice it can return only launched DAO's token id.
-     */
-    function convertDAOAddressToId(address daoAddress)
-        public
-        view
-        returns (uint256 daoId)
-    {
-        return _daoAddressBook[daoAddress];
     }
 
     function _deploy(uint256 id) internal {
@@ -351,7 +328,7 @@ contract Project is ERC721, ERC20Recoverer {
 
         DAO storage parentDAO =
             _dao[
-                convertDAOAddressToId(
+                _getDAOIdOfGov(
                     _belongsTo.get(id, "owner query for nonexistent token")
                 )
             ];
@@ -460,5 +437,28 @@ contract Project is ERC721, ERC20Recoverer {
         VisionEmitter(fork.visionEmitter).setGovernance(fork.timelock);
         // 4. transfer ownership to timelock
         _transfer(msg.sender, fork.timelock, id);
+    }
+
+    /**
+     * @notice it returns timelock governance contract's address.
+     */
+    function _getGovAddressOfDAO(uint256 id) private view returns (address) {
+        return
+            Clones.predictDeterministicAddress(
+                _controller.timelock,
+                bytes32(id),
+                address(this)
+            );
+    }
+
+    /**
+     * @notice it can return only launched DAO's token id.
+     */
+    function _getDAOIdOfGov(address daoAddress)
+        private
+        view
+        returns (uint256 daoId)
+    {
+        return _daoAddressBook[daoAddress];
     }
 }
