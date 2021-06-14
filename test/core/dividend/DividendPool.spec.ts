@@ -95,6 +95,7 @@ describe("DividendPool.sol", function () {
       );
       await project.upgradeToDAO(projId, {
         multisig: deployer.address,
+        treasury: deployer.address,
         baseCurrency: masterDAO.baseCurrency.address,
         projectName: "Workhard Forked Dev",
         projectSymbol: "WFK",

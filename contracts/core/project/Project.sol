@@ -60,6 +60,7 @@ contract Project is ERC721, ERC20Recoverer {
 
     struct CloneParams {
         address multisig;
+        address treasury;
         address baseCurrency;
         // Project
         string projectName;
@@ -406,7 +407,7 @@ contract Project is ERC721, ERC20Recoverer {
                 params.emissionCutRate,
                 params.founderShare,
                 params.emissionStartDelay,
-                fork.timelock, // treasury
+                params.treasury,
                 address(this), // gov => will be transfered to timelock
                 fork.vision,
                 id != 0 ? parentDAO.dividendPool : address(0),

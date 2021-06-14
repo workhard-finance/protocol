@@ -320,6 +320,7 @@ export async function getWorkhard(): Promise<Workhard> {
   );
   await project.upgradeToDAO(0, {
     multisig: commonsFixture.multisig.address,
+    treasury: commonsFixture.multisig.address,
     baseCurrency: commonsFixture.baseCurrency.address,
     projectName: "Workhard Master Dev",
     projectSymbol: "WMD",
@@ -350,6 +351,7 @@ export async function getWorkhard(): Promise<Workhard> {
 
 export const defaultDAOParam = (multisig: string, baseCurrency: string) => ({
   multisig,
+  treasury: multisig,
   baseCurrency,
   projectName: "Workhard Sample Project",
   projectSymbol: "WSP",
