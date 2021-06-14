@@ -76,9 +76,12 @@ contract DividendPool is
         Distribution storage distribution = _distributions[_token];
         uint256 increment = newBalance.sub(distribution.balance);
         distribution.balance = newBalance;
-        distribution.totalDistribution += increment;
+        distribution.totalDistribution = distribution.totalDistribution.add(
+            increment
+        );
         uint256 weekNum = getCurrentEpoch();
-        distribution.tokenPerWeek[weekNum] += increment;
+        distribution.tokenPerWeek[weekNum] = distribution.tokenPerWeek[weekNum]
+            .add(increment);
         emit NewDistribution(_token, _amount);
     }
 
@@ -96,22 +99,25 @@ contract DividendPool is
             IVotingEscrowToken(_veVISION).totalSupplyAt(timestamp) == 0,
             "Locked Token exists for that epoch"
         );
-        uint256 move = 1;
-        while (
-            IVotingEscrowToken(_veVISION).totalSupplyAt(
-                timestamp + (move * 1 weeks)
-            ) == 0
-        ) {
-            require(
-                timestamp + (move * 1 weeks) < block.timestamp,
-                "No Voting Escrow Token exists."
-            );
-            move += 1;
+        uint256 newEpoch;
+        uint256 increment = 1;
+        while (timestamp + (increment * 1 weeks) <= block.timestamp) {
+            if (
+                IVotingEscrowToken(_veVISION).totalSupplyAt(
+                    timestamp + (increment * 1 weeks)
+                ) > 0
+            ) {
+                newEpoch = epoch + increment;
+                break;
+            }
+            increment += 1;
         }
+        require(newEpoch > epoch, "Failed to find new epoch to redistribute");
         Distribution storage distribution = _distributions[token];
-        distribution.tokenPerWeek[epoch + move] += distribution.tokenPerWeek[
-            epoch
-        ];
+        distribution.tokenPerWeek[newEpoch] = distribution.tokenPerWeek[
+            newEpoch
+        ]
+            .add(distribution.tokenPerWeek[epoch]);
         distribution.tokenPerWeek[epoch] = 0;
     }
 
@@ -282,9 +288,9 @@ contract DividendPool is
             uint256 supply =
                 IVotingEscrowToken(_veVISION).totalSupplyAt(timestamp);
             if (supply != 0) {
-                accumulated += distribution.tokenPerWeek[epochCursor]
-                    .mul(bal)
-                    .div(supply);
+                accumulated = accumulated.add(
+                    distribution.tokenPerWeek[epochCursor].mul(bal).div(supply)
+                );
             }
             // update cursor
             epochCursor += 1;

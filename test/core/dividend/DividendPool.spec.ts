@@ -3,7 +3,12 @@ import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber } from "ethers";
 import { parseEther } from "ethers/lib/utils";
-import { almostEquals, goTo, goToNextWeek } from "../../utils/utilities";
+import {
+  almostEquals,
+  goTo,
+  goToNextWeek,
+  runTimelockTx,
+} from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   DividendPool,
@@ -15,6 +20,7 @@ import {
   Project,
   Workhard,
   DAO,
+  RIGHT,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
@@ -36,6 +42,7 @@ describe("DividendPool.sol", function () {
   let forkedDAO: DAO;
   let forkedDAOId: number;
   let vision: VISION;
+  let right: RIGHT;
   let dividendPool: DividendPool;
   let votingEscrow: VotingEscrowLock;
   let timelock: TimelockedGovernance;
@@ -52,6 +59,7 @@ describe("DividendPool.sol", function () {
     project = workhard.project.connect(deployer);
     masterDAO = await workhard.getMasterDAO();
     vision = masterDAO.vision;
+    right = masterDAO.right;
     dividendPool = masterDAO.dividendPool;
     votingEscrow = masterDAO.votingEscrow;
     timelock = masterDAO.timelock;
@@ -75,6 +83,7 @@ describe("DividendPool.sol", function () {
         .connect(account)
         .approve(votingEscrow.address, parseEther("100"));
     };
+    await prepare(distributor);
     await prepare(alice);
     await prepare(bob);
     await prepare(carl);
@@ -117,13 +126,27 @@ describe("DividendPool.sol", function () {
   afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshot]);
   });
+  describe("Governance", async () => {
+    describe("setFeaturedRewards()", () => {
+      it("only governance can set the featured rewards list", async () => {
+        const rewards = [workhard.commons.weth.address];
+        await expect(
+          dividendPool.connect(alice).setFeaturedRewards(rewards)
+        ).to.be.revertedWith("Not authorized");
+        await runTimelockTx(
+          timelock.connect(deployer),
+          dividendPool.populateTransaction.setFeaturedRewards(rewards)
+        );
+        expect(await dividendPool.featuredRewards()).to.deep.equal(rewards);
+      });
+    });
+  });
   describe("epoch test", async () => {
     describe("getCurrentEpoch()", async () => {
       it("should start from 1 since the test starts after the 1st week", async () => {
         expect(await dividendPool.getCurrentEpoch()).eq(1);
       });
       it("should increment by weekly", async () => {
-        let timestamp = (await ethers.provider.getBlock("latest")).timestamp;
         expect(await dividendPool.getCurrentEpoch()).eq(1);
         await goTo(4 * week);
         expect(await dividendPool.getCurrentEpoch()).eq(5);
@@ -168,7 +191,7 @@ describe("DividendPool.sol", function () {
     });
     describe("claimable()", () => {
       it("distribution should be claimable after 1 epoch", async () => {
-        await goTo(1 * week);
+        await goToNextWeek();
         await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
         const claimable0 = await dividendPool
           .connect(alice)
@@ -188,10 +211,10 @@ describe("DividendPool.sol", function () {
         almostEquals(claimable2, parseEther("100"));
       });
     });
-    describe("claim() & claimUpTo()", async () => {
+    describe("claim() & claimUpTo() & batchClaim()", async () => {
       beforeEach(async () => {
         const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-        await goTo(1 * week);
+        await goToNextWeek();
         await votingEscrow
           .connect(alice)
           .createLockUntil(parseEther("1"), timestamp + 4 * year);
@@ -204,6 +227,12 @@ describe("DividendPool.sol", function () {
         await dividendPool
           .connect(distributor)
           .distribute(testingRewardToken.address, parseEther("100"));
+        await vision
+          .connect(distributor)
+          .approve(dividendPool.address, parseEther("100"));
+        await dividendPool
+          .connect(distributor)
+          .distribute(vision.address, parseEther("100"));
       });
       describe("claim()", () => {
         it("can claim rewards from next week", async () => {
@@ -212,7 +241,7 @@ describe("DividendPool.sol", function () {
           const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
           expect(aliceBal1).eq(0);
           expect(aliceBal0).eq(0);
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool.connect(alice).claim(testingRewardToken.address);
           const aliceBal2 = await testingRewardToken.balanceOf(alice.address);
           almostEquals(
@@ -221,25 +250,25 @@ describe("DividendPool.sol", function () {
           );
         });
         it("should not be double claimed", async () => {
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool.connect(alice).claim(testingRewardToken.address);
           const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool.connect(alice).claim(testingRewardToken.address);
           const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
           expect(aliceBal1).eq(aliceBal0);
         });
         it("should accumulate the rewards", async () => {
           const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool
             .connect(distributor)
             .distribute(testingRewardToken.address, parseEther("100"));
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool
             .connect(distributor)
             .distribute(testingRewardToken.address, parseEther("100"));
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool.connect(alice).claim(testingRewardToken.address);
           const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
           almostEquals(
@@ -261,18 +290,76 @@ describe("DividendPool.sol", function () {
         it("can claim after the epoch changes", async () => {
           const timestamp = (await ethers.provider.getBlock("latest"))
             .timestamp;
-          await goTo(1 * week);
+          await goToNextWeek();
           await dividendPool
             .connect(alice)
             .claimUpTo(testingRewardToken.address, timestamp);
         });
+      });
+      describe("claimUpBatch()", () => {
+        it("can claim multi-asset rewards in 1 transaction", async () => {
+          await goToNextWeek();
+          const prevVisionBal = await vision.balanceOf(alice.address);
+          const prevRewardTokenBal = await testingRewardToken.balanceOf(
+            alice.address
+          );
+          await dividendPool
+            .connect(alice)
+            .claimBatch([testingRewardToken.address, vision.address]);
+          const updatedVisionBal = await vision.balanceOf(alice.address);
+          const updatedRewardTokenBal = await testingRewardToken.balanceOf(
+            alice.address
+          );
+          expect(updatedVisionBal.gt(prevVisionBal)).to.be.true;
+          expect(updatedRewardTokenBal.gt(prevRewardTokenBal)).to.be.true;
+        });
+      });
+    });
+    describe("redistribute()", async () => {
+      it("should redistribute the rewards to the closest epoch that has any locked values", async () => {
+        const epochOfZeroLockedVision = await dividendPool.getCurrentEpoch();
+        // no locked vision
+        expect(await right.totalSupply()).to.eq(0);
+        await dividendPool
+          .connect(distributor)
+          .distribute(testingRewardToken.address, parseEther("100"));
+        // distributed but no locked vision for that week
+        await goToNextWeek();
+        expect(
+          await dividendPool
+            .connect(alice)
+            .claimable(testingRewardToken.address)
+        ).to.equal(0);
+        // create a lock
+        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
+        await votingEscrow
+          .connect(alice)
+          .createLockUntil(parseEther("1"), timestamp + 4 * year);
+        await goToNextWeek();
+        // still 0 claimable after 1 week
+        expect(
+          await dividendPool
+            .connect(alice)
+            .claimable(testingRewardToken.address)
+        ).to.equal(0);
+        // run redistribution as there were no beneficiary of the distribution.
+        await dividendPool
+          .connect(distributor)
+          .redistribute(testingRewardToken.address, epochOfZeroLockedVision);
+        // now alice can claim the reward
+        almostEquals(
+          await dividendPool
+            .connect(alice)
+            .claimable(testingRewardToken.address),
+          parseEther("100")
+        );
       });
     });
   });
 
   describe("fork & emission sharing test", async () => {
     it("should share the emission with Master RIGHT holders", async () => {
-      await goTo(1 * week);
+      await goToNextWeek();
       await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
       // no sharing yet
       const claimable0 = await dividendPool
