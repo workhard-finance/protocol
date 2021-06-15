@@ -174,7 +174,6 @@ describe("StableReserve.sol", function () {
       await baseCurrency
         .connect(bob)
         .approve(stableReserve.address, constants.MaxUint256);
-      console.log(await baseCurrency.balanceOf(bob.address));
       await expect(
         stableReserve.connect(bob).reserveAndMint(1)
       ).to.be.revertedWith("Not authorized");

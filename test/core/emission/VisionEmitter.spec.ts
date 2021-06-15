@@ -188,6 +188,15 @@ describe("VisionEmitter.sol", function () {
           expectedAddress
         );
     });
+    it("should deploy only 1 pool for same asset", async () => {
+      const factory = workhard.commons.erc20StakeMiningV1Factory;
+      await expect(
+        factory.connect(alice).newPool(visionEmitter.address, vision.address)
+      ).to.emit(factory, "NewMiningPool");
+      await expect(
+        factory.connect(alice).newPool(visionEmitter.address, vision.address)
+      ).not.to.emit(factory, "NewMiningPool");
+    });
   });
   describe("distribute()", async () => {
     let testingStakeToken: ERC20;

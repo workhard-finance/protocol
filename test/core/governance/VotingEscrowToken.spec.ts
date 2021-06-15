@@ -296,33 +296,29 @@ describe("VotingEscrowToken.sol", function () {
       almostEquals(veBal, parseEther("7500"));
     });
   });
-  describe("VotingEscrowLock.sol", () => {
-    describe("withdraw()", async () => {
-      it("should revert since Alice's stake is still locked", async () => {
-        const aliceLock = await votingEscrow.tokenOfOwnerByIndex(
-          alice.address,
-          0
-        );
-        await expect(votingEscrow.connect(alice).withdraw(aliceLock)).to.be
-          .reverted;
-      });
-      it("should withdraw fund after Alice's lock ends", async () => {
-        await goTo(86400 * 365 * 2);
-        const aliceLock = await votingEscrow.tokenOfOwnerByIndex(
-          alice.address,
-          0
-        );
-        await expect(votingEscrow.connect(alice).withdraw(aliceLock))
-          .to.emit(votingEscrow, "Withdraw")
-          .withArgs(aliceLock, parseEther("10000"));
-      });
+  describe("checkpoint()", async () => {
+    it("should be used to resolve out of gas error when there were no updates for so long time", async () => {
+      await goTo(86400 * 7 * 200);
+      await expect(
+        votingEscrow
+          .connect(carl)
+          .createLock(parseEther("1000"), 4 * 52, { gasLimit: 5000000 })
+      ).to.be.revertedWith(
+        "contract call run out of gas and made the transaction revert"
+      );
+      await veToken["checkpoint(uint256)"](180);
+      await expect(
+        votingEscrow
+          .connect(carl)
+          .createLock(parseEther("1000"), 4 * 52, { gasLimit: 5000000 })
+      ).not.to.be.reverted;
     });
-    describe("totalLockedSupply()", async () => {
-      it("should return 15000: alice 10000, carl: 5000", async () => {
-        const timestamp = (await ethers.provider.getBlock("latest")).timestamp;
-        const totalLockedSupply = await votingEscrow.totalLockedSupply();
-        expect(totalLockedSupply).eq(parseEther("15000"));
-      });
+  });
+  describe("transfer()", async () => {
+    it("non-transferrable", async () => {
+      await expect(
+        veToken.connect(alice).transfer(bob.address, 1)
+      ).to.be.revertedWith("Non-transferrable. You can only transfer locks.");
     });
   });
 });

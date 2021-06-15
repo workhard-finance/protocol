@@ -194,7 +194,7 @@ describe("DividendPool.sol", function () {
         expect(total1).eq(parseEther("100"));
       });
     });
-    describe("claimable()", () => {
+    describe("claimable() && claimStartWeek", () => {
       it("distribution should be claimable after 1 epoch", async () => {
         await goToNextWeek();
         await votingEscrow.connect(alice).createLock(parseEther("10"), 208);
@@ -242,7 +242,24 @@ describe("DividendPool.sol", function () {
       describe("claim()", () => {
         it("can claim rewards from next week", async () => {
           const aliceBal0 = await testingRewardToken.balanceOf(alice.address);
+          const lockId = await votingEscrow.tokenOfOwnerByIndex(
+            alice.address,
+            0
+          );
+          expect(
+            await dividendPool.claimStartWeek(
+              testingRewardToken.address,
+              lockId
+            )
+          ).to.eq(0);
+          const currentWeekNum = await dividendPool.getCurrentEpoch();
           await dividendPool.connect(alice).claim(testingRewardToken.address);
+          expect(
+            await dividendPool.claimStartWeek(
+              testingRewardToken.address,
+              lockId
+            )
+          ).to.eq(currentWeekNum);
           const aliceBal1 = await testingRewardToken.balanceOf(alice.address);
           expect(aliceBal1).eq(0);
           expect(aliceBal0).eq(0);
@@ -384,6 +401,26 @@ describe("DividendPool.sol", function () {
         .connect(alice)
         .claimable(forkedDAO.vision.address);
       almostEquals(claimable2, emissionAmount.div(34));
+    });
+  });
+  describe("getters", () => {
+    describe("genesis()", () => {
+      it("should return the genesis timestamp when the dividend pool is initialized", async () => {
+        expect(await dividendPool.genesis()).to.be.gt(0);
+        expect(await dividendPool.genesis()).lt(
+          (await ethers.provider.getBlock("latest")).timestamp
+        );
+      });
+    });
+    describe("veVISION()", () => {
+      it("should return right token address", async () => {
+        expect(await dividendPool.veVISION()).to.eq(right.address);
+      });
+    });
+    describe("veLocker()", () => {
+      it("should return the voting escrow locker address", async () => {
+        expect(await dividendPool.veLocker()).to.eq(votingEscrow.address);
+      });
     });
   });
 });

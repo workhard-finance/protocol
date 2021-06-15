@@ -37,7 +37,7 @@ describe("Marketplace.sol", function () {
   const PRICE_IN_COMMIT_TOKEN = parseEther("1");
   const PROFIT_FOR_MANUFACTURER = 1000;
   const PRODUCT_URI = "ipfscid";
-  let PROJ_ID: BigNumber;
+  let PRODUCT_ID: BigNumber;
   before(async () => {
     signers = await ethers.getSigners();
     deployer = signers[0];
@@ -55,7 +55,7 @@ describe("Marketplace.sol", function () {
     stableReserve = masterDAO.stableReserve;
     dividendPool = masterDAO.dividendPool;
     timelock = masterDAO.timelock;
-    PROJ_ID = BigNumber.from(
+    PRODUCT_ID = BigNumber.from(
       keccak256(
         solidityPack(["string", "address"], [PRODUCT_URI, alice.address])
       )
@@ -96,9 +96,9 @@ describe("Marketplace.sol", function () {
           )
       )
         .to.emit(marketplace, "NewProduct")
-        .withArgs(PROJ_ID, alice.address, PRODUCT_URI);
+        .withArgs(PRODUCT_ID, alice.address, PRODUCT_URI);
       await expect(
-        marketplace.connect(bob).buy(PROJ_ID, bob.address, 3)
+        marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3)
       ).to.emit(marketplace, "TransferSingle");
     });
   });
@@ -114,12 +114,12 @@ describe("Marketplace.sol", function () {
         );
     });
     it("should allow purchase upto its max supply", async () => {
-      await expect(marketplace.connect(bob).buy(PROJ_ID, bob.address, 10)).not
-        .to.be.reverted;
+      await expect(marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 10))
+        .not.to.be.reverted;
     });
     it("should limit the total supply", async () => {
       await expect(
-        marketplace.connect(bob).buy(PROJ_ID, bob.address, 11)
+        marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 11)
       ).to.be.revertedWith("Not enough stock");
     });
   });
@@ -135,34 +135,34 @@ describe("Marketplace.sol", function () {
     });
     describe("setMaxSupply()", () => {
       it("should make a product as a limited edition", async () => {
-        await marketplace.connect(alice).setMaxSupply(PROJ_ID, 10);
+        await marketplace.connect(alice).setMaxSupply(PRODUCT_ID, 10);
         await expect(
-          marketplace.connect(bob).buy(PROJ_ID, bob.address, 11)
+          marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 11)
         ).to.be.revertedWith("Not enough stock");
       });
       it("should not be changed", async () => {
-        await marketplace.connect(alice).setMaxSupply(PROJ_ID, 10);
+        await marketplace.connect(alice).setMaxSupply(PRODUCT_ID, 10);
         await expect(
-          marketplace.connect(alice).setMaxSupply(PROJ_ID, 11)
+          marketplace.connect(alice).setMaxSupply(PRODUCT_ID, 11)
         ).to.be.revertedWith("Max supply is already set");
       });
       it("should be greater than existing supply", async () => {
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 11);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 11);
         await expect(
-          marketplace.connect(alice).setMaxSupply(PROJ_ID, 10)
+          marketplace.connect(alice).setMaxSupply(PRODUCT_ID, 10)
         ).to.be.revertedWith("Max supply is less than current supply");
       });
     });
     describe("setPrice()", () => {
       it("should update the price", async () => {
         const prevBal0 = await commit.balanceOf(bob.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal0 = await commit.balanceOf(bob.address);
         await marketplace
           .connect(alice)
-          .setPrice(PROJ_ID, PRICE_IN_COMMIT_TOKEN.mul(2));
+          .setPrice(PRODUCT_ID, PRICE_IN_COMMIT_TOKEN.mul(2));
         const prevBal1 = await commit.balanceOf(bob.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal1 = await commit.balanceOf(bob.address);
         expect(newBal1.sub(prevBal1)).to.eq(newBal0.sub(prevBal0).mul(2));
       });
@@ -170,13 +170,13 @@ describe("Marketplace.sol", function () {
     describe("setProfitRate()", () => {
       it("should update the profit rate for the manufacturer", async () => {
         const prevBal0 = await commit.balanceOf(alice.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal0 = await commit.balanceOf(alice.address);
         await marketplace
           .connect(alice)
-          .setProfitRate(PROJ_ID, PROFIT_FOR_MANUFACTURER * 2);
+          .setProfitRate(PRODUCT_ID, PROFIT_FOR_MANUFACTURER * 2);
         const prevBal1 = await commit.balanceOf(alice.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal1 = await commit.balanceOf(alice.address);
         expect(newBal1.sub(prevBal1)).to.eq(newBal0.sub(prevBal0).mul(2));
       });
@@ -184,15 +184,15 @@ describe("Marketplace.sol", function () {
     describe("setFeatured()", () => {
       it("should be updated by the gov", async () => {
         await expect(
-          marketplace.connect(alice).setFeatured([PROJ_ID])
+          marketplace.connect(alice).setFeatured([PRODUCT_ID])
         ).to.be.revertedWith("Not authorized");
         await expect(
           runTimelockTx(
             timelock.connect(deployer),
-            marketplace.populateTransaction.setFeatured([PROJ_ID])
+            marketplace.populateTransaction.setFeatured([PRODUCT_ID])
           )
         ).not.to.be.reverted;
-        expect(await marketplace.featured()).to.deep.eq([PROJ_ID]);
+        expect(await marketplace.featured()).to.deep.eq([PRODUCT_ID]);
       });
     });
     describe("setTaxRate()", () => {
@@ -206,14 +206,14 @@ describe("Marketplace.sol", function () {
       });
       it("should change the shared amount with the dividend pool", async () => {
         const prevBal0 = await commit.balanceOf(dividendPool.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal0 = await commit.balanceOf(dividendPool.address);
         await runTimelockTx(
           timelock.connect(deployer),
           marketplace.populateTransaction.setTaxRate(4000)
         );
         const prevBal1 = await commit.balanceOf(dividendPool.address);
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
         const newBal1 = await commit.balanceOf(dividendPool.address);
         expect(newBal1.sub(prevBal1)).to.eq(newBal0.sub(prevBal0).mul(2));
       });
@@ -237,7 +237,7 @@ describe("Marketplace.sol", function () {
     });
     describe("products()", () => {
       it("should return the product metadata", async () => {
-        const product = await marketplace.products(PROJ_ID);
+        const product = await marketplace.products(PRODUCT_ID);
         expect(product.manufacturer).to.eq(alice.address);
         expect(product.totalSupply).to.eq(0);
         expect(product.maxSupply).to.eq(0);
@@ -246,8 +246,8 @@ describe("Marketplace.sol", function () {
         expect(product.uri).to.eq(PRODUCT_URI);
       });
       it("should be updated when new buy exists", async () => {
-        await marketplace.connect(bob).buy(PROJ_ID, bob.address, 3);
-        const product = await marketplace.products(PROJ_ID);
+        await marketplace.connect(bob).buy(PRODUCT_ID, bob.address, 3);
+        const product = await marketplace.products(PRODUCT_ID);
         expect(product.manufacturer).to.eq(alice.address);
         expect(product.totalSupply).to.eq(3);
         expect(product.maxSupply).to.eq(0);
@@ -255,13 +255,20 @@ describe("Marketplace.sol", function () {
       it("should be update the price data when the manufacturer updates the price and profit rate", async () => {
         await marketplace
           .connect(alice)
-          .setPrice(PROJ_ID, PRICE_IN_COMMIT_TOKEN.mul(2));
+          .setPrice(PRODUCT_ID, PRICE_IN_COMMIT_TOKEN.mul(2));
         await marketplace
           .connect(alice)
-          .setProfitRate(PROJ_ID, PROFIT_FOR_MANUFACTURER * 2);
-        const product = await marketplace.products(PROJ_ID);
+          .setProfitRate(PRODUCT_ID, PROFIT_FOR_MANUFACTURER * 2);
+        const product = await marketplace.products(PRODUCT_ID);
         expect(product.price).to.eq(PRICE_IN_COMMIT_TOKEN.mul(2));
         expect(product.profitRate).to.eq(PROFIT_FOR_MANUFACTURER * 2);
+      });
+      describe("uri()", () => {
+        it("should return product uri", async () => {
+          expect(await marketplace.uri(PRODUCT_ID)).to.eq(
+            `ipfs://${PRODUCT_URI}`
+          );
+        });
       });
     });
   });
