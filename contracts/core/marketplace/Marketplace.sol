@@ -67,9 +67,12 @@ contract Marketplace is
         // check the product is for sale
         Product storage product = _products[id];
         require(product.manufacturer != address(0), "Product not exists");
-        uint256 stock = product.maxSupply.sub(product.totalSupply);
-        require(product.maxSupply == 0 || amount <= stock, "Sold out");
-        require(product.maxSupply == 0 || stock > 0, "Not for sale.");
+
+        if (product.maxSupply != 0) {
+            uint256 stock = product.maxSupply.sub(product.totalSupply);
+            require(amount <= stock, "Not enough stock");
+            require(stock > 0, "Not for sale.");
+        }
         uint256 totalPayment = product.price.mul(amount); // SafeMath prevents overflow
         // Vision Tax
         uint256 visionTax = totalPayment.mul(_taxRate).div(RATE_DENOMINATOR);
@@ -106,7 +109,7 @@ contract Marketplace is
         uint256 price,
         uint256 maxSupply
     ) external override {
-        uint256 id = uint256(keccak256(bytes(cid)));
+        uint256 id = uint256(keccak256(abi.encodePacked(cid, msg.sender)));
         _products[id] = Product(
             msg.sender,
             0,
@@ -218,24 +221,5 @@ contract Marketplace is
         );
         _products[id].totalSupply = newSupply;
         super._mint(account, id, amount, data);
-    }
-
-    function _mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) internal override {
-        for (uint256 i = 0; i < ids.length; i++) {
-            uint256 id = ids[i];
-            uint256 newSupply = _products[id].totalSupply.add(amounts[i]);
-            require(
-                _products[id].maxSupply == 0 ||
-                    newSupply <= _products[id].maxSupply,
-                "Sold out"
-            );
-            _products[id].totalSupply = newSupply;
-        }
-        super._mintBatch(to, ids, amounts, data);
     }
 }
