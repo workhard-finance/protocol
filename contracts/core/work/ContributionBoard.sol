@@ -91,26 +91,26 @@ contract ContributionBoard is
     }
 
     function addProjectFund(uint256 projId, uint256 amount) public override {
-        require(!_fundingPaused[projId], "Should unpause funding");
+        require(!_fundingPaused[projId], "Should resume funding");
         IERC20(commitToken).safeTransferFrom(msg.sender, address(this), amount);
         uint256 updated = _projectFund[projId].add(amount);
         _projectFund[projId] = updated;
-        if (_minimumShare[projId] != 0) {
+        if (_initialContributorShareProgram(projId)) {
             // record funding
             _recordContribution(msg.sender, projId, amount);
         }
     }
 
-    function enableFunding(
+    function startInitialContributorShareProgram(
         uint256 projectId,
-        uint256 __minimumShare,
-        uint256 _maxContribution
+        uint256 minimumShare_,
+        uint256 maxContribution
     ) public override onlyProjectOwner(projectId) {
-        require(0 < __minimumShare, "Should be greater than 0");
-        require(__minimumShare < 10000, "Cannot be greater than denominator");
+        require(0 < minimumShare_, "Should be greater than 0");
+        require(minimumShare_ < 10000, "Cannot be greater than denominator");
         require(_minimumShare[projectId] == 0, "Funding is already enabled.");
-        _minimumShare[projectId] = __minimumShare;
-        _setMaxContribution(projectId, _maxContribution);
+        _minimumShare[projectId] = minimumShare_;
+        _setMaxContribution(projectId, maxContribution);
     }
 
     /**
@@ -186,13 +186,24 @@ contract ContributionBoard is
     {
         require(projectOf(streamId) == projectId, "Invalid project id");
 
-        (, address recipient, , , , , uint256 remainingBalance, ) =
-            IERC1620(_sablier).getStream(streamId);
+        (
+            ,
+            address recipient,
+            uint256 deposit,
+            ,
+            uint256 startTime,
+            uint256 stopTime,
+            ,
+            uint256 ratePerSecond
+        ) = IERC1620(_sablier).getStream(streamId);
 
+        uint256 earned = Math.min(block.timestamp, stopTime).sub(startTime);
+        uint256 remaining = deposit.sub(ratePerSecond.mul(earned));
         require(IERC1620(_sablier).cancelStream(streamId), "Failed to cancel");
-        _projectFund[projectId] = _projectFund[projectId].add(remainingBalance);
+
+        _projectFund[projectId] = _projectFund[projectId].add(remaining);
         uint256 cancelContribution =
-            Math.min(balanceOf(recipient, projectId), remainingBalance);
+            Math.min(balanceOf(recipient, projectId), remaining);
         _burn(recipient, projectId, cancelContribution);
     }
 
@@ -202,7 +213,7 @@ contract ContributionBoard is
         uint256 amount
     ) external override onlyProjectOwner(id) {
         require(
-            _minimumShare[id] == 0,
+            !_initialContributorShareProgram(id),
             "Once it starts to get funding, you cannot record additional contribution"
         );
         require(
@@ -253,8 +264,6 @@ contract ContributionBoard is
         return _projectFund[projId];
     }
 
-    function claimed(uint256 projId) public view override returns (uint256) {}
-
     function totalSupplyOf(uint256 projId)
         public
         view
@@ -271,6 +280,15 @@ contract ContributionBoard is
         returns (uint256)
     {
         return _maxSupplyOf[projId];
+    }
+
+    function initialContributorShareProgram(uint256 projId)
+        public
+        view
+        override
+        returns (bool)
+    {
+        return _initialContributorShareProgram(projId);
     }
 
     function minimumShare(uint256 projId)
@@ -326,12 +344,10 @@ contract ContributionBoard is
         return IERC721Metadata(address(_project)).tokenURI(id);
     }
 
-    function _setMaxContribution(uint256 _id, uint256 _maxContribution)
-        internal
-    {
-        require(!_finalized[_id], "DAO is launched. You cannot update it.");
-        _maxSupplyOf[_id] = _maxContribution;
-        emit NewMaxContribution(_id, _maxContribution);
+    function _setMaxContribution(uint256 id, uint256 maxContribution) internal {
+        require(!_finalized[id], "DAO is launched. You cannot update it.");
+        _maxSupplyOf[id] = maxContribution;
+        emit NewMaxContribution(id, maxContribution);
     }
 
     function _recordContribution(
@@ -388,5 +404,13 @@ contract ContributionBoard is
                 require(_finalized[ids[i]], "Not _finalized");
             }
         }
+    }
+
+    function _initialContributorShareProgram(uint256 projId)
+        internal
+        view
+        returns (bool)
+    {
+        return _minimumShare[projId] != 0;
     }
 }

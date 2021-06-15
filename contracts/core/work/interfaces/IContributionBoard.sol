@@ -22,7 +22,7 @@ interface IContributionBoard is IERC1155MetadataURI {
 
     function addProjectFund(uint256 projId, uint256 amount) external;
 
-    function enableFunding(
+    function startInitialContributorShareProgram(
         uint256 projectId,
         uint256 _minimumShare,
         uint256 _maxContribution
@@ -62,11 +62,14 @@ interface IContributionBoard is IERC1155MetadataURI {
 
     function projectFund(uint256 projId) external view returns (uint256);
 
-    function claimed(uint256 projId) external view returns (uint256);
-
     function totalSupplyOf(uint256 projId) external view returns (uint256);
 
     function maxSupplyOf(uint256 projId) external view returns (uint256);
+
+    function initialContributorShareProgram(uint256 projId)
+        external
+        view
+        returns (bool);
 
     function minimumShare(uint256 projId) external view returns (uint256);
 

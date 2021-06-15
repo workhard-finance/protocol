@@ -212,12 +212,6 @@ contract Project is ERC721, ERC20Recoverer {
         miningConfig.treasuryWeight = treasury;
         miningConfig.callerWeight = caller;
         _launch(id, miningConfig);
-
-        // no more initial contribution record
-        address initialContributorPool =
-            VisionEmitter(fork.visionEmitter).initialContributorPool();
-        IContributionBoard(IMiningPool(initialContributorPool).baseToken())
-            .finalize(id);
     }
 
     function launchHard(uint256 id, MiningConfig memory config)
@@ -443,6 +437,11 @@ contract Project is ERC721, ERC20Recoverer {
         VisionEmitter(fork.visionEmitter).setGovernance(fork.timelock);
         // 4. transfer ownership to timelock
         _transfer(msg.sender, fork.timelock, id);
+        // 5. No more initial contribution record
+        address initialContributorPool =
+            VisionEmitter(fork.visionEmitter).initialContributorPool();
+        IContributionBoard(IMiningPool(initialContributorPool).baseToken())
+            .finalize(id);
     }
 
     /**
