@@ -14,7 +14,7 @@ import "../../../core/emission/interfaces/ITokenEmitter.sol";
 import "../../../core/emission/interfaces/IMiningPool.sol";
 import "../../../utils/ERC20Recoverer.sol";
 
-contract MiningPool is
+abstract contract MiningPool is
     ReentrancyGuard,
     Pausable,
     ERC20Recoverer,
