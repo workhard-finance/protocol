@@ -80,4 +80,25 @@ describe("Project.sol", function () {
     });
   });
   describe("upgradeToDAO", () => {});
+  describe("launch", () => {});
+  describe("launchHard", () => {});
+  describe("updateURI", () => {});
+  describe("immortalize", () => {});
+  describe("changeMultisig", () => {});
+
+  describe("getters", () => {
+    describe("growth()", () => {});
+    describe("nameOf()", () => {});
+    describe("symbolOf()", () => {});
+    describe("imortalized()", () => {});
+    describe("daoOf()", () => {});
+    describe("projectsOf()", () => {});
+    describe("projectsOfDAOByIndex()", () => {});
+    describe("getMasterDAO()", () => {});
+    describe("getCommons()", () => {});
+    describe("getDAO()", () => {});
+    describe("getALLDAOs()", () => {});
+    describe("getController()", () => {});
+  });
+  describe("upgradeToDAO", () => {});
 });

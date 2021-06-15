@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
-import { constants, BigNumber } from "ethers";
+import { constants, BigNumber, BigNumberish } from "ethers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
-import { goTo, goToNextWeek } from "../../utils/utilities";
+import { goTo, goToNextWeek, runTimelockTx } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   ERC20BurnMiningV1,
@@ -18,6 +18,7 @@ import {
   ERC20__factory,
   ERC20,
   IUniswapV2Pair,
+  Project,
 } from "../../../src";
 import { getWorkhard } from "../../../scripts/fixtures";
 
@@ -26,6 +27,7 @@ chai.use(solidity);
 describe("VisionEmitter.sol", function () {
   let signers: SignerWithAddress[];
   let deployer: SignerWithAddress;
+  let treasury: SignerWithAddress;
   let dev: SignerWithAddress;
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
@@ -37,6 +39,7 @@ describe("VisionEmitter.sol", function () {
   let commitMining: ERC20BurnMiningV1;
   let liquidityMining: ERC20StakeMiningV1;
   let timelock: TimelockedGovernance;
+  let project: Project;
   const INITIAL_EMISSION_AMOUNT: BigNumber = parseEther("24000000");
   let updatedEmission;
 
@@ -46,7 +49,9 @@ describe("VisionEmitter.sol", function () {
     dev = signers[1];
     alice = signers[2];
     bob = signers[3];
+    treasury = signers[4];
     workhard = await getWorkhard();
+    project = workhard.project.connect(deployer);
     masterDAO = await workhard.getMasterDAO({ account: deployer });
     vision = masterDAO.vision;
     visionEmitter = masterDAO.visionEmitter;
@@ -281,6 +286,158 @@ describe("VisionEmitter.sol", function () {
             expect(await vision.totalSupply()).to.eq(stat.totalSupply);
           });
         }
+      });
+    });
+    describe("setters & getters", () => {
+      describe("setEmissionCutRate()", () => {
+        it("should change the emission cut rate", async () => {
+          await runTimelockTx(
+            timelock,
+            visionEmitter.populateTransaction.setEmissionCutRate(3000)
+          );
+          expect(await visionEmitter.emissionCutRate()).to.eq(3000);
+        });
+      });
+      describe("setMinimumRate()", () => {
+        it("should update the minimum rate", async () => {
+          await runTimelockTx(
+            timelock,
+            visionEmitter.populateTransaction.setMinimumRate(100)
+          );
+          expect(await visionEmitter.minEmissionRatePerWeek()).to.eq(100);
+        });
+      });
+      describe("fork", () => {
+        let forkedDAOId: number;
+        let forkedDAO: DAO;
+        let param: {
+          multisig: string;
+          treasury: string;
+          baseCurrency: string;
+          projectName: string;
+          projectSymbol: string;
+          visionName: string;
+          visionSymbol: string;
+          commitName: string;
+          commitSymbol: string;
+          rightName: string;
+          rightSymbol: string;
+          emissionStartDelay: BigNumberish;
+          minDelay: BigNumberish;
+          voteLaunchDelay: BigNumberish;
+          initialEmission: BigNumberish;
+          minEmissionRatePerWeek: BigNumberish;
+          emissionCutRate: BigNumberish;
+          founderShare: BigNumberish;
+        };
+        beforeEach(async () => {
+          const fork = async () => {
+            await project.createProject(0, "mockuri");
+            const projId = await project.projectsOfDAOByIndex(
+              0,
+              (await project.projectsOf(0)).sub(1)
+            );
+            param = {
+              multisig: deployer.address,
+              treasury: treasury.address,
+              baseCurrency: masterDAO.baseCurrency.address,
+              projectName: "Workhard Forked Dev",
+              projectSymbol: "WFK",
+              visionName: "Flovoured Vision",
+              visionSymbol: "fVISION",
+              commitName: "Flavoured Commit",
+              commitSymbol: "fCOMMIT",
+              rightName: "Flavoured Right",
+              rightSymbol: "fRIGHT",
+              emissionStartDelay: 86400 * 7,
+              minDelay: 86400,
+              voteLaunchDelay: 86400 * 7 * 4,
+              initialEmission: parseEther("24000000"),
+              minEmissionRatePerWeek: 60,
+              emissionCutRate: 3000,
+              founderShare: 500,
+            };
+            await project.upgradeToDAO(projId, param);
+            await project.launch(projId, 4750, 4750, 499, 1);
+            return projId;
+          };
+          const forked = await fork();
+          forkedDAOId = forked.toNumber();
+          forkedDAO = await workhard.getDAO(forkedDAOId, { account: deployer });
+        });
+        describe("initialContributorShare()", () => {
+          it("should return project address", async () => {
+            expect(
+              await forkedDAO.visionEmitter.initialContributorShare()
+            ).to.eq(masterDAO.contributionBoard.address);
+          });
+        });
+        describe("treasury()", () => {
+          it("should return the treasury address", async () => {
+            expect(await forkedDAO.visionEmitter.treasury()).to.eq(
+              treasury.address
+            );
+          });
+        });
+        describe("protocolPool()", () => {
+          it("should return its parent dao's dividend pool", async () => {
+            expect(await forkedDAO.visionEmitter.protocolPool()).to.eq(
+              masterDAO.dividendPool.address
+            );
+          });
+        });
+        describe("emissionWeight()", () => {
+          it("should return the given param", async () => {
+            const emissionWeight =
+              await forkedDAO.visionEmitter.emissionWeight();
+            expect(emissionWeight.treasury).to.eq(499);
+            expect(emissionWeight.caller).to.eq(1);
+            expect(emissionWeight.protocol).to.eq(318);
+            expect(emissionWeight.dev).to.eq(500);
+            expect(emissionWeight.sum).to.eq(10818);
+          });
+        });
+        describe("emissionStarted()", () => {
+          it("should return", async () => {
+            const timestamp = (await ethers.provider.getBlock("latest"))
+              .timestamp;
+            expect(await forkedDAO.visionEmitter.emissionStarted()).to.eq(
+              timestamp
+            );
+          });
+        });
+        describe("emissionWeekNum()", () => {
+          it("should return", async () => {
+            expect(await forkedDAO.visionEmitter.emissionWeekNum()).to.eq(0);
+            await goToNextWeek();
+            expect(await forkedDAO.visionEmitter.emissionWeekNum()).to.eq(0);
+            await forkedDAO.visionEmitter.distribute();
+            expect(await forkedDAO.visionEmitter.emissionWeekNum()).to.eq(1);
+            await goToNextWeek();
+            expect(await forkedDAO.visionEmitter.emissionWeekNum()).to.eq(1);
+            await forkedDAO.visionEmitter.distribute();
+            expect(await forkedDAO.visionEmitter.emissionWeekNum()).to.eq(2);
+          });
+        });
+        describe("projId()", () => {
+          it("should return", async () => {
+            expect(await forkedDAO.visionEmitter.projId()).to.eq(1);
+          });
+        });
+        describe("INITIAL_EMISSION()", () => {
+          it("should return", async () => {
+            expect(await forkedDAO.visionEmitter.INITIAL_EMISSION()).to.eq(
+              param.initialEmission
+            );
+          });
+        });
+        describe("FOUNDER_SHARE_DENOMINATION()", () => {
+          it("should return", async () => {
+            expect(
+              await forkedDAO.visionEmitter.FOUNDER_SHARE_DENOMINATOR()
+            ).to.eq(20);
+          });
+        });
       });
     });
   });
