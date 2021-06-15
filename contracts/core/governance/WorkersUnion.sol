@@ -320,7 +320,7 @@ contract WorkersUnion is Pausable, Governed, Initializable, IWorkersUnion {
         );
         uint256 valueSum = 0;
         for (uint256 i = 0; i < value.length; i++) {
-            valueSum += value[i];
+            valueSum = valueSum.add(value[i]);
         }
         _timelock().executeBatch{value: valueSum}(
             target,
