@@ -214,13 +214,6 @@ contract Project is ERC721, ERC20Recoverer {
         _launch(id, miningConfig);
     }
 
-    function launchHard(uint256 id, MiningConfig memory config)
-        public
-        onlyOwnerOf(id)
-    {
-        _launch(id, config);
-    }
-
     function immortalize(uint256 id) public onlyOwnerOf(id) {
         _immortalized[id] = true;
     }
