@@ -401,7 +401,7 @@ contract ContributionBoard is
         } else {
             // transfer is only allowed after the finalization
             for (uint256 i = 0; i < ids.length; i++) {
-                require(_finalized[ids[i]], "Not _finalized");
+                require(_finalized[ids[i]], "Not finalized");
             }
         }
     }

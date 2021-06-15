@@ -54,10 +54,6 @@ contract StableReserve is ERC20Recoverer, Governed, IStableReserve {
         _;
     }
 
-    function init(address minter) public initializer {
-        _allow(minter, true);
-    }
-
     function redeem(uint256 amount) public override {
         require(
             COMMIT(_commitToken).balanceOf(msg.sender) >= amount,
