@@ -135,6 +135,98 @@ describe("InitialContributorSharePool.sol", function () {
           carlReward.div(333333333333).div(1e9)
         );
       });
+      it("should return the same result when it uses transfer instead of burn", async () => {
+        await testingERC1155
+          .connect(alice)
+          .safeTransferFrom(
+            alice.address,
+            initialContributorShare.address,
+            0,
+            parseEther("100"),
+            []
+          );
+        await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
+        await testingERC1155
+          .connect(bob)
+          .safeTransferFrom(
+            bob.address,
+            initialContributorShare.address,
+            0,
+            parseEther("100"),
+            []
+          );
+        await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
+        await testingERC1155
+          .connect(carl)
+          .safeTransferFrom(
+            carl.address,
+            initialContributorShare.address,
+            0,
+            parseEther("100"),
+            []
+          );
+        await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
+
+        await initialContributorShare.connect(alice)["exit()"]();
+        await initialContributorShare.connect(bob)["exit()"]();
+        await initialContributorShare.connect(carl)["exit()"]();
+
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          bobReward.div(833333333333).div(1e9)
+        );
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          carlReward.div(333333333333).div(1e9)
+        );
+      });
+      it("should return the same result when it uses batchTransfer instead of burn", async () => {
+        await testingERC1155
+          .connect(alice)
+          .safeBatchTransferFrom(
+            alice.address,
+            initialContributorShare.address,
+            [0],
+            [parseEther("100")],
+            []
+          );
+        await goTo(10000); // 100 : 0 : 0 => 100 : 0 : 0
+        await testingERC1155
+          .connect(bob)
+          .safeTransferFrom(
+            bob.address,
+            initialContributorShare.address,
+            0,
+            parseEther("100"),
+            []
+          );
+        await goTo(10000); // 50 : 50 : 0 => 150 : 50 : 0
+        await testingERC1155
+          .connect(carl)
+          .safeTransferFrom(
+            carl.address,
+            initialContributorShare.address,
+            0,
+            parseEther("100"),
+            []
+          );
+        await goTo(10000); // 33 : 33 : 33 => 183 : 83 : 33
+
+        await initialContributorShare.connect(alice)["exit()"]();
+        await initialContributorShare.connect(bob)["exit()"]();
+        await initialContributorShare.connect(carl)["exit()"]();
+
+        const aliceReward = await vision.balanceOf(alice.address);
+        const bobReward = await vision.balanceOf(bob.address);
+        const carlReward = await vision.balanceOf(carl.address);
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          bobReward.div(833333333333).div(1e9)
+        );
+        expect(aliceReward.div(1833333333333).div(1e9)).eq(
+          carlReward.div(333333333333).div(1e9)
+        );
+      });
     });
   });
 });
