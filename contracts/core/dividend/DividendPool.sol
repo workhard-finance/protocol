@@ -236,39 +236,47 @@ contract DividendPool is
     function _claimUpTo(address token, uint256 timestamp) internal {
         uint256 epoch = getEpoch(timestamp);
         uint256 myLocks = IVotingEscrowLock(_veLocker).balanceOf(msg.sender);
+        uint256 amountToClaim = 0;
         for (uint256 i = 0; i < myLocks; i++) {
             uint256 lockId =
                 IERC721Enumerable(_veLocker).tokenOfOwnerByIndex(msg.sender, i);
-            _claim(token, lockId, epoch);
+
+            uint256 amount = _recordClaim(token, lockId, epoch);
+            amountToClaim = amountToClaim.add(amount);
+        }
+        if (amountToClaim != 0) {
+            IERC20(token).safeTransfer(msg.sender, amountToClaim);
         }
     }
 
-    function _claim(
+    function _recordClaim(
         address token,
         uint256 tokenId,
         uint256 epoch
-    ) internal {
+    ) internal returns (uint256 amountToClaim) {
         Distribution storage distribution = _distributions[token];
-        uint256 amount = _claimable(distribution, tokenId, epoch);
+        amountToClaim = _claimable(distribution, tokenId, epoch);
         distribution.claimStartWeekNum[tokenId] = epoch + 1;
-        distribution.balance = distribution.balance.sub(amount);
-        IERC20(token).safeTransfer(msg.sender, amount);
+        distribution.balance = distribution.balance.sub(amountToClaim);
+        return amountToClaim;
     }
 
     function _claimable(
         Distribution storage distribution,
         uint256 tokenId,
         uint256 epoch
-    ) internal view returns (uint256 amount) {
-        uint256 currentEpoch = getCurrentEpoch();
-        require(epoch < currentEpoch, "Current epoch is being updated.");
-        uint256 accumulated;
+    ) internal view returns (uint256) {
+        require(epoch < getCurrentEpoch(), "Current epoch is being updated.");
         uint256 epochCursor = distribution.claimStartWeekNum[tokenId];
-        if (epochCursor == 0) {
-            (, uint256 _start, ) = IVotingEscrowLock(_veLocker).locks(tokenId);
-            epochCursor = getEpoch(_start);
+        uint256 endEpoch;
+        {
+            (, uint256 start, uint256 end) =
+                IVotingEscrowLock(_veLocker).locks(tokenId);
+            epochCursor = epochCursor != 0 ? epochCursor : getEpoch(start);
+            endEpoch = getEpoch(end);
         }
-        while (epochCursor <= epoch) {
+        uint256 accumulated;
+        while (epochCursor <= epoch && epochCursor <= endEpoch) {
             // check the balance when the epoch ends
             uint256 timestamp = _genesis + epochCursor * epochUnit + 1 weeks;
             // calculate amount;
