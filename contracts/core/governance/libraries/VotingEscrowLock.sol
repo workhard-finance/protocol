@@ -84,14 +84,12 @@ contract VotingEscrowLock is
 
     function createLockUntil(uint256 amount, uint256 lockEnd) public override {
         require(amount > 0, "should be greater than zero");
-        uint256 roundedEnd = (lockEnd / 1 weeks).mul(1 weeks);
-
         uint256 veLockId =
             uint256(keccak256(abi.encodePacked(block.number, msg.sender)));
         require(!_exists(veLockId), "Already exists");
         _locks[veLockId].start = block.timestamp;
         _safeMint(msg.sender, veLockId);
-        _updateLock(veLockId, amount, roundedEnd);
+        _updateLock(veLockId, amount, lockEnd);
         emit LockCreated(veLockId);
     }
 
@@ -119,8 +117,7 @@ contract VotingEscrowLock is
         override
         onlyOwner(veLockId)
     {
-        uint256 roundedEnd = (end / 1 weeks).mul(1 weeks);
-        _updateLock(veLockId, _locks[veLockId].amount, roundedEnd);
+        _updateLock(veLockId, _locks[veLockId].amount, end);
     }
 
     function withdraw(uint256 veLockId) public override onlyOwner(veLockId) {
@@ -221,7 +218,8 @@ contract VotingEscrowLock is
         uint256 end
     ) internal nonReentrant {
         Lock memory prevLock = _locks[veLockId];
-        Lock memory newLock = Lock(amount, prevLock.start, end);
+        Lock memory newLock =
+            Lock(amount, prevLock.start, (end / 1 weeks).mul(1 weeks));
         require(_exists(veLockId), "Lock does not exist.");
         require(
             prevLock.end == 0 || prevLock.end > block.timestamp,
