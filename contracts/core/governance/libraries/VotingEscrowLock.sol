@@ -248,15 +248,16 @@ contract VotingEscrowLock is
 
         uint256 increment = (newLock.amount - prevLock.amount); // require prevents underflow
         // 2. transfer
-        IERC20(_baseToken).safeTransferFrom(
-            msg.sender,
-            address(this),
-            increment
-        );
-
-        // 3. increase locked amount
-        _totalLockedSupply = _totalLockedSupply.add(increment);
-        _locks[veLockId] = newLock;
+        if (increment > 0) {
+            IERC20(_baseToken).safeTransferFrom(
+                msg.sender,
+                address(this),
+                increment
+            );
+            // 3. update lock amount
+            _totalLockedSupply = _totalLockedSupply.add(increment);
+            _locks[veLockId] = newLock;
+        }
 
         // 4. updateCheckpoint
         VotingEscrowToken(_veToken).checkpoint(veLockId, prevLock, newLock);
