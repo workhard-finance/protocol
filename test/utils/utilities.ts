@@ -91,3 +91,21 @@ export const almostEquals = (a: BigNumberish, b: BigNumberish) => {
     expect(A.mul(100)).gt(B.mul(97));
   }
 };
+
+export const runOnly = (
+  suite: Mocha.Suite,
+  action: () => Promise<any>,
+  onSnapshot?: (snapshot: string) => void
+) => {
+  let snapshot: string;
+  before(action);
+  beforeEach(async () => {
+    snapshot = await ethers.provider.send("evm_snapshot", []);
+    if (onSnapshot) {
+      onSnapshot(snapshot);
+    }
+  });
+  afterEach(async () => {
+    await ethers.provider.send("evm_revert", [snapshot]);
+  });
+};
