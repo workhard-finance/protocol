@@ -299,13 +299,12 @@ describe("VotingEscrowToken.sol", function () {
   describe("checkpoint()", async () => {
     it("should be used to resolve out of gas error when there were no updates for so long time", async () => {
       await goTo(86400 * 7 * 200);
+      // FYI: It should be out of gas error. But sometimes it's not emitting out of gas even it's reverted by it.
       await expect(
         votingEscrow
           .connect(carl)
           .createLock(parseEther("1000"), 4 * 52, { gasLimit: 5000000 })
-      ).to.be.revertedWith(
-        "contract call run out of gas and made the transaction revert"
-      );
+      ).to.be.reverted;
       await veToken["checkpoint(uint256)"](180);
       await expect(
         votingEscrow
