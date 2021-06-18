@@ -261,7 +261,7 @@ contract VotingEscrowLock is
 
         // 4. updateCheckpoint
         VotingEscrowToken(_veToken).checkpoint(veLockId, prevLock, newLock);
-        emit LockUpdate(veLockId, amount, end);
+        emit LockUpdate(veLockId, amount, newLock.end);
     }
 
     function _delegate(uint256 veLockId, address to) internal {
