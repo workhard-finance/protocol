@@ -331,7 +331,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
             );
         }
         Point memory newLastPoint =
-            _applyLockUpdateToLastPoint(
+            _computeTheLatestSupplyGraphPoint(
                 oldLockPoint,
                 newLockPoint,
                 _pointHistory[_pointHistory.length - 1]
@@ -339,14 +339,14 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
         _pointHistory[_pointHistory.length - 1] = newLastPoint;
     }
 
-    function _applyLockUpdateToLastPoint(
-        Point memory oldPoint,
-        Point memory newPoint,
+    function _computeTheLatestSupplyGraphPoint(
+        Point memory oldLockPoint,
+        Point memory newLockPoint,
         Point memory lastPoint
     ) internal pure returns (Point memory newLastPoint) {
         newLastPoint = lastPoint;
-        newLastPoint.slope += (newPoint.slope - oldPoint.slope);
-        newLastPoint.bias += (newPoint.bias - oldPoint.bias);
+        newLastPoint.slope += (newLockPoint.slope - oldLockPoint.slope);
+        newLastPoint.bias += (newLockPoint.bias - oldLockPoint.bias);
         if (newLastPoint.slope < 0) {
             newLastPoint.slope = 0;
         }
