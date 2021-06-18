@@ -14,7 +14,7 @@ import {
 
 chai.use(solidity);
 
-describe("VotingEscrowToken.sol", function () {
+describe("VotingEscrowLock.sol", function () {
   let signers: SignerWithAddress[];
   let alice: SignerWithAddress;
   let bob: SignerWithAddress;
@@ -120,8 +120,9 @@ describe("VotingEscrowToken.sol", function () {
         alice.address,
         0
       );
-      await expect(votingEscrow.connect(alice).withdraw(aliceLock)).to.be
-        .reverted;
+      await expect(
+        votingEscrow.connect(alice).withdraw(aliceLock)
+      ).to.be.revertedWith("Locked.");
     });
     it("should withdraw fund after Alice's lock ends", async () => {
       await goTo(86400 * 365 * 2);
