@@ -281,8 +281,8 @@ contract DividendPool is
             uint256 timestamp = _genesis + epochCursor * epochUnit + 1 weeks;
             // calculate amount;
             uint256 bal =
-                IVotingEscrowToken(_veVISION).balanceOfAt(
-                    msg.sender,
+                IVotingEscrowToken(_veVISION).balanceOfLockAt(
+                    tokenId,
                     timestamp
                 );
             uint256 supply =
