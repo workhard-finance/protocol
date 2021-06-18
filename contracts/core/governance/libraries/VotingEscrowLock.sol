@@ -256,8 +256,8 @@ contract VotingEscrowLock is
             );
             // 3. update lock amount
             _totalLockedSupply = _totalLockedSupply.add(increment);
-            _locks[veLockId] = newLock;
         }
+        _locks[veLockId] = newLock;
 
         // 4. updateCheckpoint
         VotingEscrowToken(_veToken).checkpoint(veLockId, prevLock, newLock);
