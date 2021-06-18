@@ -18,7 +18,6 @@ import "../../core/work/interfaces/IStableReserve.sol";
 import "../../core/work/interfaces/IContributionBoard.sol";
 import "../../core/dividend/libraries/Distributor.sol";
 import "../../core/dividend/interfaces/IDividendPool.sol";
-import "../../core/project/Project.sol";
 import "../../utils/IERC1620.sol";
 import "../../utils/Utils.sol";
 
@@ -38,7 +37,7 @@ contract ContributionBoard is
     using Utils for address[];
 
     address private _sablier;
-    Project private _project;
+    IERC721 private _project;
     mapping(uint256 => uint256) private _projectFund;
     mapping(uint256 => uint256) private _totalSupplyOf;
     mapping(uint256 => uint256) private _maxSupplyOf;
@@ -63,7 +62,7 @@ contract ContributionBoard is
     ) public initializer {
         CommitMinter._setup(stableReserve_, commit_);
         Distributor._setup(dividendPool_);
-        _project = Project(project_);
+        _project = IERC721(project_);
         _sablier = sablier_;
         Governed.initialize(gov_);
         _setURI("");
