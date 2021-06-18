@@ -1,7 +1,6 @@
 import { isForkedNet } from "../utils/deployer";
 import {
   addLiquidity,
-  approveProject,
   distribute,
   distributeReward,
   launchWorkersUnion,
@@ -20,7 +19,6 @@ async function main() {
   await addLiquidity();
   await launchWorkersUnion();
   await newCryptoJob();
-  await approveProject();
   await distributeReward();
 }
 
