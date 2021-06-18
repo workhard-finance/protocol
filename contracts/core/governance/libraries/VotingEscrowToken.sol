@@ -222,7 +222,7 @@ contract VotingEscrowToken is ERC20, IVotingEscrowToken, Initializable {
         // find the closest point
         do {
             x = Math.min(x + 1 weeks, timestamp);
-            uint256 delta = Math.min(timestamp - x, 1 weeks);
+            uint256 delta = x - point.timestamp; // always greater than 0
             _point.timestamp = x;
             _point.bias -= (_point.slope) * int128(delta);
             _point.slope += _slopeChanges[x];
