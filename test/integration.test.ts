@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber, constants } from "ethers";
-import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
+import { defaultAbiCoder, formatEther, parseEther } from "ethers/lib/utils";
 import {
   almostEquals,
   goTo,
@@ -11,7 +11,7 @@ import {
   runOnly,
 } from "./utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Project, Workhard, DAO, IERC20__factory } from "../src";
+import { Project, Workhard, DAO, IERC20__factory, Periphery } from "../src";
 import { getWorkhard } from "../scripts/fixtures";
 
 chai.use(solidity);
@@ -523,8 +523,89 @@ describe("Work Hard Finance Integrated Test", function () {
       await commitMining.connect(bob).burn(parseEther("500"));
     });
   });
-  describe("Alice does liquidity mining for 3 days", () => {});
-  describe("Commit Mining", () => {});
+  describe("Alice does liquidity mining for 3 days for Carl's project", async () => {
+    let beforeAliceVisionVal: BigNumber;
+    runOnly(this, async () => {
+      const periphery = await workhard.getPeriphery(1);
+      beforeAliceVisionVal = await periphery.liquidityMining.mined(
+        alice.address
+      );
+    });
+    it("mined additional liquidity", async () => {
+      await goTo(day * 3);
+      const periphery = await workhard.getPeriphery(1);
+      const afterAliceVisionVal = await periphery.liquidityMining.mined(
+        alice.address
+      );
+      expect(afterAliceVisionVal.sub(beforeAliceVisionVal).isNegative()).is.eq(
+        false
+      );
+    });
+    it("burn current liquidity", async () => {
+      const periphery = await workhard.getPeriphery(1);
+      const forkedDAO = await workhard.getDAO(1);
+      const beforeAliceVisionAmount = await forkedDAO.vision.balanceOf(
+        alice.address
+      );
+      const beforeMined = await periphery.liquidityMining.mined(alice.address);
+      await periphery.liquidityMining.connect(alice).exit();
+      const afterAliceVisionAmount = await forkedDAO.vision.balanceOf(
+        alice.address
+      );
+      const afterMined = await periphery.liquidityMining.mined(alice.address);
+      almostEquals(
+        afterAliceVisionAmount.sub(beforeAliceVisionAmount),
+        beforeMined.sub(afterMined)
+      );
+      expect(afterMined).is.eq(BigNumber.from(0));
+    });
+  });
+  describe("Commit Mining", async () => {
+    describe("Bob starts commit mining for Carl's project", () => {
+      let periphery: Periphery, forkedDAO: DAO;
+      runOnly(this, async () => {
+        periphery = await workhard.getPeriphery(1);
+        forkedDAO = await workhard.getDAO(1);
+        await forkedDAO.commit
+          .connect(bob)
+          .approve(periphery.commitMining.address, constants.MaxUint256);
+        await forkedDAO.commit
+          .connect(bob)
+          .approve(forkedDAO.stableReserve.address, constants.MaxUint256);
+        await forkedDAO.baseCurrency
+          .connect(bob)
+          .approve(periphery.commitMining.address, constants.MaxUint256);
+        await forkedDAO.baseCurrency
+          .connect(bob)
+          .approve(forkedDAO.stableReserve.address, constants.MaxUint256);
+        console.log(
+          formatEther(await forkedDAO.baseCurrency.balanceOf(bob.address))
+        );
+        await forkedDAO.stableReserve
+          .connect(bob)
+          .payInsteadOfWorking(parseEther("1000"));
+      });
+      it("bob should take 1000 $COMMIT", async () => {
+        expect(await forkedDAO.commit.balanceOf(bob.address)).to.eq(
+          parseEther("1000")
+        );
+      });
+      it("mintable should be 1000", async () => {
+        expect(await forkedDAO.stableReserve.mintable()).to.eq(
+          parseEther("1000")
+        );
+      });
+      it("bob should take vision token", async () => {
+        goTo(day * 7);
+        const mintable = await periphery.commitMining.mined(bob.address);
+        await periphery.commitMining.connect(bob).burn(parseEther("500"));
+        almostEquals(await forkedDAO.vision.balanceOf(bob.address), mintable);
+        expect(await periphery.commitMining.mined(bob.address)).is.eq(
+          BigNumber.from(0)
+        );
+      });
+    });
+  });
   describe("Stable Reserve", () => {});
   describe("Project A", () => {
     describe("Start new project A", () => {});
