@@ -19,7 +19,7 @@ import {
   Periphery,
   TimelockedGovernance,
 } from "../src";
-import { getWorkhard } from "../scripts/fixtures";
+import { defaultDAOParam, getWorkhard } from "../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -755,7 +755,21 @@ describe("Work Hard Finance Integrated Test", function () {
         ).to.be.reverted;
       });
     });
-    describe("Upgrade to a DAO", () => {});
+    describe("Upgrade to a DAO", () => {
+      it("successfully upgraded to dao, Project A", async () => {
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const forkedDAO = await workhard.getDAO(1);
+        await project
+          .connect(bob)
+          .upgradeToDAO(
+            projectAId,
+            defaultDAOParam(bob.address, forkedDAO.baseCurrency.address)
+          );
+        await project.connect(bob).launch(2, 4750, 4750, 499, 1);
+        await project.connect(carl).createProject(2, "");
+        expect(await project.projectsOf(2)).eq(1);
+      });
+    });
     describe("Emission Check", () => {});
     describe("Dividends", () => {});
   });
