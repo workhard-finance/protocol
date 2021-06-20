@@ -639,16 +639,16 @@ describe("Work Hard Finance Integrated Test", function () {
           description: "Project A",
           uri: "ipfs://MY_PROJECT_URL",
         };
-        const projectsBefore = await project.projectsOf(1);
+        const projectsCountBefore = await project.projectsOf(1);
         await project.connect(bob).createProject(1, projectMetadata.uri);
-        const projectAId = await project.projectsOf(1);
-        expect(projectAId.sub(projectsBefore)).to.be.eq(1);
+        const projectsCountAfter = await project.projectsOf(1);
+        expect(projectsCountAfter.sub(projectsCountBefore)).to.be.eq(1);
       });
     });
     describe("Raise fund", () => {
       it("successfully add new funds", async () => {
         const forkedDAO = await workhard.getDAO(1);
-        const projectAId = await project.projectsOf(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
         await forkedDAO.commit
           .connect(bob)
           .approve(forkedDAO.contributionBoard.address, constants.MaxUint256);
@@ -661,7 +661,7 @@ describe("Work Hard Finance Integrated Test", function () {
       });
       it("successfully grand to new projects", async () => {
         const forkedDAO = await workhard.getDAO(1);
-        const projectAId = await project.projectsOf(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
         const beforeCommit = await forkedDAO.commit.balanceOf(
           forkedDAO.contributionBoard.address
         );
@@ -689,7 +689,7 @@ describe("Work Hard Finance Integrated Test", function () {
       });
       it("should be reverted without issue new commitment", async () => {
         const forkedDAO = await workhard.getDAO(1);
-        const projectAId = await project.projectsOf(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
         const beforeCommit = await forkedDAO.commit.balanceOf(
           forkedDAO.contributionBoard.address
         );
@@ -728,8 +728,31 @@ describe("Work Hard Finance Integrated Test", function () {
       it("successfully give some fund to worker", async () => {
         // project.
         const forkedDAO = await workhard.getDAO(1);
-        const projectAId = await project.projectsOf(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const beforeAliceAmountOfCommit = await forkedDAO.commit.balanceOf(
+          alice.address
+        );
+        await forkedDAO.contributionBoard
+          .connect(bob)
+          .compensate(projectAId, alice.address, parseEther("1"));
+        const afterAliceAmountOfCommit = await forkedDAO.commit.balanceOf(
+          alice.address
+        );
+
+        expect(
+          afterAliceAmountOfCommit.sub(beforeAliceAmountOfCommit)
+        ).to.be.eq(parseEther("1"));
         // await forkedDAO.contributionBoard.connect(bob).g
+      });
+
+      it("cannot give some fund to worker with not project owner", async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        await expect(
+          forkedDAO.contributionBoard
+            .connect(alice)
+            .compensate(projectAId, alice.address, parseEther("1"))
+        ).to.be.reverted;
       });
     });
     describe("Upgrade to a DAO", () => {});
