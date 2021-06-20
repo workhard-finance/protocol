@@ -530,16 +530,14 @@ describe("Work Hard Finance Integrated Test", function () {
       beforeAliceVisionVal = await periphery.liquidityMining.mined(
         alice.address
       );
+      await goTo(day * 3);
     });
     it("mined additional liquidity", async () => {
-      await goTo(day * 3);
       const periphery = await workhard.getPeriphery(1);
       const afterAliceVisionVal = await periphery.liquidityMining.mined(
         alice.address
       );
-      expect(afterAliceVisionVal.sub(beforeAliceVisionVal).isNegative()).is.eq(
-        false
-      );
+      expect(afterAliceVisionVal.sub(beforeAliceVisionVal)).to.be.gt(0);
     });
     it("burn current liquidity", async () => {
       const periphery = await workhard.getPeriphery(1);
@@ -578,9 +576,6 @@ describe("Work Hard Finance Integrated Test", function () {
         await forkedDAO.baseCurrency
           .connect(bob)
           .approve(forkedDAO.stableReserve.address, constants.MaxUint256);
-        console.log(
-          formatEther(await forkedDAO.baseCurrency.balanceOf(bob.address))
-        );
         await forkedDAO.stableReserve
           .connect(bob)
           .payInsteadOfWorking(parseEther("1000"));
