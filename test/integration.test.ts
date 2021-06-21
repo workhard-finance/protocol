@@ -633,19 +633,25 @@ describe("Work Hard Finance Integrated Test", function () {
   });
   describe("Project A", () => {
     describe("Start new project A", async () => {
-      it("successfully add project", async () => {
+      let projectsCountBefore;
+      runOnly(this, async () => {
         const projectMetadata = {
           title: "ProjectA",
           description: "Project A",
           uri: "ipfs://MY_PROJECT_URL",
         };
-        const projectsCountBefore = await project.projectsOf(1);
+        projectsCountBefore = await project.projectsOf(1);
         await project.connect(bob).createProject(1, projectMetadata.uri);
+      });
+      it("successfully add project", async () => {
         const projectsCountAfter = await project.projectsOf(1);
         expect(projectsCountAfter.sub(projectsCountBefore)).to.be.eq(1);
       });
     });
     describe("Raise fund", () => {
+      runOnly(this, async () => {
+        // to rollback
+      });
       it("successfully add new funds", async () => {
         const forkedDAO = await workhard.getDAO(1);
         const projectAId = (await project.projectsOf(1)).add(1);
@@ -725,6 +731,20 @@ describe("Work Hard Finance Integrated Test", function () {
       });
     });
     describe("Do work", () => {
+      runOnly(this, async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        await runTimelockTx(
+          forkedDAO.timelock.connect(carl),
+          forkedDAO.stableReserve
+            .connect(carl)
+            .populateTransaction.grant(
+              forkedDAO.contributionBoard.address,
+              parseEther("2"),
+              defaultAbiCoder.encode(["uint256"], [projectAId.toNumber()])
+            )
+        );
+      });
       it("successfully give some fund to worker", async () => {
         // project.
         const forkedDAO = await workhard.getDAO(1);
@@ -756,7 +776,7 @@ describe("Work Hard Finance Integrated Test", function () {
       });
     });
     describe("Upgrade to a DAO", () => {
-      it("successfully upgraded to dao, Project A", async () => {
+      runOnly(this, async () => {
         const projectAId = (await project.projectsOf(1)).add(1);
         const forkedDAO = await workhard.getDAO(1);
         await project
@@ -767,10 +787,29 @@ describe("Work Hard Finance Integrated Test", function () {
           );
         await project.connect(bob).launch(2, 4750, 4750, 499, 1);
         await project.connect(carl).createProject(2, "");
+      });
+      it("successfully upgraded to dao, Project A", async () => {
         expect(await project.projectsOf(2)).eq(1);
       });
     });
-    describe("Emission Check", () => {});
+    describe("Emission Check", () => {
+      runOnly(this, async () => {
+        // to rollback
+      });
+      it("successfully emission when grand child project got emission.", async () => {
+        const grandChildDAO = await workhard.getDAO(2);
+        const childDAO = await workhard.getDAO(1);
+        await expect(grandChildDAO.visionEmitter.distribute()).to.be.reverted;
+        await goToNextWeek();
+        await grandChildDAO.visionEmitter.connect(bob).distribute();
+        almostEquals(
+          (
+            await grandChildDAO.vision.balanceOf(childDAO.dividendPool.address)
+          ).mul(33),
+          await grandChildDAO.vision.totalSupply()
+        );
+      });
+    });
     describe("Dividends", () => {});
   });
   describe("Project B", () => {
