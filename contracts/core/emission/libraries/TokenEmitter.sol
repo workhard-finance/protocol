@@ -93,7 +93,25 @@ contract TokenEmitter is
      * StakeMiningV1:
      */
     function newPool(bytes4 poolType, address token_) public returns (address) {
-        return _newPool(poolType, token_);
+        address factory = _factories[poolType];
+        require(factory != address(0), "Factory not exists");
+        address _pool =
+            IMiningPoolFactory(factory).getPool(address(this), token_);
+        if (_pool == address(0)) {
+            _pool = IMiningPoolFactory(factory).newPool(address(this), token_);
+        }
+        require(
+            _pool.supportsInterface(poolType),
+            "Does not have the given pool type"
+        );
+        require(
+            _pool.supportsInterface(IMiningPool(0).allocate.selector),
+            "Cannot allocate reward"
+        );
+        require(_poolTypes[_pool] == bytes4(0), "Pool already exists");
+        _poolTypes[_pool] = poolType;
+        emit NewMiningPool(poolType, token_, _pool);
+        return _pool;
     }
 
     function setEmission(MiningConfig memory config) public governed {
@@ -362,32 +380,7 @@ contract TokenEmitter is
             return _pool;
         } else {
             // try to deploy new pool and register
-            return _newPool(poolType, baseToken);
+            return newPool(poolType, baseToken);
         }
-    }
-
-    function _newPool(bytes4 poolType, address token_)
-        public
-        returns (address)
-    {
-        address factory = _factories[poolType];
-        require(factory != address(0), "Factory not exists");
-        address _pool =
-            IMiningPoolFactory(factory).getPool(address(this), token_);
-        if (_pool == address(0)) {
-            _pool = IMiningPoolFactory(factory).newPool(address(this), token_);
-        }
-        require(
-            _pool.supportsInterface(poolType),
-            "Does not have the given pool type"
-        );
-        require(
-            _pool.supportsInterface(IMiningPool(0).allocate.selector),
-            "Cannot allocate reward"
-        );
-        require(_poolTypes[_pool] == bytes4(0), "Pool already exists");
-        _poolTypes[_pool] = poolType;
-        emit NewMiningPool(poolType, token_, _pool);
-        return _pool;
     }
 }
