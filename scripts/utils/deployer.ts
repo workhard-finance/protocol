@@ -413,7 +413,7 @@ export async function upgradeToMasterDAO(
       commitSymbol: "COMMIT",
       rightName: "Work Hard Right",
       rightSymbol: "RIGHT",
-      emissionStartDelay: isMainnet ? 86400 * 7 : 60,
+      emissionStartDelay: isMainnet ? 3600 * 24 : 60,
       minDelay: isMainnet ? 86400 : 60,
       voteLaunchDelay: isMainnet ? 86400 * 7 * 4 : 60,
       initialEmission: parseEther("24000000").toString(),
