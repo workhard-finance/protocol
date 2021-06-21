@@ -2,7 +2,7 @@ import { ethers } from "hardhat";
 import chai, { expect } from "chai";
 import { solidity } from "ethereum-waffle";
 import { BigNumber, constants } from "ethers";
-import { defaultAbiCoder, parseEther } from "ethers/lib/utils";
+import { defaultAbiCoder, formatEther, parseEther } from "ethers/lib/utils";
 import {
   almostEquals,
   goTo,
@@ -11,8 +11,15 @@ import {
   runOnly,
 } from "./utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Project, Workhard, DAO, IERC20__factory } from "../src";
-import { getWorkhard } from "../scripts/fixtures";
+import {
+  Project,
+  Workhard,
+  DAO,
+  IERC20__factory,
+  Periphery,
+  TimelockedGovernance,
+} from "../src";
+import { defaultDAOParam, getWorkhard } from "../scripts/fixtures";
 
 chai.use(solidity);
 
@@ -523,15 +530,286 @@ describe("Work Hard Finance Integrated Test", function () {
       await commitMining.connect(bob).burn(parseEther("500"));
     });
   });
-  describe("Alice does liquidity mining for 3 days", () => {});
-  describe("Commit Mining", () => {});
-  describe("Stable Reserve", () => {});
+  describe("Alice does liquidity mining for 3 days for Carl's project", async () => {
+    let beforeAliceVisionVal: BigNumber;
+    runOnly(this, async () => {
+      const periphery = await workhard.getPeriphery(1);
+      beforeAliceVisionVal = await periphery.liquidityMining.mined(
+        alice.address
+      );
+      await goTo(day * 3);
+    });
+    it("mined additional liquidity", async () => {
+      const periphery = await workhard.getPeriphery(1);
+      const afterAliceVisionVal = await periphery.liquidityMining.mined(
+        alice.address
+      );
+      expect(afterAliceVisionVal.sub(beforeAliceVisionVal)).to.be.gt(0);
+    });
+    it("burn current liquidity", async () => {
+      const periphery = await workhard.getPeriphery(1);
+      const forkedDAO = await workhard.getDAO(1);
+      const beforeAliceVisionAmount = await forkedDAO.vision.balanceOf(
+        alice.address
+      );
+      const beforeMined = await periphery.liquidityMining.mined(alice.address);
+      await periphery.liquidityMining.connect(alice).exit();
+      const afterAliceVisionAmount = await forkedDAO.vision.balanceOf(
+        alice.address
+      );
+      const afterMined = await periphery.liquidityMining.mined(alice.address);
+      almostEquals(
+        afterAliceVisionAmount.sub(beforeAliceVisionAmount),
+        beforeMined.sub(afterMined)
+      );
+      expect(afterMined).is.eq(BigNumber.from(0));
+    });
+  });
+  describe("Commit Mining", async () => {
+    describe("Bob starts commit mining for Carl's project", () => {
+      let periphery: Periphery, forkedDAO: DAO;
+      runOnly(this, async () => {
+        periphery = await workhard.getPeriphery(1);
+        forkedDAO = await workhard.getDAO(1);
+        await forkedDAO.commit
+          .connect(bob)
+          .approve(periphery.commitMining.address, constants.MaxUint256);
+        await forkedDAO.commit
+          .connect(bob)
+          .approve(forkedDAO.stableReserve.address, constants.MaxUint256);
+        await forkedDAO.baseCurrency
+          .connect(bob)
+          .approve(periphery.commitMining.address, constants.MaxUint256);
+        await forkedDAO.baseCurrency
+          .connect(bob)
+          .approve(forkedDAO.stableReserve.address, constants.MaxUint256);
+        await forkedDAO.stableReserve
+          .connect(bob)
+          .payInsteadOfWorking(parseEther("1000"));
+        goTo(day * 7);
+      });
+      it("bob should take 1000 $COMMIT", async () => {
+        expect(await forkedDAO.commit.balanceOf(bob.address)).to.eq(
+          parseEther("1000")
+        );
+      });
+      it("mintable should be 1000", async () => {
+        expect(await forkedDAO.stableReserve.mintable()).to.eq(
+          parseEther("1000")
+        );
+      });
+      it("bob should take vision token", async () => {
+        const mintable = await periphery.commitMining.mined(bob.address);
+        await periphery.commitMining.connect(bob).burn(parseEther("500"));
+        almostEquals(await forkedDAO.vision.balanceOf(bob.address), mintable);
+        expect(await periphery.commitMining.mined(bob.address)).is.eq(
+          BigNumber.from(0)
+        );
+      });
+    });
+  });
+  describe("Stable Reserve", () => {
+    runOnly(this, async () => {
+      const forkedDAO = await workhard.getDAO(1);
+      await forkedDAO.stableReserve
+        .connect(bob)
+        .payInsteadOfWorking(parseEther("1000"));
+    });
+
+    it("Bob successfully redeem his commit", async () => {
+      const forkedDAO = await workhard.getDAO(1);
+      const beforeBaseCurrencyBobHas = await forkedDAO.baseCurrency.balanceOf(
+        bob.address
+      );
+      expect(await forkedDAO.commit.balanceOf(bob.address)).to.be.gt(0);
+      await forkedDAO.stableReserve.connect(bob).redeem(parseEther("1000"));
+      const afterBaseCurrencyBobHas = await forkedDAO.baseCurrency.balanceOf(
+        bob.address
+      );
+      expect(afterBaseCurrencyBobHas.sub(beforeBaseCurrencyBobHas)).to.be.eq(
+        parseEther("1000")
+      );
+    });
+  });
   describe("Project A", () => {
-    describe("Start new project A", () => {});
-    describe("Raise fund", () => {});
-    describe("Do work", () => {});
-    describe("Upgrade to a DAO", () => {});
-    describe("Emission Check", () => {});
+    describe("Start new project A", async () => {
+      let projectsCountBefore;
+      runOnly(this, async () => {
+        const projectMetadata = {
+          title: "ProjectA",
+          description: "Project A",
+          uri: "ipfs://MY_PROJECT_URL",
+        };
+        projectsCountBefore = await project.projectsOf(1);
+        await project.connect(bob).createProject(1, projectMetadata.uri);
+      });
+      it("successfully add project", async () => {
+        const projectsCountAfter = await project.projectsOf(1);
+        expect(projectsCountAfter.sub(projectsCountBefore)).to.be.eq(1);
+      });
+    });
+    describe("Raise fund", () => {
+      runOnly(this, async () => {
+        // to rollback
+      });
+      it("successfully add new funds", async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        await forkedDAO.commit
+          .connect(bob)
+          .approve(forkedDAO.contributionBoard.address, constants.MaxUint256);
+        await forkedDAO.contributionBoard
+          .connect(bob)
+          .addProjectFund(projectAId, parseEther("1"));
+        expect(
+          await forkedDAO.contributionBoard.projectFund(projectAId)
+        ).to.be.eq(parseEther("1"));
+      });
+      it("successfully grand to new projects", async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const beforeCommit = await forkedDAO.commit.balanceOf(
+          forkedDAO.contributionBoard.address
+        );
+        const prevFund = await forkedDAO.contributionBoard.projectFund(
+          projectAId
+        );
+        await runTimelockTx(
+          forkedDAO.timelock.connect(carl),
+          forkedDAO.stableReserve
+            .connect(carl)
+            .populateTransaction.grant(
+              forkedDAO.contributionBoard.address,
+              parseEther("2"),
+              defaultAbiCoder.encode(["uint256"], [projectAId.toNumber()])
+            )
+        );
+        const afterCommit = await forkedDAO.commit.balanceOf(
+          forkedDAO.contributionBoard.address
+        );
+        const newFund = await forkedDAO.contributionBoard.projectFund(
+          projectAId
+        );
+        expect(newFund.sub(prevFund)).to.eq(parseEther("2"));
+        expect(afterCommit.sub(beforeCommit)).to.eq(parseEther("2"));
+      });
+      it("should be reverted without issue new commitment", async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const beforeCommit = await forkedDAO.commit.balanceOf(
+          forkedDAO.contributionBoard.address
+        );
+        const prevFund = await forkedDAO.contributionBoard.projectFund(
+          projectAId
+        );
+
+        await expect(
+          runTimelockTx(
+            forkedDAO.timelock.connect(carl),
+            forkedDAO.stableReserve.connect(carl).populateTransaction.grant(
+              forkedDAO.contributionBoard.address,
+              parseEther("2"),
+              defaultAbiCoder.encode(
+                ["uint256"],
+                [projectAId.add(999).toNumber()]
+              ) //wrong project id
+            )
+          )
+        ).to.be.reverted;
+        const afterCommit = await forkedDAO.commit.balanceOf(
+          forkedDAO.contributionBoard.address
+        );
+        const newFund = await forkedDAO.contributionBoard.projectFund(
+          projectAId
+        );
+        const newFundWrong = await forkedDAO.contributionBoard.projectFund(
+          projectAId.add(999)
+        );
+        expect(newFund.sub(prevFund)).to.eq(0);
+        expect(newFundWrong).to.eq(0);
+        expect(afterCommit.sub(beforeCommit)).to.eq(0);
+      });
+    });
+    describe("Do work", () => {
+      runOnly(this, async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        await runTimelockTx(
+          forkedDAO.timelock.connect(carl),
+          forkedDAO.stableReserve
+            .connect(carl)
+            .populateTransaction.grant(
+              forkedDAO.contributionBoard.address,
+              parseEther("2"),
+              defaultAbiCoder.encode(["uint256"], [projectAId.toNumber()])
+            )
+        );
+      });
+      it("successfully give some fund to worker", async () => {
+        // project.
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const beforeAliceAmountOfCommit = await forkedDAO.commit.balanceOf(
+          alice.address
+        );
+        await forkedDAO.contributionBoard
+          .connect(bob)
+          .compensate(projectAId, alice.address, parseEther("1"));
+        const afterAliceAmountOfCommit = await forkedDAO.commit.balanceOf(
+          alice.address
+        );
+
+        expect(
+          afterAliceAmountOfCommit.sub(beforeAliceAmountOfCommit)
+        ).to.be.eq(parseEther("1"));
+        // await forkedDAO.contributionBoard.connect(bob).g
+      });
+
+      it("cannot give some fund to worker with not project owner", async () => {
+        const forkedDAO = await workhard.getDAO(1);
+        const projectAId = (await project.projectsOf(1)).add(1);
+        await expect(
+          forkedDAO.contributionBoard
+            .connect(alice)
+            .compensate(projectAId, alice.address, parseEther("1"))
+        ).to.be.reverted;
+      });
+    });
+    describe("Upgrade to a DAO", () => {
+      runOnly(this, async () => {
+        const projectAId = (await project.projectsOf(1)).add(1);
+        const forkedDAO = await workhard.getDAO(1);
+        await project
+          .connect(bob)
+          .upgradeToDAO(
+            projectAId,
+            defaultDAOParam(bob.address, forkedDAO.baseCurrency.address)
+          );
+        await project.connect(bob).launch(2, 4750, 4750, 499, 1);
+        await project.connect(carl).createProject(2, "");
+      });
+      it("successfully upgraded to dao, Project A", async () => {
+        expect(await project.projectsOf(2)).eq(1);
+      });
+    });
+    describe("Emission Check", () => {
+      runOnly(this, async () => {
+        // to rollback
+      });
+      it("successfully emission when grand child project got emission.", async () => {
+        const grandChildDAO = await workhard.getDAO(2);
+        const childDAO = await workhard.getDAO(1);
+        await expect(grandChildDAO.visionEmitter.distribute()).to.be.reverted;
+        await goToNextWeek();
+        await grandChildDAO.visionEmitter.connect(bob).distribute();
+        almostEquals(
+          (
+            await grandChildDAO.vision.balanceOf(childDAO.dividendPool.address)
+          ).mul(33),
+          await grandChildDAO.vision.totalSupply()
+        );
+      });
+    });
     describe("Dividends", () => {});
   });
   describe("Project B", () => {
