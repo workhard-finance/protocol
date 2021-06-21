@@ -6,6 +6,7 @@ import { parseEther } from "ethers/lib/utils";
 import {
   goTo,
   goToNextWeek,
+  runTimelockTx,
   setNextBlockTimestamp,
 } from "../../utils/utilities";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -92,6 +93,27 @@ describe("ERC721StakeMiningV1.sol", function () {
   });
   describe("distribute()", async () => {
     beforeEach(async () => {
+      await runTimelockTx(
+        timelock,
+        visionEmitter.populateTransaction.setEmission({
+          pools: [
+            {
+              weight: 4745,
+              poolType:
+                await workhard.commons.erc20BurnMiningV1Factory.poolType(),
+              baseToken: masterDAO.commit.address,
+            },
+            {
+              weight: 4745,
+              poolType:
+                await workhard.commons.erc721StakeMiningV1Factory.poolType(),
+              baseToken: testingERC721.address,
+            },
+          ],
+          treasuryWeight: 500,
+          callerWeight: 1,
+        })
+      );
       await goToNextWeek();
       await visionEmitter.distribute();
     });
@@ -123,6 +145,7 @@ describe("ERC721StakeMiningV1.sol", function () {
         const aliceReward = await vision.balanceOf(alice.address);
         const bobReward = await vision.balanceOf(bob.address);
         const carlReward = await vision.balanceOf(carl.address);
+        expect(aliceReward).not.to.eq(0);
         expect(aliceReward.div(1833333333333).div(1e9)).eq(
           bobReward.div(833333333333).div(1e9)
         );
