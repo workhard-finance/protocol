@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.7.0;
+pragma solidity >=0.7.0;
 
 import "@openzeppelin/contracts/introspection/ERC165Checker.sol";
 import "../../../core/emission/pools/ERC721StakeMiningV1.sol";

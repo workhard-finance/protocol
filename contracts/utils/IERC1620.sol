@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: CC0
-pragma solidity ^0.7.0;
+pragma solidity >=0.7.0;
 
 /**
  * @title ERC-1620 Money Streaming Standard

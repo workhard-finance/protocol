@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.7.0;
+pragma solidity >=0.7.0;
 import "../../../core/governance/libraries/VoteCounter.sol";
 import "../../../utils/Sqrt.sol";
 

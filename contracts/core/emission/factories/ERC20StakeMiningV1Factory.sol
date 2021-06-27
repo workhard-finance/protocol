@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.7.0;
+pragma solidity >=0.7.0;
 
 import "../../../core/emission/pools/ERC20StakeMiningV1.sol";
 import "../../../core/emission/libraries/MiningPoolFactory.sol";
