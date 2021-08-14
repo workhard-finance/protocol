@@ -832,15 +832,15 @@
     path-browserify "^1.0.0"
     url "^0.11.0"
 
-"@sablier/protocol@https://gitpkg.now.sh/sablierhq/sablier/packages/protocol?develop":
+"@sablier/protocol@https://gitpkg.now.sh/sablierhq/sablier/packages/protocol?audit-v2":
   version "1.0.0"
-  resolved "https://gitpkg.now.sh/sablierhq/sablier/packages/protocol?develop#ab75b715117592cbc49ef51100658428dcd57a44"
+  resolved "https://gitpkg.now.sh/sablierhq/sablier/packages/protocol?audit-v2#d9929b85e2d0d872cf62074468763474effd5658"
   dependencies:
     "@openzeppelin/contracts-ethereum-package" "2.2.3"
 
-"@sablier/shared-contracts@https://gitpkg.now.sh/sablierhq/sablier/packages/shared-contracts?develop":
+"@sablier/shared-contracts@https://gitpkg.now.sh/sablierhq/sablier/packages/shared-contracts?audit-v2":
   version "1.0.0"
-  resolved "https://gitpkg.now.sh/sablierhq/sablier/packages/shared-contracts?develop#9a2d07f9d49e8574cabd2254f40f7f2ccd704514"
+  resolved "https://gitpkg.now.sh/sablierhq/sablier/packages/shared-contracts?audit-v2#84e09112192dd03e88e7000934ad5ffc7b6c1c42"
   dependencies:
     "@openzeppelin/contracts-ethereum-package" "2.2.3"
 
