@@ -368,12 +368,16 @@ export class Workhard {
     id: BigNumberish,
     option?: {
       account?: Signer;
+      pool2Factory?: string;
     }
   ): Promise<Periphery | undefined> => {
     const connector = option?.account || this.signer || this.project.provider;
     const dao = await this.getDAO(id, option);
     if (!dao) return undefined;
-    const visionLPAddress = await this.commons.pool2Factory.getPair(
+    const pool2Factory = option?.pool2Factory
+      ? IUniswapV2Factory__factory.connect(option?.pool2Factory, connector)
+      : this.commons.pool2Factory;
+    const visionLPAddress = await pool2Factory.getPair(
       dao.vision.address,
       this.commons.weth.address
     );
